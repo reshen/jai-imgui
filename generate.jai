@@ -38,8 +38,9 @@ generate_imgui_bindings :: (args: [] string) -> bool {
     no_demo := array_find(args, "-no_demo");
     compile := array_find(args, "-compile");
     compile_debug := array_find(args, "-debug");
+    backend_sdl3_only_platform := array_find(args, "-backend_sdl3_only_platform");
     backend_sdl3_gpu3 := array_find(args, "-backend_sdl3_gpu3");
-	backend_glfw_opengl3 := array_find(args, "-backend_glfw_opengl3");
+    backend_glfw_opengl3 := array_find(args, "-backend_glfw_opengl3");
 
     if compile {
 
@@ -106,20 +107,23 @@ generate_imgui_bindings :: (args: [] string) -> bool {
 
     // We return if we generate a backend because bindings generator crashes if we do more than one generation per run
     if backend_sdl3_gpu3 {
-        success := compile_and_generate_bindings_backend_sdl3_gpu3(compile_debug);
+        assert(!backend_sdl3_only_platform, "SDL3 GPU is mutually exclusive with just SDL3 Platform");
+        success := compile_and_generate_bindings_backend_sdl3(compile_debug, include_gpu = true);
+        return success;
+    } 
+
+    if backend_sdl3_only_platform {
+        assert(!backend_sdl3_gpu3, "SDL3 GPU is mutually exclusive with just SDL3 Platform");
+        success := compile_and_generate_bindings_backend_sdl3(compile_debug, include_gpu = false);
         return success;
     }
 
-	if backend_glfw_opengl3 {
+    if backend_glfw_opengl3 {
         success := compile_and_generate_bindings_backend_glfw_opengl3(compile_debug);
         return success;
     }
 
-    init(*enums_for_typedefs);
-    defer {
-        deinit(*enums_for_typedefs);
-        array_reset(*begin_end_string_args);
-    }
+    defer array_reset(*begin_end_string_args);
 
     output_filename: string;
     opts: Generate_Bindings_Options;
@@ -171,15 +175,20 @@ EOF
     return success;
 }
 
-compile_and_generate_bindings_backend_sdl3_gpu3 :: (compile_debug: bool) -> bool {
+compile_and_generate_bindings_backend_sdl3 :: (compile_debug: bool, include_gpu: bool) -> bool {
 
     success := false;
-    array_add(*prefixes_to_keep, "ImGui_ImplSDL3_", "ImGui_ImplSDLGPU3_");
+    array_add(*prefixes_to_keep, "ImGui_ImplSDL3_");
 
-    src_files := string.[
-        sprint("%/backends/imgui_impl_sdl3.cpp", IMGUI_PATH),
-        sprint("%/backends/imgui_impl_sdlgpu3.cpp", IMGUI_PATH),
-    ];
+    src_files: [..]string; 
+    defer array_free(src_files);
+    array_add(*src_files, sprint("%/backends/imgui_impl_sdl3.cpp", IMGUI_PATH));
+
+    if include_gpu  {
+        array_add(*prefixes_to_keep, "ImGui_ImplSDLGPU3_");
+        array_add(*src_files, sprint("%/backends/imgui_impl_sdlgpu3.cpp", IMGUI_PATH));
+        lib_suffix := "";
+    }
 
     // Generate binaries
     #if OS == .WINDOWS {
@@ -187,7 +196,7 @@ compile_and_generate_bindings_backend_sdl3_gpu3 :: (compile_debug: bool) -> bool
         make_directory_if_it_does_not_exist("backends/windows");
 
         // We set IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS. Otherwise all users of the ImGui module have to link against "imm32".
-        success = build_cpp_static_lib("backends/windows/ImGui_sdl3_gpu3.static", ..src_files, extra = .["/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS", tprint("/I%", IMGUI_PATH), tprint("/I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
+        success = build_cpp_static_lib("backends/windows/ImGui_sdl3.static", ..src_files, extra = .["/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS", tprint("/I%", IMGUI_PATH), tprint("/I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
 
         if !success return false;
 
@@ -203,15 +212,15 @@ compile_and_generate_bindings_backend_sdl3_gpu3 :: (compile_debug: bool) -> bool
         // x64 variant
         // @Hack: Is -fno-threadsafe-statics really the way to go? Without it, we get linker errors when using the static library
         // due to "__cxa_guard_acquire" et al not being defined. The library users probably need to link agains libc++ or something. But do we really want to enforce that?
-        success = build_cpp_static_lib("backends/macos/ImGui_x64_sdl3_gpu3", ..src_files, extra = .["-arch", "x86_64", "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_x64_version_arg, tprint("-I%", IMGUI_PATH), tprint("-I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
-        assert(success, "build_cpp_static_lib('backends/macos/ImGui_x64_sdl3_gpu3'");
+        success = build_cpp_static_lib("backends/macos/ImGui_x64_sdl3", ..src_files, extra = .["-arch", "x86_64", "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_x64_version_arg, tprint("-I%", IMGUI_PATH), tprint("-I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
+        assert(success, "build_cpp_static_lib('backends/macos/ImGui_x64_sdl3'");
 
         // arm64 variant
-        success = build_cpp_static_lib("backends/macos/ImGui_arm64_sdl3_gpu3", ..src_files, extra = .["-arch", "arm64",  "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_arm64_version_arg, tprint("-I%", IMGUI_PATH), tprint("-I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
-        assert(success, "build_cpp_static_lib('backends/macos/ImGui_arm64_sdl3_gpu3'");
+        success = build_cpp_static_lib("backends/macos/ImGui_arm64_sdl3", ..src_files, extra = .["-arch", "arm64",  "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_arm64_version_arg, tprint("-I%", IMGUI_PATH), tprint("-I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
+        assert(success, "build_cpp_static_lib('backends/macos/ImGui_arm64_sdl3'");
 
         // create universal binaries
-        run_result :=  run_command("lipo", "-create", "backends/macos/ImGui_x64_sdl3_gpu3.a", "backends/macos/ImGui_arm64_sdl3_gpu3.a", "-output", "backends/macos/ImGui_sdl3_gpu3.a");
+        run_result :=  run_command("lipo", "-create", "backends/macos/ImGui_x64_sdl3.a", "backends/macos/ImGui_arm64_sdl3.a", "-output", "backends/macos/ImGui_sdl3.a");
         success = (run_result.exit_code == 0);
 
     } else #if OS == .LINUX {
@@ -222,8 +231,8 @@ compile_and_generate_bindings_backend_sdl3_gpu3 :: (compile_debug: bool) -> bool
 
         // @Hack: Is -fno-threadsafe-statics really the way to go? Without it, we get linker errors when using the static library
         // due to "__cxa_guard_acquire" et al not being defined. The library users probably need to link agains libc++ or something. But do we really want to enforce that?
-        success = build_cpp_static_lib("backends/linux/ImGui_sdl3_gpu3", ..src_files, extra = .["-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", tprint("-I%", IMGUI_PATH), tprint("-I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
-        assert(success, "build_cpp_static_lib('backends/linux/ImGui_sdl3_gpu3'");
+        success = build_cpp_static_lib("backends/linux/ImGui_sdl3", ..src_files, extra = .["-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", tprint("-I%", IMGUI_PATH), tprint("-I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
+        assert(success, "build_cpp_static_lib('backends/linux/ImGui_sdl3'");
     }
 
     // Generate bindings
@@ -235,12 +244,12 @@ compile_and_generate_bindings_backend_sdl3_gpu3 :: (compile_debug: bool) -> bool
         #if OS == .WINDOWS {
 
             array_add(*library_search_paths, "backends/windows");
-            array_add(*libraries, .{filename="ImGui_sdl3_gpu3.static"});
-            output_filename = "backends/windows/windows_sdl3_gpu3.jai";
+            array_add(*libraries, .{filename="ImGui_sdl3.static"});
+            output_filename = "backends/windows/windows_sdl3.jai";
             generate_library_declarations = false;
 
             footer = #string EOF
-imgui_sdl3_gpu3 :: #library,no_dll "ImGui_sdl3_gpu3.static";
+imgui_sdl3 :: #library,no_dll "ImGui_sdl3.static";
 EOF
 
         } else {
@@ -259,19 +268,19 @@ EOF
                 //
                 // So for now we avoid stripping them and then do the horrible hack
                 // below to replace '#foreign __UnknownLib' and '#elsewhere __UnknownLib'
-                // with '#foreign imgui_sdl3_gpu3'
+                // with '#foreign imgui_sdl3'
                 strip_flags &= ~.SYMBOLS_WITH_UNKNOWN_FOREIGN_LIBS;
 
             } else {
                 assert(false);
             }
 
-            array_add(*libraries, .{filename="ImGui_sdl3_gpu3"});
-            output_filename = "backends/unix_sdl3_gpu3.jai";
+            array_add(*libraries, .{filename="ImGui_sdl3"});
+            output_filename = "backends/unix_sdl3.jai";
             generate_library_declarations = false;
             footer = #string END
-#if OS == .MACOS imgui_sdl3_gpu3 :: #library,no_dll "macos/ImGui_sdl3_gpu3";
-#if OS == .LINUX imgui_sdl3_gpu3 :: #library,no_dll "linux/ImGui_sdl3_gpu3";
+#if OS == .MACOS imgui_sdl3 :: #library,no_dll "macos/ImGui_sdl3";
+#if OS == .LINUX imgui_sdl3 :: #library,no_dll "linux/ImGui_sdl3";
 END
         }
 
@@ -294,10 +303,10 @@ END
     // Horrible hack but...
     #if OS == .MACOS {
 
-        file_path := "backends/unix_sdl3_gpu3.jai";
+        file_path := "backends/unix_sdl3.jai";
         defer {
             if !success {
-                log("failed to replace invalid library name from generated MacOS bindings at '%'. You will have to manually replace '#foreign __UnknownLib' and '#elsewhere __UnknownLib' with '#foreign imgui_sdl3_gpu3' and '#elsewhere imgui_sdl3_gpu3'", file_path, flags=.ERROR);
+                log("failed to replace invalid library name from generated MacOS bindings at '%'. You will have to manually replace '#foreign __UnknownLib' and '#elsewhere __UnknownLib' with '#foreign imgui_sdl3' and '#elsewhere imgui_sdl3'", file_path, flags=.ERROR);
             }
         }
 
@@ -305,10 +314,10 @@ END
         if success {
             defer free(contents);
 
-            replace1 := replace(contents, "#foreign __UnknownLib", "#foreign imgui_sdl3_gpu3");
+            replace1 := replace(contents, "#foreign __UnknownLib", "#foreign imgui_sdl3");
             defer free(replace1);
 
-            replace2 := replace(replace1, "#elsewhere __UnknownLib", "#elsewhere imgui_sdl3_gpu3");
+            replace2 := replace(replace1, "#elsewhere __UnknownLib", "#elsewhere imgui_sdl3");
             defer free(replace2);
 
             success = write_entire_file(file_path, replace2);

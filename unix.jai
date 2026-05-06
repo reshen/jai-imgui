@@ -6,8 +6,8 @@
 
 
 
-IMGUI_VERSION :: "1.92.6 WIP";
-IMGUI_VERSION_NUM :: 19260;
+IMGUI_VERSION :: "1.92.7";
+IMGUI_VERSION_NUM :: 19270;
 
 ImTextureID_Invalid :: cast(ImTextureID) 0;
 
@@ -499,10 +499,6 @@ ImTextureRef :: struct {
     _TexData: *ImTextureData; //      A texture, generally owned by a ImFontAtlas. Will convert to ImTextureID during render loop, after texture has been uploaded.
     _TexID:   ImTextureID; // _OR_ Low-level backend texture identifier, if already uploaded or created by user/app. Generally provided to e.g. ImGui::Image() calls.
 }
-//-----------------------------------------------------------------------------
-// [SECTION] Dear ImGui end-user API functions
-// (Note that ImGui:: being a namespace, you can add extra ImGui:: functions in your own separate file. Please don't modify imgui source files!)
-//-----------------------------------------------------------------------------
 
 // Context creation and access
 // - Each context create its own ImFontAtlas by default. You may instance one yourself and pass it to CreateContext() to share a font atlas between contexts.
@@ -1049,6 +1045,7 @@ CollapsingHeader :: (label: *u8, flags: TreeNodeFlags = .None) -> bool #foreign 
 CollapsingHeader :: (label: *u8, p_visible: *bool, flags: TreeNodeFlags = .None) -> bool #foreign imgui "_ZN5ImGui16CollapsingHeaderEPKcPbi";
 SetNextItemOpen :: (is_open: bool, cond: Cond = .None) -> void #foreign imgui "_ZN5ImGui15SetNextItemOpenEbi";
 SetNextItemStorageID :: (storage_id: ID) -> void #foreign imgui "_ZN5ImGui20SetNextItemStorageIDEj";
+TreeNodeGetOpen :: (storage_id: ID) -> bool #foreign imgui "_ZN5ImGui15TreeNodeGetOpenEj";
 
 // Widgets: Selectables
 // - A selectable highlights when hovered, and can display another color when selected.
@@ -1091,10 +1088,10 @@ ListBox :: (label: *u8, current_item: *s32, getter: #type (user_data: *void, idx
 
 // Widgets: Data Plotting
 // - Consider using ImPlot (https://github.com/epezent/implot) which is much better!
-PlotLines :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPKfiiS1_ff6ImVec2i";
-PlotLines :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPFfPviES2_iiS1_ff6ImVec2";
-PlotHistogram :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPKfiiS1_ff6ImVec2i";
-PlotHistogram :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = ImVec2.{0, 0}) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPFfPviES2_iiS1_ff6ImVec2";
+PlotLines :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPKfiiS1_ff6ImVec2i";
+PlotLines :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}) -> void #foreign imgui "_ZN5ImGui9PlotLinesEPKcPFfPviES2_iiS1_ff6ImVec2";
+PlotHistogram :: (label: *u8, values: *float, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}, stride: s32 = 4) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPKfiiS1_ff6ImVec2i";
+PlotHistogram :: (label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32 = 0, overlay_text: *u8 = null, scale_min: float = FLOAT32_MAX, scale_max: float = FLOAT32_MAX, graph_size: ImVec2 = .{0, 0}) -> void #foreign imgui "_ZN5ImGui13PlotHistogramEPKcPFfPviES2_iiS1_ff6ImVec2";
 
 // Widgets: Value() Helpers.
 // - Those are merely shortcut to calling Text() with a format string. Output single value in "name: value" format (tip: freely declare more in your code to handle your types. you can add functions to the ImGui namespace)
@@ -1230,7 +1227,7 @@ TableSetColumnIndex :: (column_n: s32) -> bool #foreign imgui "_ZN5ImGui19TableS
 //   The context menu can also be made available in columns body using ImGuiTableFlags_ContextMenuInBody.
 // - You may manually submit headers using TableNextRow() + TableHeader() calls, but this is only useful in
 //   some advanced use cases (e.g. adding custom widgets in header row).
-// - Use TableSetupScrollFreeze() to lock columns/rows so they stay visible when scrolled.
+// - Use TableSetupScrollFreeze() to lock columns/rows so they stay visible when scrolled. When freezing columns you would usually also use ImGuiTableColumnFlags_NoHide on them.
 TableSetupColumn :: (label: *u8, flags: TableColumnFlags = .None, init_width_or_weight: float = 0.0, user_id: ID = 0) -> void #foreign imgui "_ZN5ImGui16TableSetupColumnEPKcifj";
 TableSetupScrollFreeze :: (cols: s32, rows: s32) -> void #foreign imgui "_ZN5ImGui22TableSetupScrollFreezeEii";
 TableHeader :: (label: *u8) -> void #foreign imgui "_ZN5ImGui11TableHeaderEPKc";
@@ -1550,13 +1547,10 @@ Image :: (tex_ref: ImTextureRef, image_size: ImVec2, uv0: ImVec2, uv1: ImVec2, t
     Image(tex_ref, *image_size, *uv0, *uv1, *tint_col, *border_col);
 }
 
+// You do not need those functions! See #7838 on GitHub for more info.
 GetContentRegionMax :: () -> ImVec2 #foreign imgui "_ZN5ImGui19GetContentRegionMaxEv";
 GetWindowContentRegionMin :: () -> ImVec2 #foreign imgui "_ZN5ImGui25GetWindowContentRegionMinEv";
 GetWindowContentRegionMax :: () -> ImVec2 #foreign imgui "_ZN5ImGui25GetWindowContentRegionMaxEv";
-
-// OBSOLETED in 1.90.0 (from September 2023)
-Combo :: (label: *u8, current_item: *s32, old_callback: #type (user_data: *void, idx: s32, out_text: **u8) -> bool #c_call, user_data: *void, items_count: s32, popup_max_height_in_items: s32 = -1) -> bool #foreign imgui "_ZN5ImGui5ComboEPKcPiPFbPviPS1_ES3_ii";
-ListBox :: (label: *u8, current_item: *s32, old_callback: #type (user_data: *void, idx: s32, out_text: **u8) -> bool #c_call, user_data: *void, items_count: s32, height_in_items: s32 = -1) -> bool #foreign imgui "_ZN5ImGui7ListBoxEPKcPiPFbPviPS1_ES3_ii";
 
 // Flags for ImGui::Begin()
 // (Those are per-window flags. There are shared flags in ImGuiIO: io.ConfigWindowsResizeFromEdges and io.ConfigWindowsMoveFromTitleBarOnly)
@@ -2168,6 +2162,7 @@ InputFlags :: enum_flags u32 {
 }
 
 // Configuration flags stored in io.ConfigFlags. Set by user/application.
+// Note that nowadays most of our configuration options are in other ImGuiIO fields, e.g. io.ConfigWindowsMoveFromTitleBarOnly.
 ConfigFlags :: enum_flags u32 {
     None                    :: 0x0;
     NavEnableKeyboard       :: 0x1;
@@ -2422,11 +2417,12 @@ StyleVar :: enum u32 {
     TreeLinesRounding           :: 34;
     ButtonTextAlign             :: 35;
     SelectableTextAlign         :: 36;
-    SeparatorTextBorderSize     :: 37;
-    SeparatorTextAlign          :: 38;
-    SeparatorTextPadding        :: 39;
-    DockingSeparatorSize        :: 40;
-    COUNT                       :: 41;
+    SeparatorSize               :: 37;
+    SeparatorTextBorderSize     :: 38;
+    SeparatorTextAlign          :: 39;
+    SeparatorTextPadding        :: 40;
+    DockingSeparatorSize        :: 41;
+    COUNT                       :: 42;
 
     ImGuiStyleVar_Alpha                       :: Alpha;
     ImGuiStyleVar_DisabledAlpha               :: DisabledAlpha;
@@ -2465,6 +2461,7 @@ StyleVar :: enum u32 {
     ImGuiStyleVar_TreeLinesRounding           :: TreeLinesRounding;
     ImGuiStyleVar_ButtonTextAlign             :: ButtonTextAlign;
     ImGuiStyleVar_SelectableTextAlign         :: SelectableTextAlign;
+    ImGuiStyleVar_SeparatorSize               :: SeparatorSize;
     ImGuiStyleVar_SeparatorTextBorderSize     :: SeparatorTextBorderSize;
     ImGuiStyleVar_SeparatorTextAlign          :: SeparatorTextAlign;
     ImGuiStyleVar_SeparatorTextPadding        :: SeparatorTextPadding;
@@ -2480,6 +2477,7 @@ ButtonFlags :: enum_flags u32 {
     MouseButtonMiddle :: 0x4;
     MouseButtonMask_  :: 0x7;
     EnableNav         :: 0x8;
+    AllowOverlap      :: 0x1000;
 
     ImGuiButtonFlags_None              :: None;
     ImGuiButtonFlags_MouseButtonLeft   :: MouseButtonLeft;
@@ -2487,6 +2485,7 @@ ButtonFlags :: enum_flags u32 {
     ImGuiButtonFlags_MouseButtonMiddle :: MouseButtonMiddle;
     ImGuiButtonFlags_MouseButtonMask_  :: MouseButtonMask_;
     ImGuiButtonFlags_EnableNav         :: EnableNav;
+    ImGuiButtonFlags_AllowOverlap      :: AllowOverlap;
 }
 
 // Flags for ColorEdit3() / ColorEdit4() / ColorPicker3() / ColorPicker4() / ColorButton()
@@ -2964,6 +2963,7 @@ Style :: struct {
     ColorButtonPosition:              Dir; // Side of the color button in the ColorEdit4 widget (left/right). Defaults to ImGuiDir_Right.
     ButtonTextAlign:                  ImVec2; // Alignment of button text when button is larger than text. Defaults to (0.5f, 0.5f) (centered).
     SelectableTextAlign:              ImVec2; // Alignment of selectable text. Defaults to (0.0f, 0.0f) (top-left aligned). It's generally important to keep this left-aligned if you want to lay multiple items on a same line.
+    SeparatorSize:                    float; // Thickness of border in Separator()
     SeparatorTextBorderSize:          float; // Thickness of border in SeparatorText()
     SeparatorTextAlign:               ImVec2; // Alignment of text within the separator. Defaults to (0.0f, 0.5f) (left aligned, center).
     SeparatorTextPadding:             ImVec2; // Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
@@ -2987,7 +2987,7 @@ Style :: struct {
     HoverFlagsForTooltipMouse:        HoveredFlags; // Default flags when using IsItemHovered(ImGuiHoveredFlags_ForTooltip) or BeginItemTooltip()/SetItemTooltip() while using mouse.
     HoverFlagsForTooltipNav:          HoveredFlags; // Default flags when using IsItemHovered(ImGuiHoveredFlags_ForTooltip) or BeginItemTooltip()/SetItemTooltip() while using keyboard/gamepad.
 
-    _MainScale:                       float; // FIXME-WIP: Reference scale, as applied by ScaleAllSizes().
+    _MainScale:                       float; // FIXME-WIP: Reference scale, as applied by ScaleAllSizes(). PLEASE DO NOT USE THIS FOR NOW.
     _NextFrameFontSizeBase:           float; // FIXME: Temporary hack until we finish remaining work.
 
     // Functions
@@ -3046,7 +3046,7 @@ IO :: struct {
     ConfigMacOSXBehaviors:                         bool; // = defined(__APPLE__) // Swap Cmd<>Ctrl keys + OS X style text editing cursor movement using Alt instead of Ctrl, Shortcuts using Cmd/Super instead of Ctrl, Line/Text Start and End using Cmd+Arrows instead of Home/End, Double click selects by word instead of selecting whole text, Multi-selection in lists uses Cmd/Super instead of Ctrl.
     ConfigInputTrickleEventQueue:                  bool; // = true           // Enable input queue trickling: some types of events submitted during the same frame (e.g. button down + up) will be spread over multiple frames, improving interactions with low framerates.
     ConfigInputTextCursorBlink:                    bool; // = true           // Enable blinking cursor (optional as some users consider it to be distracting).
-    ConfigInputTextEnterKeepActive:                bool; // = false          // [BETA] Pressing Enter will keep item active and select contents (single-line only).
+    ConfigInputTextEnterKeepActive:                bool; // = false          // [BETA] Pressing Enter will reactivate item and select all text (single-line only).
     ConfigDragClickToInputText:                    bool; // = false          // [BETA] Enable turning DragXXX widgets into text input with a simple mouse click-release (without moving). Not desirable on devices without a keyboard.
     ConfigWindowsResizeFromEdges:                  bool; // = true           // Enable resizing of windows from their edges and from the lower-left corner. This requires ImGuiBackendFlags_HasMouseCursors for better mouse cursor feedback. (This used to be a per-window ImGuiWindowFlags_ResizeFromAnySide flag)
     ConfigWindowsMoveFromTitleBarOnly:             bool; // = false      // Enable allowing to move windows only when clicking on their title bar. Does not apply to windows without a title bar.
@@ -3350,15 +3350,16 @@ ListClipperFlags :: enum_flags u32 {
 // - User code submit visible elements.
 // - The clipper also handles various subtleties related to keyboard/gamepad navigation, wrapping etc.
 ListClipper :: struct {
-    Ctx:              *ImGuiContext; // Parent UI context
     DisplayStart:     s32; // First item to display, updated by each call to Step()
     DisplayEnd:       s32; // End of items to display (exclusive)
+    UserIndex:        s32; // Helper storage for user convenience/code. Optional, and otherwise unused if you don't use it.
     ItemsCount:       s32; // [Internal] Number of items
     ItemsHeight:      float; // [Internal] Height of item after a first step and item submission can calculate it
+    Flags:            ListClipperFlags; // [Internal] Flags, currently not yet well exposed.
     StartPosY:        float64; // [Internal] Cursor position at the time of Begin() or after table frozen rows are all processed
     StartSeekOffsetY: float64; // [Internal] Account for frozen rows in a table and initial loss of precision in very large windows.
+    Ctx:              *ImGuiContext; // [Internal] Parent UI context
     TempData:         *void; // [Internal] Internal data
-    Flags:            ListClipperFlags; // [Internal] Flags, currently not yet well exposed.
 
     // items_count: Use INT_MAX if you don't know how many items you have (in which case the cursor won't be advanced in the final step, and you can call SeekCursorForItem() manually if you need)
     // items_height: Use -1.0f to be calculated automatically on first step. Otherwise pass in the distance between your items, typically GetTextLineHeightWithSpacing() or GetFrameHeightWithSpacing().
@@ -3393,11 +3394,15 @@ MultiSelectFlags :: enum_flags u32 {
     ClearOnClickVoid      :: 0x400;
     ScopeWindow           :: 0x800;
     ScopeRect             :: 0x1000;
-    SelectOnClick         :: 0x2000;
-    SelectOnClickRelease  :: 0x4000;
+    SelectOnAuto          :: 0x2000;
+    SelectOnClickAlways   :: 0x4000;
+    SelectOnClickRelease  :: 0x8000;
 
     NavWrapX              :: 0x10000;
     NoSelectOnRightClick  :: 0x20000;
+    SelectOnMask_         :: 0xe000;
+
+    SelectOnClick         :: 0x2000;
 
     ImGuiMultiSelectFlags_None                  :: None;
     ImGuiMultiSelectFlags_SingleSelect          :: SingleSelect;
@@ -3413,11 +3418,15 @@ MultiSelectFlags :: enum_flags u32 {
     ImGuiMultiSelectFlags_ClearOnClickVoid      :: ClearOnClickVoid;
     ImGuiMultiSelectFlags_ScopeWindow           :: ScopeWindow;
     ImGuiMultiSelectFlags_ScopeRect             :: ScopeRect;
-    ImGuiMultiSelectFlags_SelectOnClick         :: SelectOnClick;
+    ImGuiMultiSelectFlags_SelectOnAuto          :: SelectOnAuto;
+    ImGuiMultiSelectFlags_SelectOnClickAlways   :: SelectOnClickAlways;
     ImGuiMultiSelectFlags_SelectOnClickRelease  :: SelectOnClickRelease;
 
     ImGuiMultiSelectFlags_NavWrapX              :: NavWrapX;
     ImGuiMultiSelectFlags_NoSelectOnRightClick  :: NoSelectOnRightClick;
+    ImGuiMultiSelectFlags_SelectOnMask_         :: SelectOnMask_;
+
+    ImGuiMultiSelectFlags_SelectOnClick         :: SelectOnClick;
 }
 
 // Main IO structure returned by BeginMultiSelect()/EndMultiSelect().
@@ -3974,6 +3983,39 @@ ImFontGlyph :: struct {
     PackId:     s32; // [Internal] ImFontAtlasRectId value (FIXME: Cold data, could be moved elsewhere?)
 }
 
+set_Colored :: (fields: *ImFontGlyph, value: bool) {
+    if value fields.__bitfield |= 1 << 0;
+    else     fields.__bitfield &= ~cast(u32)(1 << 0);
+}
+get_Colored :: (fields: ImFontGlyph) -> bool {
+    return (fields.__bitfield & (1 << 0)) != 0;
+}
+
+set_Visible :: (fields: *ImFontGlyph, value: bool) {
+    if value fields.__bitfield |= 1 << 1;
+    else     fields.__bitfield &= ~cast(u32)(1 << 1);
+}
+get_Visible :: (fields: ImFontGlyph) -> bool {
+    return (fields.__bitfield & (1 << 1)) != 0;
+}
+
+set_SourceIdx :: (fields: *ImFontGlyph, value: u32) {
+    MASK0: u32 : (0b1111 << 2);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 2) & MASK0);
+}
+get_SourceIdx :: (fields: ImFontGlyph) -> u32 {
+    return ((fields.__bitfield & (0b1111 << 2)) >> 2);
+}
+
+set_Codepoint :: (fields: *ImFontGlyph, value: u32) {
+    MASK0: u32 : (0b11_1111_1111_1111_1111_1111_1111 << 6);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 6) & MASK0);
+}
+get_Codepoint :: (fields: ImFontGlyph) -> u32 {
+    return ((fields.__bitfield & (0b11_1111_1111_1111_1111_1111_1111 << 6)) >> 6);
+}
+
+
 // Helper to build glyph ranges from text/string data. Feed your application strings/characters to it then call BuildRanges().
 // This is essentially a tightly packed of vector of 64k booleans = 8KB storage.
 ImFontGlyphRangesBuilder :: struct {
@@ -4029,7 +4071,7 @@ ImFontAtlasFlags :: enum_flags u32 {
 //  - Call Build() + GetTexDataAsAlpha8() or GetTexDataAsRGBA32() to build and retrieve pixels data.
 //  - Call SetTexID(my_tex_id); and pass the pointer/identifier to your texture in a format natural to your graphics API.
 // Common pitfalls:
-// - If you pass a 'glyph_ranges' array to AddFont*** functions, you need to make sure that your array persist up until the
+// - If you pass a 'glyph_ranges' array to AddFont*** functions, you need to make sure that your array persists up until the
 //   atlas is build (when calling GetTexData*** or Build()). We only copy the pointer, not the data.
 // - Important: By default, AddFontFromMemoryTTF() takes ownership of the data. Even though we are not writing to it, we will free the pointer on destruction.
 //   You can set font_cfg->FontDataOwnedByAtlas=false to keep ownership of your data and it won't be freed,
@@ -4192,6 +4234,39 @@ ImFontBaked :: struct {
     IsGlyphLoaded :: (this: *ImFontBaked, c: ImWchar) -> bool #cpp_method #foreign imgui "_ZN11ImFontBaked13IsGlyphLoadedEt";
 }
 
+set_MetricsTotalSurface :: (fields: *ImFontBaked, value: u32) {
+    MASK0: u32 : 0b11_1111_1111_1111_1111_1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_MetricsTotalSurface :: (fields: ImFontBaked) -> u32 {
+    return (fields.__bitfield & 0b11_1111_1111_1111_1111_1111_1111);
+}
+
+set_WantDestroy :: (fields: *ImFontBaked, value: bool) {
+    if value fields.__bitfield |= 1 << 26;
+    else     fields.__bitfield &= ~cast(u32)(1 << 26);
+}
+get_WantDestroy :: (fields: ImFontBaked) -> bool {
+    return (fields.__bitfield & (1 << 26)) != 0;
+}
+
+set_LoadNoFallback :: (fields: *ImFontBaked, value: bool) {
+    if value fields.__bitfield |= 1 << 27;
+    else     fields.__bitfield &= ~cast(u32)(1 << 27);
+}
+get_LoadNoFallback :: (fields: ImFontBaked) -> bool {
+    return (fields.__bitfield & (1 << 27)) != 0;
+}
+
+set_LoadNoRenderOnLayout :: (fields: *ImFontBaked, value: bool) {
+    if value fields.__bitfield |= 1 << 28;
+    else     fields.__bitfield &= ~cast(u32)(1 << 28);
+}
+get_LoadNoRenderOnLayout :: (fields: ImFontBaked) -> bool {
+    return (fields.__bitfield & (1 << 28)) != 0;
+}
+
+
 // Font flags
 // (in future versions as we redesign font loading API, this will become more important and better documented. for now please consider this as internal/advanced use)
 ImFontFlags :: enum_flags u32 {
@@ -4326,6 +4401,8 @@ Viewport :: struct {
     PlatformRequestMove:   bool; // Platform window requested move (e.g. window was moved by the OS / host window manager, authoritative position will be OS window position)
     PlatformRequestResize: bool; // Platform window requested resize (e.g. window was resized by the OS / host window manager, authoritative size will be OS window size)
     PlatformRequestClose:  bool; // Platform window requested closure (e.g. window was moved by the OS / host window manager, e.g. pressing ALT-F4)
+
+    GetDebugName :: (this: *Viewport) -> *u8 #cpp_method #foreign imgui "_ZNK13ImGuiViewport12GetDebugNameEv";
 }
 
 // Access via ImGui::GetPlatformIO()
@@ -4427,7 +4504,7 @@ ImFontAtlasCustomRect :: ImFontAtlasRect;
 
 #scope_file
 
-#import "Basic"; // For push_context
+#import "Basic"; // For print_to_builder
 
 
 #if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
