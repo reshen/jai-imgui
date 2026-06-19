@@ -2,3 +2,9 @@
 	path = src/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "src/include/implot"]
+	path = src/include/implot
+	url = git@github.com:epezent/implot.git
+[submodule "src/include/legit_profiler"]
+	path = src/include/legit_profiler
+	url = git@github.com:Raikiri/LegitProfiler.git

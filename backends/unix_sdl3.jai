@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai - -backend_sdl3
+// jai generate.jai - -backend_sdl3_only_platform
 //
 
 
@@ -43,40 +43,6 @@ ImplSDL3_MouseCaptureMode :: enum u32 {
     ImGui_ImplSDL3_MouseCaptureMode_Disabled         :: Disabled;
 }
 ImplSDL3_SetMouseCaptureMode :: (mode: ImplSDL3_MouseCaptureMode) -> void #foreign imgui_sdl3 "_Z34ImGui_ImplSDL3_SetMouseCaptureMode31ImGui_ImplSDL3_MouseCaptureMode";
-
-// Initialization data, for ImGui_ImplSDLGPU_Init()
-// - Remember to set ColorTargetFormat to the correct format. If you're rendering to the swapchain, call SDL_GetGPUSwapchainTextureFormat() to query the right value
-ImplSDLGPU3_InitInfo :: struct {
-    Device:               *SDL_GPUDevice = null;
-    ColorTargetFormat:    SDL_GPUTextureFormat = .SDL_GPU_TEXTUREFORMAT_INVALID;
-    MSAASamples:          SDL_GPUSampleCount = .SDL_GPU_SAMPLECOUNT_1;
-    SwapchainComposition: SDL_GPUSwapchainComposition = .SDL_GPU_SWAPCHAINCOMPOSITION_SDR; // Only used in multi-viewports mode.
-    PresentMode:          SDL_GPUPresentMode = .SDL_GPU_PRESENTMODE_VSYNC; // Only used in multi-viewports mode.
-}
-
-// Follow "Getting Started" link and check examples/ folder to learn about using backends!
-ImplSDLGPU3_Init :: (info: *ImplSDLGPU3_InitInfo) -> bool #foreign imgui_sdl3 "_Z22ImGui_ImplSDLGPU3_InitP26ImGui_ImplSDLGPU3_InitInfo";
-ImplSDLGPU3_Shutdown :: () -> void #foreign imgui_sdl3 "_Z26ImGui_ImplSDLGPU3_Shutdownv";
-ImplSDLGPU3_NewFrame :: () -> void #foreign imgui_sdl3 "_Z26ImGui_ImplSDLGPU3_NewFramev";
-ImplSDLGPU3_PrepareDrawData :: (draw_data: *ImDrawData, command_buffer: *SDL_GPUCommandBuffer) -> void #foreign imgui_sdl3 "_Z33ImGui_ImplSDLGPU3_PrepareDrawDataP10ImDrawDataP20SDL_GPUCommandBuffer";
-ImplSDLGPU3_RenderDrawData :: (draw_data: *ImDrawData, command_buffer: *SDL_GPUCommandBuffer, render_pass: *SDL_GPURenderPass, pipeline: *SDL_GPUGraphicsPipeline = null) -> void #foreign imgui_sdl3 "_Z32ImGui_ImplSDLGPU3_RenderDrawDataP10ImDrawDataP20SDL_GPUCommandBufferP17SDL_GPURenderPassP23SDL_GPUGraphicsPipeline";
-
-// Use if you want to reset your rendering device without losing Dear ImGui state.
-ImplSDLGPU3_CreateDeviceObjects :: () -> void #foreign imgui_sdl3 "_Z37ImGui_ImplSDLGPU3_CreateDeviceObjectsv";
-ImplSDLGPU3_DestroyDeviceObjects :: () -> void #foreign imgui_sdl3 "_Z38ImGui_ImplSDLGPU3_DestroyDeviceObjectsv";
-
-// (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = nullptr to handle this manually.
-ImplSDLGPU3_UpdateTexture :: (tex: *ImTextureData) -> void #foreign imgui_sdl3 "_Z31ImGui_ImplSDLGPU3_UpdateTextureP13ImTextureData";
-
-// [BETA] Selected render state data shared with callbacks.
-// This is temporarily stored in GetPlatformIO().Renderer_RenderState during the ImGui_ImplSDLGPU3_RenderDrawData() call.
-// (Please open an issue if you feel you need access to more data)
-ImplSDLGPU3_RenderState :: struct {
-    Device:         *SDL_GPUDevice;
-    SamplerLinear:  *SDL_GPUSampler; // Bilinear filtering sampler
-    SamplerNearest: *SDL_GPUSampler; // Nearest/point filtering sampler
-    SamplerCurrent: *SDL_GPUSampler; // Current sampler (may be changed by callback)
-}
 
 #scope_file
 

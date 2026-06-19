@@ -51,6 +51,12 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         array_add(*imgui_src_files, tprint("%/imgui_draw.cpp", IMGUI_PATH));
         array_add(*imgui_src_files, tprint("%/imgui_tables.cpp", IMGUI_PATH));
 
+        // For implot, I just dropped github repo into src/include/implot. Go in there and use
+        // git to choose a release tag. Copy all the cpp/h files to IMGUI_PATH/; then rebuild
+        array_add(*imgui_src_files, tprint("%/implot.cpp", IMGUI_PATH));
+        array_add(*imgui_src_files, tprint("%/implot_items.cpp", IMGUI_PATH));
+        array_add(*imgui_src_files, tprint("%/implot_demo.cpp", IMGUI_PATH));
+
         if !no_demo
             array_add(*imgui_src_files, tprint("%/imgui_demo.cpp", IMGUI_PATH));
 
@@ -158,7 +164,7 @@ EOF
         }
 
         array_add(*include_paths, IMGUI_PATH);
-        array_add(*source_files,  tprint("%/imgui.h", IMGUI_PATH));
+        array_add(*source_files,  tprint("%/imgui.h", IMGUI_PATH),  tprint("%/implot.h", IMGUI_PATH));
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
         array_add(*strip_prefixes, "ImGui");

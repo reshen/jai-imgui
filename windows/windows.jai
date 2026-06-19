@@ -28,6 +28,10 @@ IM_DRAWLIST_TEX_LINES_WIDTH_MAX :: 32;
 
 ImFontAtlasRectId_Invalid :: -1;
 
+IMPLOT_VERSION :: "1.0";
+
+IMPLOT_VERSION_NUM :: 10000;
+
 // Scalar data types
 ID :: u32;
 ImS8 :: s8;
@@ -4497,6 +4501,1291 @@ PlatformImeData :: struct {
 // - ImFontAtlasCustomRect::GlyphColored --> if you need to write to this, instead you can write to 'font->Glyphs.back()->Colored' after calling AddCustomRectFontGlyph()
 // We could make ImTextureRect an union to use old names, but 1) this would be confusing 2) the fix is easy 3) ImFontAtlasCustomRect was always a rather esoteric api.
 ImFontAtlasCustomRect :: ImFontAtlasRect;
+
+// Indicates variable should deduced automatically.
+IMPLOT_AUTO: s32 : -1;
+
+// Special color used to indicate that a color should be deduced automatically.
+IMPLOT_AUTO_COL: ImVec4 : .{0, 0, 0, -1};
+
+// Forward declarations
+ImPlotContext :: struct {}
+
+// Axis indices. The values assigned may change; NEVER hardcode these.
+ImAxis :: enum s32 {
+    X1    :: 0;
+    X2    :: 1;
+    X3    :: 2;
+
+    Y1    :: 3;
+    Y2    :: 4;
+    Y3    :: 5;
+
+    COUNT :: 6;
+
+    ImAxis_X1    :: X1;
+    ImAxis_X2    :: X2;
+    ImAxis_X3    :: X3;
+
+    ImAxis_Y1    :: Y1;
+    ImAxis_Y2    :: Y2;
+    ImAxis_Y3    :: Y3;
+
+    ImAxis_COUNT :: COUNT;
+}
+
+// Plotting properties. These provide syntactic sugar for creating ImPlotSpecs from (ImPlotProp,value) pairs. See ImPlotSpec documentation.
+ImPlotProp :: enum s32 {
+    LineColor        :: 0;
+    LineColors       :: 1;
+    LineWeight       :: 2;
+    FillColor        :: 3;
+    FillColors       :: 4;
+    FillAlpha        :: 5;
+    Marker           :: 6;
+    MarkerSize       :: 7;
+    MarkerSizes      :: 8;
+    MarkerLineColor  :: 9;
+    MarkerLineColors :: 10;
+    MarkerFillColor  :: 11;
+    MarkerFillColors :: 12;
+    Size             :: 13;
+    Offset           :: 14;
+    Stride           :: 15;
+    Flags            :: 16;
+
+    ImPlotProp_LineColor        :: LineColor;
+    ImPlotProp_LineColors       :: LineColors;
+    ImPlotProp_LineWeight       :: LineWeight;
+    ImPlotProp_FillColor        :: FillColor;
+    ImPlotProp_FillColors       :: FillColors;
+    ImPlotProp_FillAlpha        :: FillAlpha;
+    ImPlotProp_Marker           :: Marker;
+    ImPlotProp_MarkerSize       :: MarkerSize;
+    ImPlotProp_MarkerSizes      :: MarkerSizes;
+    ImPlotProp_MarkerLineColor  :: MarkerLineColor;
+    ImPlotProp_MarkerLineColors :: MarkerLineColors;
+    ImPlotProp_MarkerFillColor  :: MarkerFillColor;
+    ImPlotProp_MarkerFillColors :: MarkerFillColors;
+    ImPlotProp_Size             :: Size;
+    ImPlotProp_Offset           :: Offset;
+    ImPlotProp_Stride           :: Stride;
+    ImPlotProp_Flags            :: Flags;
+}
+
+// Options for plots (see BeginPlot).
+ImPlotFlags :: enum_flags s32 {
+    None        :: 0x0;
+    NoTitle     :: 0x1;
+    NoLegend    :: 0x2;
+    NoMouseText :: 0x4;
+    NoInputs    :: 0x8;
+    NoMenus     :: 0x10;
+    NoBoxSelect :: 0x20;
+    NoFrame     :: 0x40;
+    Equal       :: 0x80;
+    Crosshairs  :: 0x100;
+    CanvasOnly  :: 0x37;
+
+    ImPlotFlags_None        :: None;
+    ImPlotFlags_NoTitle     :: NoTitle;
+    ImPlotFlags_NoLegend    :: NoLegend;
+    ImPlotFlags_NoMouseText :: NoMouseText;
+    ImPlotFlags_NoInputs    :: NoInputs;
+    ImPlotFlags_NoMenus     :: NoMenus;
+    ImPlotFlags_NoBoxSelect :: NoBoxSelect;
+    ImPlotFlags_NoFrame     :: NoFrame;
+    ImPlotFlags_Equal       :: Equal;
+    ImPlotFlags_Crosshairs  :: Crosshairs;
+    ImPlotFlags_CanvasOnly  :: CanvasOnly;
+}
+
+// Options for plot axes (see SetupAxis).
+ImPlotAxisFlags :: enum_flags s32 {
+    None          :: 0x0;
+    NoLabel       :: 0x1;
+    NoGridLines   :: 0x2;
+    NoTickMarks   :: 0x4;
+    NoTickLabels  :: 0x8;
+    NoInitialFit  :: 0x10;
+    NoMenus       :: 0x20;
+    NoSideSwitch  :: 0x40;
+    NoHighlight   :: 0x80;
+    Opposite      :: 0x100;
+    Foreground    :: 0x200;
+    Invert        :: 0x400;
+    AutoFit       :: 0x800;
+    RangeFit      :: 0x1000;
+    PanStretch    :: 0x2000;
+    LockMin       :: 0x4000;
+    LockMax       :: 0x8000;
+    Lock          :: 0xc000;
+    NoDecorations :: 0xf;
+    AuxDefault    :: 0x102;
+
+    ImPlotAxisFlags_None          :: None;
+    ImPlotAxisFlags_NoLabel       :: NoLabel;
+    ImPlotAxisFlags_NoGridLines   :: NoGridLines;
+    ImPlotAxisFlags_NoTickMarks   :: NoTickMarks;
+    ImPlotAxisFlags_NoTickLabels  :: NoTickLabels;
+    ImPlotAxisFlags_NoInitialFit  :: NoInitialFit;
+    ImPlotAxisFlags_NoMenus       :: NoMenus;
+    ImPlotAxisFlags_NoSideSwitch  :: NoSideSwitch;
+    ImPlotAxisFlags_NoHighlight   :: NoHighlight;
+    ImPlotAxisFlags_Opposite      :: Opposite;
+    ImPlotAxisFlags_Foreground    :: Foreground;
+    ImPlotAxisFlags_Invert        :: Invert;
+    ImPlotAxisFlags_AutoFit       :: AutoFit;
+    ImPlotAxisFlags_RangeFit      :: RangeFit;
+    ImPlotAxisFlags_PanStretch    :: PanStretch;
+    ImPlotAxisFlags_LockMin       :: LockMin;
+    ImPlotAxisFlags_LockMax       :: LockMax;
+    ImPlotAxisFlags_Lock          :: Lock;
+    ImPlotAxisFlags_NoDecorations :: NoDecorations;
+    ImPlotAxisFlags_AuxDefault    :: AuxDefault;
+}
+
+// Options for subplots (see BeginSubplot)
+ImPlotSubplotFlags :: enum_flags s32 {
+    None       :: 0x0;
+    NoTitle    :: 0x1;
+    NoLegend   :: 0x2;
+    NoMenus    :: 0x4;
+    NoResize   :: 0x8;
+    NoAlign    :: 0x10;
+    ShareItems :: 0x20;
+    LinkRows   :: 0x40;
+    LinkCols   :: 0x80;
+    LinkAllX   :: 0x100;
+    LinkAllY   :: 0x200;
+    ColMajor   :: 0x400;
+
+    ImPlotSubplotFlags_None       :: None;
+    ImPlotSubplotFlags_NoTitle    :: NoTitle;
+    ImPlotSubplotFlags_NoLegend   :: NoLegend;
+    ImPlotSubplotFlags_NoMenus    :: NoMenus;
+    ImPlotSubplotFlags_NoResize   :: NoResize;
+    ImPlotSubplotFlags_NoAlign    :: NoAlign;
+    ImPlotSubplotFlags_ShareItems :: ShareItems;
+    ImPlotSubplotFlags_LinkRows   :: LinkRows;
+    ImPlotSubplotFlags_LinkCols   :: LinkCols;
+    ImPlotSubplotFlags_LinkAllX   :: LinkAllX;
+    ImPlotSubplotFlags_LinkAllY   :: LinkAllY;
+    ImPlotSubplotFlags_ColMajor   :: ColMajor;
+}
+
+// Options for legends (see SetupLegend)
+ImPlotLegendFlags :: enum_flags s32 {
+    None            :: 0x0;
+    NoButtons       :: 0x1;
+    NoHighlightItem :: 0x2;
+    NoHighlightAxis :: 0x4;
+    NoMenus         :: 0x8;
+    Outside         :: 0x10;
+    Horizontal      :: 0x20;
+    Sort            :: 0x40;
+    Reverse         :: 0x80;
+
+    ImPlotLegendFlags_None            :: None;
+    ImPlotLegendFlags_NoButtons       :: NoButtons;
+    ImPlotLegendFlags_NoHighlightItem :: NoHighlightItem;
+    ImPlotLegendFlags_NoHighlightAxis :: NoHighlightAxis;
+    ImPlotLegendFlags_NoMenus         :: NoMenus;
+    ImPlotLegendFlags_Outside         :: Outside;
+    ImPlotLegendFlags_Horizontal      :: Horizontal;
+    ImPlotLegendFlags_Sort            :: Sort;
+    ImPlotLegendFlags_Reverse         :: Reverse;
+}
+
+// Options for mouse hover text (see SetupMouseText)
+ImPlotMouseTextFlags :: enum_flags s32 {
+    None       :: 0x0;
+    NoAuxAxes  :: 0x1;
+    NoFormat   :: 0x2;
+    ShowAlways :: 0x4;
+
+    ImPlotMouseTextFlags_None       :: None;
+    ImPlotMouseTextFlags_NoAuxAxes  :: NoAuxAxes;
+    ImPlotMouseTextFlags_NoFormat   :: NoFormat;
+    ImPlotMouseTextFlags_ShowAlways :: ShowAlways;
+}
+
+// Options for DragPoint, DragLine, DragRect
+ImPlotDragToolFlags :: enum_flags s32 {
+    None      :: 0x0;
+    NoCursors :: 0x1;
+    NoFit     :: 0x2;
+    NoInputs  :: 0x4;
+    Delayed   :: 0x8;
+
+    ImPlotDragToolFlags_None      :: None;
+    ImPlotDragToolFlags_NoCursors :: NoCursors;
+    ImPlotDragToolFlags_NoFit     :: NoFit;
+    ImPlotDragToolFlags_NoInputs  :: NoInputs;
+    ImPlotDragToolFlags_Delayed   :: Delayed;
+}
+
+// Flags for ColormapScale
+ImPlotColormapScaleFlags :: enum_flags s32 {
+    None     :: 0x0;
+    NoLabel  :: 0x1;
+    Opposite :: 0x2;
+    Invert   :: 0x4;
+
+    ImPlotColormapScaleFlags_None     :: None;
+    ImPlotColormapScaleFlags_NoLabel  :: NoLabel;
+    ImPlotColormapScaleFlags_Opposite :: Opposite;
+    ImPlotColormapScaleFlags_Invert   :: Invert;
+}
+
+// Flags for ANY PlotX function. Used by setting ImPlotSpec::Flags.
+ImPlotItemFlags :: enum_flags s32 {
+    None     :: 0x0;
+    NoLegend :: 0x1;
+    NoFit    :: 0x2;
+
+    ImPlotItemFlags_None     :: None;
+    ImPlotItemFlags_NoLegend :: NoLegend;
+    ImPlotItemFlags_NoFit    :: NoFit;
+}
+
+// Flags for PlotLine. Used by setting ImPlotSpec::Flags.
+ImPlotLineFlags :: enum_flags s32 {
+    None     :: 0x0;
+    Segments :: 0x400;
+    Loop     :: 0x800;
+    SkipNaN  :: 0x1000;
+    NoClip   :: 0x2000;
+    Shaded   :: 0x4000;
+
+    ImPlotLineFlags_None     :: None;
+    ImPlotLineFlags_Segments :: Segments;
+    ImPlotLineFlags_Loop     :: Loop;
+    ImPlotLineFlags_SkipNaN  :: SkipNaN;
+    ImPlotLineFlags_NoClip   :: NoClip;
+    ImPlotLineFlags_Shaded   :: Shaded;
+}
+
+// Flags for PlotScatter. Used by setting ImPlotSpec::Flags.
+ImPlotScatterFlags :: enum_flags s32 {
+    None   :: 0x0;
+    NoClip :: 0x400;
+
+    ImPlotScatterFlags_None   :: None;
+    ImPlotScatterFlags_NoClip :: NoClip;
+}
+
+// Flags for PlotBubbles. Used by setting ImPlotSpec::Flags.
+ImPlotBubblesFlags :: enum_flags s32 {
+    None :: 0x0;
+    ImPlotBubblesFlags_None :: None;
+}
+
+// Flags for PlotPolygon. Used by setting ImPlotSpec::Flags.
+ImPlotPolygonFlags :: enum_flags s32 {
+    None    :: 0x0;
+    Concave :: 0x400;
+
+    ImPlotPolygonFlags_None    :: None;
+    ImPlotPolygonFlags_Concave :: Concave;
+}
+
+// Flags for PlotStairs. Used by setting ImPlotSpec::Flags.
+ImPlotStairsFlags :: enum_flags s32 {
+    None    :: 0x0;
+    PreStep :: 0x400;
+    Shaded  :: 0x800;
+
+    ImPlotStairsFlags_None    :: None;
+    ImPlotStairsFlags_PreStep :: PreStep;
+    ImPlotStairsFlags_Shaded  :: Shaded;
+}
+
+// Flags for PlotShaded (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotShadedFlags :: enum_flags s32 {
+    None :: 0x0;
+    ImPlotShadedFlags_None :: None;
+}
+
+// Flags for PlotBars. Used by setting ImPlotSpec::Flags.
+ImPlotBarsFlags :: enum_flags s32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotBarsFlags_None       :: None;
+    ImPlotBarsFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotBarGroups. Used by setting ImPlotSpec::Flags.
+ImPlotBarGroupsFlags :: enum_flags s32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+    Stacked    :: 0x800;
+
+    ImPlotBarGroupsFlags_None       :: None;
+    ImPlotBarGroupsFlags_Horizontal :: Horizontal;
+    ImPlotBarGroupsFlags_Stacked    :: Stacked;
+}
+
+// Flags for PlotErrorBars. Used by setting ImPlotSpec::Flags.
+ImPlotErrorBarsFlags :: enum_flags s32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotErrorBarsFlags_None       :: None;
+    ImPlotErrorBarsFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotStems. Used by setting ImPlotSpec::Flags.
+ImPlotStemsFlags :: enum_flags s32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotStemsFlags_None       :: None;
+    ImPlotStemsFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotInfLines. Used by setting ImPlotSpec::Flags.
+ImPlotInfLinesFlags :: enum_flags s32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotInfLinesFlags_None       :: None;
+    ImPlotInfLinesFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotPieChart. Used by setting ImPlotSpec::Flags.
+ImPlotPieChartFlags :: enum_flags s32 {
+    None          :: 0x0;
+    Normalize     :: 0x400;
+    IgnoreHidden  :: 0x800;
+    Exploding     :: 0x1000;
+    NoSliceBorder :: 0x2000;
+
+    ImPlotPieChartFlags_None          :: None;
+    ImPlotPieChartFlags_Normalize     :: Normalize;
+    ImPlotPieChartFlags_IgnoreHidden  :: IgnoreHidden;
+    ImPlotPieChartFlags_Exploding     :: Exploding;
+    ImPlotPieChartFlags_NoSliceBorder :: NoSliceBorder;
+}
+
+// Flags for PlotHeatmap. Used by setting ImPlotSpec::Flags.
+ImPlotHeatmapFlags :: enum_flags s32 {
+    None     :: 0x0;
+    ColMajor :: 0x400;
+
+    ImPlotHeatmapFlags_None     :: None;
+    ImPlotHeatmapFlags_ColMajor :: ColMajor;
+}
+
+// Flags for PlotHistogram and PlotHistogram2D. Used by setting ImPlotSpec::Flags.
+ImPlotHistogramFlags :: enum_flags s32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+    Cumulative :: 0x800;
+    Density    :: 0x1000;
+    NoOutliers :: 0x2000;
+    ColMajor   :: 0x4000;
+
+    ImPlotHistogramFlags_None       :: None;
+    ImPlotHistogramFlags_Horizontal :: Horizontal;
+    ImPlotHistogramFlags_Cumulative :: Cumulative;
+    ImPlotHistogramFlags_Density    :: Density;
+    ImPlotHistogramFlags_NoOutliers :: NoOutliers;
+    ImPlotHistogramFlags_ColMajor   :: ColMajor;
+}
+
+// Flags for PlotDigital (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotDigitalFlags :: enum_flags s32 {
+    None :: 0x0;
+    ImPlotDigitalFlags_None :: None;
+}
+
+// Flags for PlotImage (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotImageFlags :: enum_flags s32 {
+    None :: 0x0;
+    ImPlotImageFlags_None :: None;
+}
+
+// Flags for PlotText. Used by setting ImPlotSpec::Flags.
+ImPlotTextFlags :: enum_flags s32 {
+    None     :: 0x0;
+    Vertical :: 0x400;
+
+    ImPlotTextFlags_None     :: None;
+    ImPlotTextFlags_Vertical :: Vertical;
+}
+
+// Flags for PlotDummy (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotDummyFlags :: enum_flags s32 {
+    None :: 0x0;
+    ImPlotDummyFlags_None :: None;
+}
+
+// Represents a condition for SetupAxisLimits etc. (same as ImGuiCond, but we only support a subset of those enums)
+ImPlotCond :: enum s32 {
+    None   :: 0;
+    Always :: 1;
+    Once   :: 2;
+
+    ImPlotCond_None   :: None;
+    ImPlotCond_Always :: Always;
+    ImPlotCond_Once   :: Once;
+}
+
+// Plot styling colors.
+ImPlotCol :: enum s32 {
+    FrameBg       :: 0;
+    PlotBg        :: 1;
+    PlotBorder    :: 2;
+    LegendBg      :: 3;
+    LegendBorder  :: 4;
+    LegendText    :: 5;
+    TitleText     :: 6;
+    InlayText     :: 7;
+    AxisText      :: 8;
+    AxisGrid      :: 9;
+    AxisTick      :: 10;
+    AxisBg        :: 11;
+    AxisBgHovered :: 12;
+    AxisBgActive  :: 13;
+    Selection     :: 14;
+    Crosshairs    :: 15;
+    COUNT         :: 16;
+
+    ImPlotCol_FrameBg       :: FrameBg;
+    ImPlotCol_PlotBg        :: PlotBg;
+    ImPlotCol_PlotBorder    :: PlotBorder;
+    ImPlotCol_LegendBg      :: LegendBg;
+    ImPlotCol_LegendBorder  :: LegendBorder;
+    ImPlotCol_LegendText    :: LegendText;
+    ImPlotCol_TitleText     :: TitleText;
+    ImPlotCol_InlayText     :: InlayText;
+    ImPlotCol_AxisText      :: AxisText;
+    ImPlotCol_AxisGrid      :: AxisGrid;
+    ImPlotCol_AxisTick      :: AxisTick;
+    ImPlotCol_AxisBg        :: AxisBg;
+    ImPlotCol_AxisBgHovered :: AxisBgHovered;
+    ImPlotCol_AxisBgActive  :: AxisBgActive;
+    ImPlotCol_Selection     :: Selection;
+    ImPlotCol_Crosshairs    :: Crosshairs;
+    ImPlotCol_COUNT         :: COUNT;
+}
+
+// Plot styling variables.
+ImPlotStyleVar :: enum s32 {
+    PlotDefaultSize    :: 0;
+    PlotMinSize        :: 1;
+    PlotBorderSize     :: 2;
+    MinorAlpha         :: 3;
+    MajorTickLen       :: 4;
+    MinorTickLen       :: 5;
+    MajorTickSize      :: 6;
+    MinorTickSize      :: 7;
+    MajorGridSize      :: 8;
+    MinorGridSize      :: 9;
+    PlotPadding        :: 10;
+    LabelPadding       :: 11;
+    LegendPadding      :: 12;
+    LegendInnerPadding :: 13;
+    LegendSpacing      :: 14;
+    MousePosPadding    :: 15;
+    AnnotationPadding  :: 16;
+    FitPadding         :: 17;
+    DigitalPadding     :: 18;
+    DigitalSpacing     :: 19;
+    COUNT              :: 20;
+
+    ImPlotStyleVar_PlotDefaultSize    :: PlotDefaultSize;
+    ImPlotStyleVar_PlotMinSize        :: PlotMinSize;
+    ImPlotStyleVar_PlotBorderSize     :: PlotBorderSize;
+    ImPlotStyleVar_MinorAlpha         :: MinorAlpha;
+    ImPlotStyleVar_MajorTickLen       :: MajorTickLen;
+    ImPlotStyleVar_MinorTickLen       :: MinorTickLen;
+    ImPlotStyleVar_MajorTickSize      :: MajorTickSize;
+    ImPlotStyleVar_MinorTickSize      :: MinorTickSize;
+    ImPlotStyleVar_MajorGridSize      :: MajorGridSize;
+    ImPlotStyleVar_MinorGridSize      :: MinorGridSize;
+    ImPlotStyleVar_PlotPadding        :: PlotPadding;
+    ImPlotStyleVar_LabelPadding       :: LabelPadding;
+    ImPlotStyleVar_LegendPadding      :: LegendPadding;
+    ImPlotStyleVar_LegendInnerPadding :: LegendInnerPadding;
+    ImPlotStyleVar_LegendSpacing      :: LegendSpacing;
+    ImPlotStyleVar_MousePosPadding    :: MousePosPadding;
+    ImPlotStyleVar_AnnotationPadding  :: AnnotationPadding;
+    ImPlotStyleVar_FitPadding         :: FitPadding;
+    ImPlotStyleVar_DigitalPadding     :: DigitalPadding;
+    ImPlotStyleVar_DigitalSpacing     :: DigitalSpacing;
+    ImPlotStyleVar_COUNT              :: COUNT;
+}
+
+// Axis scale
+ImPlotScale :: enum s32 {
+    Linear :: 0;
+    Time   :: 1;
+    Log10  :: 2;
+    SymLog :: 3;
+
+    ImPlotScale_Linear :: Linear;
+    ImPlotScale_Time   :: Time;
+    ImPlotScale_Log10  :: Log10;
+    ImPlotScale_SymLog :: SymLog;
+}
+
+// Marker specifications.
+ImPlotMarker :: enum s32 {
+    None     :: -2;
+    Auto     :: -1;
+    Circle   :: 0;
+    Square   :: 1;
+    Diamond  :: 2;
+    Up       :: 3;
+    Down     :: 4;
+    Left     :: 5;
+    Right    :: 6;
+    Cross    :: 7;
+    Plus     :: 8;
+    Asterisk :: 9;
+    COUNT    :: 10;
+
+    ImPlotMarker_None     :: None;
+    ImPlotMarker_Auto     :: Auto;
+    ImPlotMarker_Circle   :: Circle;
+    ImPlotMarker_Square   :: Square;
+    ImPlotMarker_Diamond  :: Diamond;
+    ImPlotMarker_Up       :: Up;
+    ImPlotMarker_Down     :: Down;
+    ImPlotMarker_Left     :: Left;
+    ImPlotMarker_Right    :: Right;
+    ImPlotMarker_Cross    :: Cross;
+    ImPlotMarker_Plus     :: Plus;
+    ImPlotMarker_Asterisk :: Asterisk;
+    ImPlotMarker_COUNT    :: COUNT;
+}
+
+// Built-in colormaps
+ImPlotColormap :: enum s32 {
+    Deep     :: 0;
+    Dark     :: 1;
+    Pastel   :: 2;
+    Paired   :: 3;
+    Viridis  :: 4;
+    Plasma   :: 5;
+    Hot      :: 6;
+    Cool     :: 7;
+    Pink     :: 8;
+    Jet      :: 9;
+    Twilight :: 10;
+    RdBu     :: 11;
+    BrBG     :: 12;
+    PiYG     :: 13;
+    Spectral :: 14;
+    Greys    :: 15;
+
+    ImPlotColormap_Deep     :: Deep;
+    ImPlotColormap_Dark     :: Dark;
+    ImPlotColormap_Pastel   :: Pastel;
+    ImPlotColormap_Paired   :: Paired;
+    ImPlotColormap_Viridis  :: Viridis;
+    ImPlotColormap_Plasma   :: Plasma;
+    ImPlotColormap_Hot      :: Hot;
+    ImPlotColormap_Cool     :: Cool;
+    ImPlotColormap_Pink     :: Pink;
+    ImPlotColormap_Jet      :: Jet;
+    ImPlotColormap_Twilight :: Twilight;
+    ImPlotColormap_RdBu     :: RdBu;
+    ImPlotColormap_BrBG     :: BrBG;
+    ImPlotColormap_PiYG     :: PiYG;
+    ImPlotColormap_Spectral :: Spectral;
+    ImPlotColormap_Greys    :: Greys;
+}
+
+// Used to position items on a plot (e.g. legends, labels, etc.)
+ImPlotLocation :: enum s32 {
+    Center    :: 0;
+    North     :: 1;
+    South     :: 2;
+    West      :: 4;
+    East      :: 8;
+    NorthWest :: 5;
+    NorthEast :: 9;
+    SouthWest :: 6;
+    SouthEast :: 10;
+
+    ImPlotLocation_Center    :: Center;
+    ImPlotLocation_North     :: North;
+    ImPlotLocation_South     :: South;
+    ImPlotLocation_West      :: West;
+    ImPlotLocation_East      :: East;
+    ImPlotLocation_NorthWest :: NorthWest;
+    ImPlotLocation_NorthEast :: NorthEast;
+    ImPlotLocation_SouthWest :: SouthWest;
+    ImPlotLocation_SouthEast :: SouthEast;
+}
+
+// Enums for different automatic histogram binning methods (k = bin count or w = bin width)
+ImPlotBin :: enum s32 {
+    Sqrt    :: -1;
+    Sturges :: -2;
+    Rice    :: -3;
+    Scott   :: -4;
+
+    ImPlotBin_Sqrt    :: Sqrt;
+    ImPlotBin_Sturges :: Sturges;
+    ImPlotBin_Rice    :: Rice;
+    ImPlotBin_Scott   :: Scott;
+}
+
+// Plot item styling specification. Provide these to PlotX functions to override styling, specify
+// offsetting or stride, or set optional flags. This struct can be used in the following ways:
+//
+// 1. By declaring and defining a struct instance:
+//
+//    ImPlotSpec spec;
+//    spec.LineColor = ImVec4(1,0,0,1);
+//    spec.LineWeight = 2.0f;
+//    spec.Marker = ImPlotMarker_Circle;
+//    spec.Flags = ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments;
+//    ImPlot::PlotLine("MyLine", xs, ys, 100, spec);
+//
+// 2. Inline using (ImPlotProp,value) pairs (order does NOT matter):
+//
+//    ImPlot::PlotLine("MyLine", xs, ys, 100, {
+//      ImPlotProp_LineColor, ImVec4(1,0,0,1),
+//      ImPlotProp_LineWeight, 2.0f,
+//      ImPlotProp_Marker, ImPlotMarker_Circle,
+//      ImPlotProp_Flags, ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments
+//    });
+ImPlotSpec :: struct {
+    LineColor:        ImVec4; // line color (applies to lines, bar edges); IMPLOT_AUTO_COL will use next Colormap color or current item color
+    LineColors:       *ImU32 = null; // array of colors for each line; if nullptr, use LineColor for all lines
+    LineWeight:       float = 1.0; // line weight in pixels (applies to lines, bar edges, marker edges)
+    FillColor:        ImVec4; // fill color (applies to shaded regions, bar faces); IMPLOT_AUTO_COL will use next Colormap color or current item color
+    FillColors:       *ImU32 = null; // array of colors for each fill; if nullptr, use FillColor for all fills
+    FillAlpha:        float = 1.0; // alpha multiplier (applies to FillColor, FillColors, MarkerFillColor, and MarkerFillColors)
+    Marker:           ImPlotMarker = cast(ImPlotMarker).None; // marker type; specify ImPlotMarker_Auto to use the next unused marker
+    MarkerSize:       float = 4; // size of markers (radius) *in pixels*
+    MarkerSizes:      *float = null; // array of sizes for each marker; if nullptr, use MarkerSize for all markers
+    MarkerLineColor:  ImVec4; // marker edge color; IMPLOT_AUTO_COL will use LineColor
+    MarkerLineColors: *ImU32 = null; // array of colors for each marker edge; if nullptr, use MarkerLineColor for all markers
+    MarkerFillColor:  ImVec4; // marker face color; IMPLOT_AUTO_COL will use LineColor
+    MarkerFillColors: *ImU32 = null; // array of colors for each marker face; if nullptr, use MarkerFillColor for all markers
+    Size:             float = 4; // size of error bar whiskers (width or height), and digital bars (height) *in pixels*
+    Offset:           s32 = 0; // data index offset
+    Stride:           s32 = IMPLOT_AUTO; // data stride in bytes; IMPLOT_AUTO will result in sizeof(T) where T is the type passed to PlotX
+    Flags:            ImPlotItemFlags = cast(ImPlotItemFlags).None; // optional item flags; can be composed from common ImPlotItemFlags and/or specialized ImPlotXFlags
+}
+
+// Double precision version of ImVec2 used by ImPlot. Extensible by end users.
+ImPlotPoint :: struct {
+    x: float64;
+    y: float64;
+}
+
+// Range defined by a min/max value.
+ImPlotRange :: struct {
+    Min: float64;
+    Max: float64;
+}
+
+// Combination of two range limits for X and Y axes. Also an AABB defined by Min()/Max().
+ImPlotRect :: struct {
+    X: ImPlotRange;
+    Y: ImPlotRange;
+}
+
+// Plot style structure
+ImPlotStyle :: struct {
+    PlotDefaultSize:    ImVec2; // = 400,300 default size used when ImVec2(0,0) is passed to BeginPlot
+    PlotMinSize:        ImVec2; // = 200,150 minimum size plot frame can be when shrunk
+    PlotBorderSize:     float; // = 1,      line thickness of border around plot area
+    MinorAlpha:         float; // = 0.25    alpha multiplier applied to minor axis grid lines
+    MajorTickLen:       ImVec2; // = 10,10   major tick lengths for X and Y axes
+    MinorTickLen:       ImVec2; // = 5,5     minor tick lengths for X and Y axes
+    MajorTickSize:      ImVec2; // = 1,1     line thickness of major ticks
+    MinorTickSize:      ImVec2; // = 1,1     line thickness of minor ticks
+    MajorGridSize:      ImVec2; // = 1,1     line thickness of major grid lines
+    MinorGridSize:      ImVec2; // = 1,1     line thickness of minor grid lines
+
+    PlotPadding:        ImVec2; // = 10,10   padding between widget frame and plot area, labels, or outside legends (i.e. main padding)
+    LabelPadding:       ImVec2; // = 5,5     padding between axes labels, tick labels, and plot edge
+    LegendPadding:      ImVec2; // = 10,10   legend padding from plot edges
+    LegendInnerPadding: ImVec2; // = 5,5     legend inner padding from legend edges
+    LegendSpacing:      ImVec2; // = 5,0     spacing between legend entries
+    MousePosPadding:    ImVec2; // = 10,10   padding between plot edge and interior mouse location text
+    AnnotationPadding:  ImVec2; // = 2,2     text padding around annotation labels
+    FitPadding:         ImVec2; // = 0,0     additional fit padding as a percentage of the fit extents (e.g. ImVec2(0.1f,0.1f) adds 10% to the fit extents of X and Y)
+    DigitalPadding:     float; // = 20,     digital plot padding from bottom in pixels
+    DigitalSpacing:     float; // = 4,      digital plot spacing gap in pixels
+
+    Colors:             [16] ImVec4; // Array of styling colors. Indexable with ImPlotCol_ enums.
+
+    Colormap:           ImPlotColormap; // The current colormap. Set this to either an ImPlotColormap_ enum or an index returned by AddColormap.
+
+    UseLocalTime:       bool; // = false,  axis labels will be formatted for your timezone when ImPlotAxisFlag_Time is enabled
+    UseISO8601:         bool; // = false,  dates will be formatted according to ISO 8601 where applicable (e.g. YYYY-MM-DD, YYYY-MM, --MM-DD, etc.)
+    Use24HourClock:     bool; // = false,  times will be formatted using a 24 hour clock
+    Constructor :: (this: *ImPlotStyle) -> void #cpp_method #foreign imgui "??0ImPlotStyle@@QEAA@XZ";
+}
+
+// Input mapping structure. Default values listed. See also MapInputDefault, MapInputReverse.
+ImPlotInputMap :: struct {
+    Pan:           MouseButton; // LMB    enables panning when held,
+    PanMod:        s32; // none   optional modifier that must be held for panning/fitting
+    Fit:           MouseButton; // LMB    initiates fit when double clicked
+    Select:        MouseButton; // RMB    begins box selection when pressed and confirms selection when released
+    SelectCancel:  MouseButton; // LMB    cancels active box selection when pressed; cannot be same as Select
+    SelectMod:     s32; // none   optional modifier that must be held for box selection
+    SelectHorzMod: s32; // Alt    expands active box selection horizontally to plot edge when held
+    SelectVertMod: s32; // Shift  expands active box selection vertically to plot edge when held
+    Menu:          MouseButton; // RMB    opens context menus (if enabled) when clicked
+    OverrideMod:   s32; // Ctrl   when held, all input is ignored; used to enable axis/plots as DND sources
+    ZoomMod:       s32; // none   optional modifier that must be held for scroll wheel zooming
+    ZoomRate:      float; // 0.1f   zoom rate for scroll (e.g. 0.1f = 10% plot range every scroll click); make negative to invert
+    Constructor :: (this: *ImPlotInputMap) -> void #cpp_method #foreign imgui "??0ImPlotInputMap@@QEAA@XZ";
+}
+
+// Callback signature for axis tick label formatter.
+ImPlotFormatter :: #type (value: float64, buff: *u8, size: s32, user_data: *void) -> s32 #c_call;
+
+// Callback signature for data getter.
+ImPlotGetter :: #type (idx: s32, user_data: *void) -> ImPlotPoint #c_call #cpp_return_type_is_non_pod;
+
+// Callback signature for axis transform.
+ImPlotTransform :: #type (value: float64, user_data: *void) -> float64 #c_call;
+
+ImPlot :: struct {
+    // Creates a new ImPlot context. Call this after ImGui::CreateContext.
+    CreateContext :: () -> *ImPlotContext #foreign imgui "?CreateContext@ImPlot@@YAPEAUImPlotContext@@XZ";
+
+    // Destroys an ImPlot context. Call this before ImGui::DestroyContext. nullptr = destroy current context.
+    DestroyContext :: (ctx: *ImPlotContext = null) -> void #foreign imgui "?DestroyContext@ImPlot@@YAXPEAUImPlotContext@@@Z";
+
+    // Returns the current ImPlot context. nullptr if no context has ben set.
+    GetCurrentContext :: () -> *ImPlotContext #foreign imgui "?GetCurrentContext@ImPlot@@YAPEAUImPlotContext@@XZ";
+
+    // Sets the current ImPlot context.
+    SetCurrentContext :: (ctx: *ImPlotContext) -> void #foreign imgui "?SetCurrentContext@ImPlot@@YAXPEAUImPlotContext@@@Z";
+
+    // Sets the current **ImGui** context. This is ONLY necessary if you are compiling
+    // ImPlot as a DLL (not recommended) separate from your ImGui compilation. It
+    // sets the global variable GImGui, which is not shared across DLL boundaries.
+    // See GImGui documentation in imgui.cpp for more details.
+    SetImGuiContext :: (ctx: *ImGuiContext) -> void #foreign imgui "?SetImGuiContext@ImPlot@@YAXPEAUImGuiContext@@@Z";
+
+    // Starts a 2D plotting context. If this function returns true, EndPlot() MUST
+    // be called! You are encouraged to use the following convention:
+    //
+    // if (BeginPlot(...)) {
+    //     PlotLine(...);
+    //     ...
+    //     EndPlot();
+    // }
+    //
+    // Important notes:
+    //
+    // - #title_id must be unique to the current ImGui ID scope. If you need to avoid ID
+    //   collisions or don't want to display a title in the plot, use double hashes
+    //   (e.g. "MyPlot##HiddenIdText" or "##NoTitle").
+    // - #size is the **frame** size of the plot widget, not the plot area. The default
+    //   size of plots (i.e. when ImVec2(0,0)) can be modified in your ImPlotStyle.
+    BeginPlot :: (title_id: *u8, size: *ImVec2, flags: ImPlotFlags = .None) -> bool #foreign imgui "?BeginPlot@ImPlot@@YA_NPEBDAEBUImVec2@@H@Z";
+    BeginPlot :: (title_id: *u8, size: ImVec2 = ImVec2.{-1, 0}, flags: ImPlotFlags = .None) -> bool #no_context {
+        return BeginPlot(title_id, *size, flags);
+    }
+
+    // Only call EndPlot() if BeginPlot() returns true! Typically called at the end
+    // of an if statement conditioned on BeginPlot(). See example above.
+    EndPlot :: () -> void #foreign imgui "?EndPlot@ImPlot@@YAXXZ";
+
+    // Starts a subdivided plotting context. If the function returns true,
+    // EndSubplots() MUST be called! Call BeginPlot/EndPlot AT MOST [rows*cols]
+    // times in  between the beginning and end of the subplot context. Plots are
+    // added in row major order.
+    //
+    // Example:
+    //
+    // if (BeginSubplots("My Subplot",2,3,ImVec2(800,400)) {
+    //     for (int i = 0; i < 6; ++i) {
+    //         if (BeginPlot(...)) {
+    //             ImPlot::PlotLine(...);
+    //             ...
+    //             EndPlot();
+    //         }
+    //     }
+    //     EndSubplots();
+    // }
+    //
+    // Produces:
+    //
+    // [0] | [1] | [2]
+    // ----|-----|----
+    // [3] | [4] | [5]
+    //
+    // Important notes:
+    //
+    // - #title_id must be unique to the current ImGui ID scope. If you need to avoid ID
+    //   collisions or don't want to display a title in the plot, use double hashes
+    //   (e.g. "MySubplot##HiddenIdText" or "##NoTitle").
+    // - #rows and #cols must be greater than 0.
+    // - #size is the size of the entire grid of subplots, not the individual plots
+    // - #row_ratios and #col_ratios must have AT LEAST #rows and #cols elements,
+    //   respectively. These are the sizes of the rows and columns expressed in ratios.
+    //   If the user adjusts the dimensions, the arrays are updated with new ratios.
+    //
+    // Important notes regarding BeginPlot from inside of BeginSubplots:
+    //
+    // - The #title_id parameter of _BeginPlot_ (see above) does NOT have to be
+    //   unique when called inside of a subplot context. Subplot IDs are hashed
+    //   for your convenience so you don't have call PushID or generate unique title
+    //   strings. Simply pass an empty string to BeginPlot unless you want to title
+    //   each subplot.
+    // - The #size parameter of _BeginPlot_ (see above) is ignored when inside of a
+    //   subplot context. The actual size of the subplot will be based on the
+    //   #size value you pass to _BeginSubplots_ and #row/#col_ratios if provided.
+    BeginSubplots :: (title_id: *u8, rows: s32, cols: s32, size: *ImVec2, flags: ImPlotSubplotFlags = .None, row_ratios: *float = null, col_ratios: *float = null) -> bool #foreign imgui "?BeginSubplots@ImPlot@@YA_NPEBDHHAEBUImVec2@@HPEAM2@Z";
+    BeginSubplots :: (title_id: *u8, rows: s32, cols: s32, size: ImVec2, flags: ImPlotSubplotFlags = .None, row_ratios: *float = null, col_ratios: *float = null) -> bool #no_context {
+        return BeginSubplots(title_id, rows, cols, *size, flags, row_ratios, col_ratios);
+    }
+
+    // Only call EndSubplots() if BeginSubplots() returns true! Typically called at the end
+    // of an if statement conditioned on BeginSubplots(). See example above.
+    EndSubplots :: () -> void #foreign imgui "?EndSubplots@ImPlot@@YAXXZ";
+
+    // Enables an axis or sets the label and/or flags for an existing axis. Leave #label = nullptr for no label.
+    SetupAxis :: (axis: ImAxis, label: *u8 = null, flags: ImPlotAxisFlags = .None) -> void #foreign imgui "?SetupAxis@ImPlot@@YAXHPEBDH@Z";
+
+    // Sets an axis range limits. If ImPlotCond_Always is used, the axes limits will be locked. Inversion with v_min > v_max is not supported; use SetupAxisLimits instead.
+    SetupAxisLimits :: (axis: ImAxis, v_min: float64, v_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "?SetupAxisLimits@ImPlot@@YAXHNNH@Z";
+
+    // Links an axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot.
+    SetupAxisLinks :: (axis: ImAxis, link_min: *float64, link_max: *float64) -> void #foreign imgui "?SetupAxisLinks@ImPlot@@YAXHPEAN0@Z";
+
+    // Sets the format of numeric axis labels via formatter specifier (default="%g"). Formatted values will be double (i.e. use %f).
+    SetupAxisFormat :: (axis: ImAxis, fmt: *u8) -> void #foreign imgui "?SetupAxisFormat@ImPlot@@YAXHPEBD@Z";
+
+    // Sets the format of numeric axis labels via formatter callback. Given #value, write a label into #buff. Optionally pass user data.
+    SetupAxisFormat :: (axis: ImAxis, formatter: ImPlotFormatter, data: *void = null) -> void #foreign imgui "?SetupAxisFormat@ImPlot@@YAXHP6AHNPEADHPEAX@Z1@Z";
+
+    // Sets an axis' ticks and optionally the labels. To keep the default ticks, set #keep_default=true.
+    SetupAxisTicks :: (axis: ImAxis, values: *float64, n_ticks: s32, labels: **u8 = null, keep_default := false) -> void #foreign imgui "?SetupAxisTicks@ImPlot@@YAXHPEBNHQEBQEBD_N@Z";
+
+    // Sets an axis' ticks and optionally the labels for the next plot. To keep the default ticks, set #keep_default=true.
+    SetupAxisTicks :: (axis: ImAxis, v_min: float64, v_max: float64, n_ticks: s32, labels: **u8 = null, keep_default := false) -> void #foreign imgui "?SetupAxisTicks@ImPlot@@YAXHNNHQEBQEBD_N@Z";
+
+    // Sets an axis' scale using built-in options.
+    SetupAxisScale :: (axis: ImAxis, scale: ImPlotScale) -> void #foreign imgui "?SetupAxisScale@ImPlot@@YAXHH@Z";
+
+    // Sets an axis' scale using user supplied forward and inverse transforms.
+    SetupAxisScale :: (axis: ImAxis, forward: ImPlotTransform, inverse: ImPlotTransform, data: *void = null) -> void #foreign imgui "?SetupAxisScale@ImPlot@@YAXHP6ANNPEAX@Z10@Z";
+
+    // Sets an axis' limits constraints.
+    SetupAxisLimitsConstraints :: (axis: ImAxis, v_min: float64, v_max: float64) -> void #foreign imgui "?SetupAxisLimitsConstraints@ImPlot@@YAXHNN@Z";
+
+    // Sets an axis' zoom constraints.
+    SetupAxisZoomConstraints :: (axis: ImAxis, z_min: float64, z_max: float64) -> void #foreign imgui "?SetupAxisZoomConstraints@ImPlot@@YAXHNN@Z";
+
+    // Sets the label and/or flags for primary X and Y axes (shorthand for two calls to SetupAxis).
+    SetupAxes :: (x_label: *u8, y_label: *u8, x_flags: ImPlotAxisFlags = .None, y_flags: ImPlotAxisFlags = .None) -> void #foreign imgui "?SetupAxes@ImPlot@@YAXPEBD0HH@Z";
+
+    // Sets the primary X and Y axes range limits. If ImPlotCond_Always is used, the axes limits will be locked (shorthand for two calls to SetupAxisLimits).
+    SetupAxesLimits :: (x_min: float64, x_max: float64, y_min: float64, y_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "?SetupAxesLimits@ImPlot@@YAXNNNNH@Z";
+
+    // Sets up the plot legend. This can also be called immediately after BeginSubplots when using ImPlotSubplotFlags_ShareItems.
+    SetupLegend :: (location: ImPlotLocation, flags: ImPlotLegendFlags = .None) -> void #foreign imgui "?SetupLegend@ImPlot@@YAXHH@Z";
+
+    // Set the location of the current plot's mouse position text (default = South|East).
+    SetupMouseText :: (location: ImPlotLocation, flags: ImPlotMouseTextFlags = .None) -> void #foreign imgui "?SetupMouseText@ImPlot@@YAXHH@Z";
+
+    // Explicitly finalize plot setup. Once you call this, you cannot make anymore Setup calls for the current plot!
+    // Note that calling this function is OPTIONAL; it will be called by the first subsequent setup-locking API call.
+    SetupFinish :: () -> void #foreign imgui "?SetupFinish@ImPlot@@YAXXZ";
+
+    // Sets an upcoming axis range limits. If ImPlotCond_Always is used, the axes limits will be locked.
+    SetNextAxisLimits :: (axis: ImAxis, v_min: float64, v_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "?SetNextAxisLimits@ImPlot@@YAXHNNH@Z";
+
+    // Links an upcoming axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot!
+    SetNextAxisLinks :: (axis: ImAxis, link_min: *float64, link_max: *float64) -> void #foreign imgui "?SetNextAxisLinks@ImPlot@@YAXHPEAN0@Z";
+
+    // Set an upcoming axis to auto fit to its data.
+    SetNextAxisToFit :: (axis: ImAxis) -> void #foreign imgui "?SetNextAxisToFit@ImPlot@@YAXH@Z";
+
+    // Sets the upcoming primary X and Y axes range limits. If ImPlotCond_Always is used, the axes limits will be locked (shorthand for two calls to SetupAxisLimits).
+    SetNextAxesLimits :: (x_min: float64, x_max: float64, y_min: float64, y_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "?SetNextAxesLimits@ImPlot@@YAXNNNNH@Z";
+
+    // Sets all upcoming axes to auto fit to their data.
+    SetNextAxesToFit :: () -> void #foreign imgui "?SetNextAxesToFit@ImPlot@@YAXXZ";
+
+    PlotLineG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "?PlotLineG@ImPlot@@YAXPEBDP6A?AUImPlotPoint@@HPEAX@Z1HAEBUImPlotSpec@@@Z";
+    PlotLineG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotLineG(label_id, getter, data, count, *spec);
+    }
+
+    PlotScatterG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "?PlotScatterG@ImPlot@@YAXPEBDP6A?AUImPlotPoint@@HPEAX@Z1HAEBUImPlotSpec@@@Z";
+    PlotScatterG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotScatterG(label_id, getter, data, count, *spec);
+    }
+
+    PlotStairsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "?PlotStairsG@ImPlot@@YAXPEBDP6A?AUImPlotPoint@@HPEAX@Z1HAEBUImPlotSpec@@@Z";
+    PlotStairsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotStairsG(label_id, getter, data, count, *spec);
+    }
+
+    PlotShadedG :: (label_id: *u8, getter1: ImPlotGetter, data1: *void, getter2: ImPlotGetter, data2: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "?PlotShadedG@ImPlot@@YAXPEBDP6A?AUImPlotPoint@@HPEAX@Z121HAEBUImPlotSpec@@@Z";
+    PlotShadedG :: (label_id: *u8, getter1: ImPlotGetter, data1: *void, getter2: ImPlotGetter, data2: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotShadedG(label_id, getter1, data1, getter2, data2, count, *spec);
+    }
+
+    PlotBarsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, bar_size: float64, spec: *ImPlotSpec) -> void #foreign imgui "?PlotBarsG@ImPlot@@YAXPEBDP6A?AUImPlotPoint@@HPEAX@Z1HNAEBUImPlotSpec@@@Z";
+    PlotBarsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, bar_size: float64, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotBarsG(label_id, getter, data, count, bar_size, *spec);
+    }
+
+    PlotDigitalG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "?PlotDigitalG@ImPlot@@YAXPEBDP6A?AUImPlotPoint@@HPEAX@Z1HAEBUImPlotSpec@@@Z";
+    PlotDigitalG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotDigitalG(label_id, getter, data, count, *spec);
+    }
+
+    PlotImage :: (label_id: *u8, tex_ref: ImTextureRef, bounds_min: *ImPlotPoint, bounds_max: *ImPlotPoint, uv0: *ImVec2, uv1: *ImVec2, tint_col: *ImVec4, spec: *ImPlotSpec) -> void #foreign imgui "?PlotImage@ImPlot@@YAXPEBDUImTextureRef@@AEBUImPlotPoint@@2AEBUImVec2@@3AEBUImVec4@@AEBUImPlotSpec@@@Z";
+    PlotImage :: (label_id: *u8, tex_ref: ImTextureRef, bounds_min: ImPlotPoint, bounds_max: ImPlotPoint, uv0: ImVec2 = ImVec2.{0, 0}, uv1: ImVec2 = ImVec2.{1, 1}, tint_col: ImVec4 = ImVec4.{1, 1, 1, 1}, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotImage(label_id, tex_ref, *bounds_min, *bounds_max, *uv0, *uv1, *tint_col, *spec);
+    }
+
+    // Plots a centered text label at point x,y with an optional pixel offset. Text color can be changed with ImPlot::PushStyleColor(ImPlotCol_InlayText, ...).
+    PlotText :: (text: *u8, x: float64, y: float64, pix_offset: *ImVec2, spec: *ImPlotSpec) -> void #foreign imgui "?PlotText@ImPlot@@YAXPEBDNNAEBUImVec2@@AEBUImPlotSpec@@@Z";
+    PlotText :: (text: *u8, x: float64, y: float64, pix_offset: ImVec2 = ImVec2.{0, 0}, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotText(text, x, y, *pix_offset, *spec);
+    }
+
+    // Plots a dummy item (i.e. adds a legend entry colored by ImPlotCol_Line)
+    PlotDummy :: (label_id: *u8, spec: *ImPlotSpec) -> void #foreign imgui "?PlotDummy@ImPlot@@YAXPEBDAEBUImPlotSpec@@@Z";
+    PlotDummy :: (label_id: *u8, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotDummy(label_id, *spec);
+    }
+
+    // Shows a draggable point at x,y. #col defaults to ImGuiCol_Text.
+    DragPoint :: (id: s32, x: *float64, y: *float64, col: *ImVec4, size: float = 4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "?DragPoint@ImPlot@@YA_NHPEAN0AEBUImVec4@@MHPEA_N22@Z";
+    DragPoint :: (id: s32, x: *float64, y: *float64, col: ImVec4, size: float = 4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragPoint(id, x, y, *col, size, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows a draggable vertical guide line at an x-value. #col defaults to ImGuiCol_Text.
+    DragLineX :: (id: s32, x: *float64, col: *ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "?DragLineX@ImPlot@@YA_NHPEANAEBUImVec4@@MHPEA_N22@Z";
+    DragLineX :: (id: s32, x: *float64, col: ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragLineX(id, x, *col, thickness, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows a draggable horizontal guide line at a y-value. #col defaults to ImGuiCol_Text.
+    DragLineY :: (id: s32, y: *float64, col: *ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "?DragLineY@ImPlot@@YA_NHPEANAEBUImVec4@@MHPEA_N22@Z";
+    DragLineY :: (id: s32, y: *float64, col: ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragLineY(id, y, *col, thickness, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows a draggable and resizeable rectangle.
+    DragRect :: (id: s32, x1: *float64, y1: *float64, x2: *float64, y2: *float64, col: *ImVec4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "?DragRect@ImPlot@@YA_NHPEAN000AEBUImVec4@@HPEA_N22@Z";
+    DragRect :: (id: s32, x1: *float64, y1: *float64, x2: *float64, y2: *float64, col: ImVec4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragRect(id, x1, y1, x2, y2, *col, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows an annotation callout at a chosen point. Clamping keeps annotations in the plot area. Annotations are always rendered on top.
+    Annotation :: (x: float64, y: float64, col: *ImVec4, pix_offset: *ImVec2, clamp: bool, round := false) -> void #foreign imgui "?Annotation@ImPlot@@YAXNNAEBUImVec4@@AEBUImVec2@@_N2@Z";
+    Annotation :: (x: float64, y: float64, col: ImVec4, pix_offset: ImVec2, clamp: bool, round := false) #no_context {
+        Annotation(x, y, *col, *pix_offset, clamp, round);
+    }
+    Annotation_CFormat :: (x: float64, y: float64, col: *ImVec4, pix_offset: *ImVec2, clamp: bool, fmt: *u8, __args: ..Any) -> void #foreign imgui "?Annotation@ImPlot@@YAXNNAEBUImVec4@@AEBUImVec2@@_NPEBDZZ";
+    Annotation :: (x: float64, y: float64, col: ImVec4, pix_offset: ImVec2, clamp: bool, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        Annotation_CFormat(x, y, *col, *pix_offset, clamp, "%s", formatted_text.data);
+    } @PrintLike
+
+    // Shows a x-axis tag at the specified coordinate value.
+    TagX :: (x: float64, col: *ImVec4, round := false) -> void #foreign imgui "?TagX@ImPlot@@YAXNAEBUImVec4@@_N@Z";
+    TagX :: (x: float64, col: ImVec4, round := false) #no_context {
+        TagX(x, *col, round);
+    }
+    TagX_CFormat :: (x: float64, col: *ImVec4, fmt: *u8, __args: ..Any) -> void #foreign imgui "?TagX@ImPlot@@YAXNAEBUImVec4@@PEBDZZ";
+    TagX :: (x: float64, col: ImVec4, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        TagX_CFormat(x, *col, "%s", formatted_text.data);
+    } @PrintLike
+
+    // Shows a y-axis tag at the specified coordinate value.
+    TagY :: (y: float64, col: *ImVec4, round := false) -> void #foreign imgui "?TagY@ImPlot@@YAXNAEBUImVec4@@_N@Z";
+    TagY :: (y: float64, col: ImVec4, round := false) #no_context {
+        TagY(y, *col, round);
+    }
+    TagY_CFormat :: (y: float64, col: *ImVec4, fmt: *u8, __args: ..Any) -> void #foreign imgui "?TagY@ImPlot@@YAXNAEBUImVec4@@PEBDZZ";
+    TagY :: (y: float64, col: ImVec4, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        TagY_CFormat(y, *col, "%s", formatted_text.data);
+    } @PrintLike
+
+    // Select which axis/axes will be used for subsequent plot elements.
+    SetAxis :: (axis: ImAxis) -> void #foreign imgui "?SetAxis@ImPlot@@YAXH@Z";
+    SetAxes :: (x_axis: ImAxis, y_axis: ImAxis) -> void #foreign imgui "?SetAxes@ImPlot@@YAXHH@Z";
+
+    // Convert pixels to a position in the current plot's coordinate system. Passing IMPLOT_AUTO uses the current axes.
+    PixelsToPlot :: (pix: *ImVec2, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #cpp_return_type_is_non_pod #foreign imgui "?PixelsToPlot@ImPlot@@YA?AUImPlotPoint@@AEBUImVec2@@HH@Z";
+    PixelsToPlot :: (pix: ImVec2, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #no_context {
+        return PixelsToPlot(*pix, x_axis, y_axis);
+    }
+    PixelsToPlot :: (x: float, y: float, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #cpp_return_type_is_non_pod #foreign imgui "?PixelsToPlot@ImPlot@@YA?AUImPlotPoint@@MMHH@Z";
+
+    // Convert a position in the current plot's coordinate system to pixels. Passing IMPLOT_AUTO uses the current axes.
+    PlotToPixels :: (plt: *ImPlotPoint, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImVec2 #cpp_return_type_is_non_pod #foreign imgui "?PlotToPixels@ImPlot@@YA?AUImVec2@@AEBUImPlotPoint@@HH@Z";
+    PlotToPixels :: (plt: ImPlotPoint, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImVec2 #no_context {
+        return PlotToPixels(*plt, x_axis, y_axis);
+    }
+    PlotToPixels :: (x: float64, y: float64, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImVec2 #cpp_return_type_is_non_pod #foreign imgui "?PlotToPixels@ImPlot@@YA?AUImVec2@@NNHH@Z";
+
+    // Get the current Plot position (top-left) in pixels.
+    GetPlotPos :: () -> ImVec2 #cpp_return_type_is_non_pod #foreign imgui "?GetPlotPos@ImPlot@@YA?AUImVec2@@XZ";
+
+    // Get the current Plot size in pixels.
+    GetPlotSize :: () -> ImVec2 #cpp_return_type_is_non_pod #foreign imgui "?GetPlotSize@ImPlot@@YA?AUImVec2@@XZ";
+
+    // Returns the mouse position in x,y coordinates of the current plot. Passing IMPLOT_AUTO uses the current axes.
+    GetPlotMousePos :: (x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #cpp_return_type_is_non_pod #foreign imgui "?GetPlotMousePos@ImPlot@@YA?AUImPlotPoint@@HH@Z";
+
+    // Returns the current plot axis range.
+    GetPlotLimits :: (x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotRect #cpp_return_type_is_non_pod #foreign imgui "?GetPlotLimits@ImPlot@@YA?AUImPlotRect@@HH@Z";
+
+    // Returns true if the plot area in the current plot is hovered.
+    IsPlotHovered :: () -> bool #foreign imgui "?IsPlotHovered@ImPlot@@YA_NXZ";
+
+    // Returns true if the axis label area in the current plot is hovered.
+    IsAxisHovered :: (axis: ImAxis) -> bool #foreign imgui "?IsAxisHovered@ImPlot@@YA_NH@Z";
+
+    // Returns true if the bounding frame of a subplot is hovered.
+    IsSubplotsHovered :: () -> bool #foreign imgui "?IsSubplotsHovered@ImPlot@@YA_NXZ";
+
+    // Returns true if the current plot is being box selected.
+    IsPlotSelected :: () -> bool #foreign imgui "?IsPlotSelected@ImPlot@@YA_NXZ";
+
+    // Returns the current plot box selection bounds. Passing IMPLOT_AUTO uses the current axes.
+    GetPlotSelection :: (x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotRect #cpp_return_type_is_non_pod #foreign imgui "?GetPlotSelection@ImPlot@@YA?AUImPlotRect@@HH@Z";
+
+    // Cancels a the current plot box selection.
+    CancelPlotSelection :: () -> void #foreign imgui "?CancelPlotSelection@ImPlot@@YAXXZ";
+
+    // Hides or shows the next plot item (i.e. as if it were toggled from the legend).
+    // Use ImPlotCond_Always if you need to forcefully set this every frame.
+    HideNextItem :: (hidden := true, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "?HideNextItem@ImPlot@@YAX_NH@Z";
+
+    // Align axis padding over multiple plots in a single row or column. #group_id must
+    // be unique. If this function returns true, EndAlignedPlots() must be called.
+    BeginAlignedPlots :: (group_id: *u8, vertical := true) -> bool #foreign imgui "?BeginAlignedPlots@ImPlot@@YA_NPEBD_N@Z";
+
+    // Only call EndAlignedPlots() if BeginAlignedPlots() returns true!
+    EndAlignedPlots :: () -> void #foreign imgui "?EndAlignedPlots@ImPlot@@YAXXZ";
+
+    // Begin a popup for a legend entry.
+    BeginLegendPopup :: (label_id: *u8, mouse_button: MouseButton = .Right) -> bool #foreign imgui "?BeginLegendPopup@ImPlot@@YA_NPEBDH@Z";
+
+    // End a popup for a legend entry.
+    EndLegendPopup :: () -> void #foreign imgui "?EndLegendPopup@ImPlot@@YAXXZ";
+
+    // Returns true if a plot item legend entry is hovered.
+    IsLegendEntryHovered :: (label_id: *u8) -> bool #foreign imgui "?IsLegendEntryHovered@ImPlot@@YA_NPEBD@Z";
+
+    // Turns the current plot's plotting area into a drag and drop target. Don't forget to call EndDragDropTarget!
+    BeginDragDropTargetPlot :: () -> bool #foreign imgui "?BeginDragDropTargetPlot@ImPlot@@YA_NXZ";
+
+    // Turns the current plot's X-axis into a drag and drop target. Don't forget to call EndDragDropTarget!
+    BeginDragDropTargetAxis :: (axis: ImAxis) -> bool #foreign imgui "?BeginDragDropTargetAxis@ImPlot@@YA_NH@Z";
+
+    // Turns the current plot's legend into a drag and drop target. Don't forget to call EndDragDropTarget!
+    BeginDragDropTargetLegend :: () -> bool #foreign imgui "?BeginDragDropTargetLegend@ImPlot@@YA_NXZ";
+
+    // Ends a drag and drop target (currently just an alias for ImGui::EndDragDropTarget).
+    EndDragDropTarget :: () -> void #foreign imgui "?EndDragDropTarget@ImPlot@@YAXXZ";
+
+    // Turns the current plot's plotting area into a drag and drop source. You must hold Ctrl. Don't forget to call EndDragDropSource!
+    BeginDragDropSourcePlot :: (flags: DragDropFlags = .None) -> bool #foreign imgui "?BeginDragDropSourcePlot@ImPlot@@YA_NH@Z";
+
+    // Turns the current plot's X-axis into a drag and drop source. You must hold Ctrl. Don't forget to call EndDragDropSource!
+    BeginDragDropSourceAxis :: (axis: ImAxis, flags: DragDropFlags = .None) -> bool #foreign imgui "?BeginDragDropSourceAxis@ImPlot@@YA_NHH@Z";
+
+    // Turns an item in the current plot's legend into drag and drop source. Don't forget to call EndDragDropSource!
+    BeginDragDropSourceItem :: (label_id: *u8, flags: DragDropFlags = .None) -> bool #foreign imgui "?BeginDragDropSourceItem@ImPlot@@YA_NPEBDH@Z";
+
+    // Ends a drag and drop source (currently just an alias for ImGui::EndDragDropSource).
+    EndDragDropSource :: () -> void #foreign imgui "?EndDragDropSource@ImPlot@@YAXXZ";
+
+    // Provides access to plot style structure for permanent modifications to colors, sizes, etc.
+    GetStyle :: () -> *ImPlotStyle #foreign imgui "?GetStyle@ImPlot@@YAAEAUImPlotStyle@@XZ";
+
+    // Style plot colors for current ImGui style (default).
+    StyleColorsAuto :: (dst: *ImPlotStyle = null) -> void #foreign imgui "?StyleColorsAuto@ImPlot@@YAXPEAUImPlotStyle@@@Z";
+
+    // Style plot colors for ImGui "Classic".
+    StyleColorsClassic :: (dst: *ImPlotStyle = null) -> void #foreign imgui "?StyleColorsClassic@ImPlot@@YAXPEAUImPlotStyle@@@Z";
+
+    // Style plot colors for ImGui "Dark".
+    StyleColorsDark :: (dst: *ImPlotStyle = null) -> void #foreign imgui "?StyleColorsDark@ImPlot@@YAXPEAUImPlotStyle@@@Z";
+
+    // Style plot colors for ImGui "Light".
+    StyleColorsLight :: (dst: *ImPlotStyle = null) -> void #foreign imgui "?StyleColorsLight@ImPlot@@YAXPEAUImPlotStyle@@@Z";
+
+    // Temporarily modify a style color. Don't forget to call PopStyleColor!
+    PushStyleColor :: (idx: ImPlotCol, col: ImU32) -> void #foreign imgui "?PushStyleColor@ImPlot@@YAXHI@Z";
+    PushStyleColor :: (idx: ImPlotCol, col: *ImVec4) -> void #foreign imgui "?PushStyleColor@ImPlot@@YAXHAEBUImVec4@@@Z";
+    PushStyleColor :: (idx: ImPlotCol, col: ImVec4) #no_context {
+        PushStyleColor(idx, *col);
+    }
+
+    // Undo temporary style color modification(s). Undo multiple pushes at once by increasing count.
+    PopStyleColor :: (count: s32 = 1) -> void #foreign imgui "?PopStyleColor@ImPlot@@YAXH@Z";
+
+    // Temporarily modify a style variable of float type. Don't forget to call PopStyleVar!
+    PushStyleVar :: (idx: ImPlotStyleVar, val: float) -> void #foreign imgui "?PushStyleVar@ImPlot@@YAXHM@Z";
+
+    // Temporarily modify a style variable of int type. Don't forget to call PopStyleVar!
+    PushStyleVar :: (idx: ImPlotStyleVar, val: s32) -> void #foreign imgui "?PushStyleVar@ImPlot@@YAXHH@Z";
+
+    // Temporarily modify a style variable of ImVec2 type. Don't forget to call PopStyleVar!
+    PushStyleVar :: (idx: ImPlotStyleVar, val: *ImVec2) -> void #foreign imgui "?PushStyleVar@ImPlot@@YAXHAEBUImVec2@@@Z";
+    PushStyleVar :: (idx: ImPlotStyleVar, val: ImVec2) #no_context {
+        PushStyleVar(idx, *val);
+    }
+
+    // Undo temporary style variable modification(s). Undo multiple pushes at once by increasing count.
+    PopStyleVar :: (count: s32 = 1) -> void #foreign imgui "?PopStyleVar@ImPlot@@YAXH@Z";
+
+    // Gets the last item primary color (i.e. its legend icon color)
+    GetLastItemColor :: () -> ImVec4 #cpp_return_type_is_non_pod #foreign imgui "?GetLastItemColor@ImPlot@@YA?AUImVec4@@XZ";
+
+    // Returns the null terminated string name for an ImPlotCol.
+    GetStyleColorName :: (idx: ImPlotCol) -> *u8 #foreign imgui "?GetStyleColorName@ImPlot@@YAPEBDH@Z";
+
+    // Returns the null terminated string name for an ImPlotMarker.
+    GetMarkerName :: (idx: ImPlotMarker) -> *u8 #foreign imgui "?GetMarkerName@ImPlot@@YAPEBDH@Z";
+
+    // Returns the next marker and advances the marker for the current plot. You need to call this between Begin/EndPlot!
+    NextMarker :: () -> ImPlotMarker #foreign imgui "?NextMarker@ImPlot@@YAHXZ";
+
+    // Add a new colormap. The color data will be copied. The colormap can be used by pushing either the returned index or the
+    // string name with PushColormap. The colormap name must be unique and the size must be greater than 1. You will receive
+    // an assert otherwise! By default colormaps are considered to be qualitative (i.e. discrete). If you want to create a
+    // continuous colormap, set #qual=false. This will treat the colors you provide as keys, and ImPlot will build a linearly
+    // interpolated lookup table. The memory footprint of this table will be exactly ((size-1)*255+1)*4 bytes.
+    AddColormap :: (name: *u8, cols: *ImVec4, size: s32, qual := true) -> ImPlotColormap #foreign imgui "?AddColormap@ImPlot@@YAHPEBDPEBUImVec4@@H_N@Z";
+    AddColormap :: (name: *u8, cols: *ImU32, size: s32, qual := true) -> ImPlotColormap #foreign imgui "?AddColormap@ImPlot@@YAHPEBDPEBIH_N@Z";
+
+    // Returns the number of available colormaps (i.e. the built-in + user-added count).
+    GetColormapCount :: () -> s32 #foreign imgui "?GetColormapCount@ImPlot@@YAHXZ";
+
+    // Returns a null terminated string name for a colormap given an index. Returns nullptr if index is invalid.
+    GetColormapName :: (cmap: ImPlotColormap) -> *u8 #foreign imgui "?GetColormapName@ImPlot@@YAPEBDH@Z";
+
+    // Returns an index number for a colormap given a valid string name. Returns -1 if name is invalid.
+    GetColormapIndex :: (name: *u8) -> ImPlotColormap #foreign imgui "?GetColormapIndex@ImPlot@@YAHPEBD@Z";
+
+    // Temporarily switch to one of the built-in (i.e. ImPlotColormap_XXX) or user-added colormaps (i.e. a return value of AddColormap). Don't forget to call PopColormap!
+    PushColormap :: (cmap: ImPlotColormap) -> void #foreign imgui "?PushColormap@ImPlot@@YAXH@Z";
+
+    // Push a colormap by string name. Use built-in names such as "Default", "Deep", "Jet", etc. or a string you provided to AddColormap. Don't forget to call PopColormap!
+    PushColormap :: (name: *u8) -> void #foreign imgui "?PushColormap@ImPlot@@YAXPEBD@Z";
+
+    // Undo temporary colormap modification(s). Undo multiple pushes at once by increasing count.
+    PopColormap :: (count: s32 = 1) -> void #foreign imgui "?PopColormap@ImPlot@@YAXH@Z";
+
+    // Returns the next color from the current colormap and advances the colormap for the current plot.
+    // Can also be used with no return value to skip colors if desired. You need to call this between Begin/EndPlot!
+    NextColormapColor :: () -> ImVec4 #cpp_return_type_is_non_pod #foreign imgui "?NextColormapColor@ImPlot@@YA?AUImVec4@@XZ";
+
+    // Returns the size of a colormap.
+    GetColormapSize :: (cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> s32 #foreign imgui "?GetColormapSize@ImPlot@@YAHH@Z";
+
+    // Returns a color from a colormap given an index >= 0 (modulo will be performed).
+    GetColormapColor :: (idx: s32, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> ImVec4 #cpp_return_type_is_non_pod #foreign imgui "?GetColormapColor@ImPlot@@YA?AUImVec4@@HH@Z";
+
+    // Sample a color from the current colormap given t between 0 and 1.
+    SampleColormap :: (t: float, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> ImVec4 #cpp_return_type_is_non_pod #foreign imgui "?SampleColormap@ImPlot@@YA?AUImVec4@@MH@Z";
+
+    // Shows a vertical color scale with linear spaced ticks using the specified color map. Use double hashes to hide label (e.g. "##NoLabel"). If scale_min > scale_max, the scale to color mapping will be reversed.
+    ColormapScale :: (label: *u8, scale_min: float64, scale_max: float64, size: *ImVec2, format: *u8 = "%g", flags: ImPlotColormapScaleFlags = .None, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> void #foreign imgui "?ColormapScale@ImPlot@@YAXPEBDNNAEBUImVec2@@0HH@Z";
+    ColormapScale :: (label: *u8, scale_min: float64, scale_max: float64, size: ImVec2 = ImVec2.{0, 0}, format: *u8 = "%g", flags: ImPlotColormapScaleFlags = .None, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) #no_context {
+        ColormapScale(label, scale_min, scale_max, *size, format, flags, cmap);
+    }
+
+    // Shows a horizontal slider with a colormap gradient background. Optionally returns the color sampled at t in [0 1].
+    ColormapSlider :: (label: *u8, t: *float, out: *ImVec4 = null, format: *u8 = "", cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> bool #foreign imgui "?ColormapSlider@ImPlot@@YA_NPEBDPEAMPEAUImVec4@@0H@Z";
+
+    // Shows a button with a colormap gradient background.
+    ColormapButton :: (label: *u8, size: *ImVec2, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> bool #foreign imgui "?ColormapButton@ImPlot@@YA_NPEBDAEBUImVec2@@H@Z";
+    ColormapButton :: (label: *u8, size: ImVec2 = ImVec2.{0, 0}, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> bool #no_context {
+        return ColormapButton(label, *size, cmap);
+    }
+
+    // When items in a plot sample their color from a colormap, the color is cached and does not change
+    // unless explicitly overridden. Therefore, if you change the colormap after the item has already been plotted,
+    // item colors will NOT update. If you need item colors to resample the new colormap, then use this
+    // function to bust the cached colors. If #plot_title_id is nullptr, then every item in EVERY existing plot
+    // will be cache busted. Otherwise only the plot specified by #plot_title_id will be busted. For the
+    // latter, this function must be called in the same ImGui ID scope that the plot is in. You should rarely if ever
+    // need this function, but it is available for applications that require runtime colormap swaps (e.g. Heatmaps demo).
+    BustColorCache :: (plot_title_id: *u8 = null) -> void #foreign imgui "?BustColorCache@ImPlot@@YAXPEBD@Z";
+
+    // Provides access to input mapping structure for permanent modifications to controls for pan, select, etc.
+    GetInputMap :: () -> *ImPlotInputMap #foreign imgui "?GetInputMap@ImPlot@@YAAEAUImPlotInputMap@@XZ";
+
+    // Default input mapping: pan = LMB drag, box select = RMB drag, fit = LMB double click, context menu = RMB click, zoom = scroll.
+    MapInputDefault :: (dst: *ImPlotInputMap = null) -> void #foreign imgui "?MapInputDefault@ImPlot@@YAXPEAUImPlotInputMap@@@Z";
+
+    // Reverse input mapping: pan = RMB drag, box select = LMB drag, fit = LMB double click, context menu = RMB click, zoom = scroll.
+    MapInputReverse :: (dst: *ImPlotInputMap = null) -> void #foreign imgui "?MapInputReverse@ImPlot@@YAXPEAUImPlotInputMap@@@Z";
+
+    // Render icons similar to those that appear in legends (nifty for data lists).
+    ItemIcon :: (col: *ImVec4) -> void #foreign imgui "?ItemIcon@ImPlot@@YAXAEBUImVec4@@@Z";
+    ItemIcon :: (col: ImVec4) #no_context {
+        ItemIcon(*col);
+    }
+    ItemIcon :: (col: ImU32) -> void #foreign imgui "?ItemIcon@ImPlot@@YAXI@Z";
+    ColormapIcon :: (cmap: ImPlotColormap) -> void #foreign imgui "?ColormapIcon@ImPlot@@YAXH@Z";
+
+    // Get the plot draw list for custom rendering to the current plot area. Call between Begin/EndPlot.
+    GetPlotDrawList :: () -> *ImDrawList #foreign imgui "?GetPlotDrawList@ImPlot@@YAPEAUImDrawList@@XZ";
+
+    // Push clip rect for rendering to current plot area. The rect can be expanded or contracted by #expand pixels. Call between Begin/EndPlot.
+    PushPlotClipRect :: (expand: float = 0) -> void #foreign imgui "?PushPlotClipRect@ImPlot@@YAXM@Z";
+
+    // Pop plot clip rect. Call between Begin/EndPlot.
+    PopPlotClipRect :: () -> void #foreign imgui "?PopPlotClipRect@ImPlot@@YAXXZ";
+
+    // Shows ImPlot style selector dropdown menu.
+    ShowStyleSelector :: (label: *u8) -> bool #foreign imgui "?ShowStyleSelector@ImPlot@@YA_NPEBD@Z";
+
+    // Shows ImPlot colormap selector dropdown menu.
+    ShowColormapSelector :: (label: *u8) -> bool #foreign imgui "?ShowColormapSelector@ImPlot@@YA_NPEBD@Z";
+
+    // Shows ImPlot input map selector dropdown menu.
+    ShowInputMapSelector :: (label: *u8) -> bool #foreign imgui "?ShowInputMapSelector@ImPlot@@YA_NPEBD@Z";
+
+    // Shows ImPlot style editor block (not a window).
+    ShowStyleEditor :: (ref: *ImPlotStyle = null) -> void #foreign imgui "?ShowStyleEditor@ImPlot@@YAXPEAUImPlotStyle@@@Z";
+
+    // Add basic help/info block for end users (not a window).
+    ShowUserGuide :: () -> void #foreign imgui "?ShowUserGuide@ImPlot@@YAXXZ";
+
+    // Shows ImPlot metrics/debug information window.
+    ShowMetricsWindow :: (p_popen: *bool = null) -> void #foreign imgui "?ShowMetricsWindow@ImPlot@@YAXPEA_N@Z";
+
+    // Shows the ImPlot demo window (add implot_demo.cpp to your sources!)
+    ShowDemoWindow :: (p_open: *bool = null) -> void #foreign imgui "?ShowDemoWindow@ImPlot@@YAXPEA_N@Z";
+}
 
 #scope_file
 
