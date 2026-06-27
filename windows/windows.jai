@@ -6,8 +6,8 @@
 
 
 
-IMGUI_VERSION :: "1.92.7";
-IMGUI_VERSION_NUM :: 19270;
+IMGUI_VERSION :: "1.92.8";
+IMGUI_VERSION_NUM :: 19280;
 
 ImTextureID_Invalid :: cast(ImTextureID) 0;
 
@@ -1462,10 +1462,11 @@ SetNextItemShortcut :: (key_chord: KeyChord, flags: InputFlags = .None) -> void 
 // Inputs Utilities: Key/Input Ownership [BETA]
 // - One common use case would be to allow your items to disable standard inputs behaviors such
 //   as Tab or Alt key handling, Mouse Wheel scrolling, etc.
-//   e.g. Button(...); SetItemKeyOwner(ImGuiKey_MouseWheelY); to make hovering/activating a button disable wheel for scrolling.
+//   e.g. `Button(...); if (SetItemKeyOwner(ImGuiKey_MouseWheelY)) { ... }` to make hovering/activating a button disable wheel for scrolling.
 // - Reminder ImGuiKey enum include access to mouse buttons and gamepad, so key ownership can apply to them.
+// - The return value of SetItemKeyOwner() says if ownership has been requested for the item, which is a shortcut to calling yet non-public TestKeyOwner() function.
 // - Many related features are still in imgui_internal.h. For instance, most IsKeyXXX()/IsMouseXXX() functions have an owner-id-aware version.
-SetItemKeyOwner :: (key: Key) -> void #foreign imgui "?SetItemKeyOwner@ImGui@@YAXW4ImGuiKey@@@Z";
+SetItemKeyOwner :: (key: Key) -> bool #foreign imgui "?SetItemKeyOwner@ImGui@@YA_NW4ImGuiKey@@@Z";
 
 // Inputs Utilities: Mouse
 // - To refer to a mouse button, you may use named enums in your code e.g. ImGuiMouseButton_Left, ImGuiMouseButton_Right.
@@ -2255,55 +2256,56 @@ Col :: enum s32 {
     ScrollbarGrabHovered      :: 16;
     ScrollbarGrabActive       :: 17;
     CheckMark                 :: 18;
-    SliderGrab                :: 19;
-    SliderGrabActive          :: 20;
-    Button                    :: 21;
-    ButtonHovered             :: 22;
-    ButtonActive              :: 23;
-    Header                    :: 24;
-    HeaderHovered             :: 25;
-    HeaderActive              :: 26;
-    Separator                 :: 27;
-    SeparatorHovered          :: 28;
-    SeparatorActive           :: 29;
-    ResizeGrip                :: 30;
-    ResizeGripHovered         :: 31;
-    ResizeGripActive          :: 32;
-    InputTextCursor           :: 33;
-    TabHovered                :: 34;
-    Tab                       :: 35;
-    TabSelected               :: 36;
-    TabSelectedOverline       :: 37;
-    TabDimmed                 :: 38;
-    TabDimmedSelected         :: 39;
-    TabDimmedSelectedOverline :: 40;
-    DockingPreview            :: 41;
-    DockingEmptyBg            :: 42;
-    PlotLines                 :: 43;
-    PlotLinesHovered          :: 44;
-    PlotHistogram             :: 45;
-    PlotHistogramHovered      :: 46;
-    TableHeaderBg             :: 47;
-    TableBorderStrong         :: 48;
-    TableBorderLight          :: 49;
-    TableRowBg                :: 50;
-    TableRowBgAlt             :: 51;
-    TextLink                  :: 52;
-    TextSelectedBg            :: 53;
-    TreeLines                 :: 54;
-    DragDropTarget            :: 55;
-    DragDropTargetBg          :: 56;
-    UnsavedMarker             :: 57;
-    NavCursor                 :: 58;
-    NavWindowingHighlight     :: 59;
-    NavWindowingDimBg         :: 60;
-    ModalWindowDimBg          :: 61;
-    COUNT                     :: 62;
+    CheckboxSelectedBg        :: 19;
+    SliderGrab                :: 20;
+    SliderGrabActive          :: 21;
+    Button                    :: 22;
+    ButtonHovered             :: 23;
+    ButtonActive              :: 24;
+    Header                    :: 25;
+    HeaderHovered             :: 26;
+    HeaderActive              :: 27;
+    Separator                 :: 28;
+    SeparatorHovered          :: 29;
+    SeparatorActive           :: 30;
+    ResizeGrip                :: 31;
+    ResizeGripHovered         :: 32;
+    ResizeGripActive          :: 33;
+    InputTextCursor           :: 34;
+    TabHovered                :: 35;
+    Tab                       :: 36;
+    TabSelected               :: 37;
+    TabSelectedOverline       :: 38;
+    TabDimmed                 :: 39;
+    TabDimmedSelected         :: 40;
+    TabDimmedSelectedOverline :: 41;
+    DockingPreview            :: 42;
+    DockingEmptyBg            :: 43;
+    PlotLines                 :: 44;
+    PlotLinesHovered          :: 45;
+    PlotHistogram             :: 46;
+    PlotHistogramHovered      :: 47;
+    TableHeaderBg             :: 48;
+    TableBorderStrong         :: 49;
+    TableBorderLight          :: 50;
+    TableRowBg                :: 51;
+    TableRowBgAlt             :: 52;
+    TextLink                  :: 53;
+    TextSelectedBg            :: 54;
+    TreeLines                 :: 55;
+    DragDropTarget            :: 56;
+    DragDropTargetBg          :: 57;
+    UnsavedMarker             :: 58;
+    NavCursor                 :: 59;
+    NavWindowingHighlight     :: 60;
+    NavWindowingDimBg         :: 61;
+    ModalWindowDimBg          :: 62;
+    COUNT                     :: 63;
 
-    TabActive                 :: 36;
-    TabUnfocused              :: 38;
-    TabUnfocusedActive        :: 39;
-    NavHighlight              :: 58;
+    TabActive                 :: 37;
+    TabUnfocused              :: 39;
+    TabUnfocusedActive        :: 40;
+    NavHighlight              :: 59;
 
     ImGuiCol_Text                      :: Text;
     ImGuiCol_TextDisabled              :: TextDisabled;
@@ -2324,6 +2326,7 @@ Col :: enum s32 {
     ImGuiCol_ScrollbarGrabHovered      :: ScrollbarGrabHovered;
     ImGuiCol_ScrollbarGrabActive       :: ScrollbarGrabActive;
     ImGuiCol_CheckMark                 :: CheckMark;
+    ImGuiCol_CheckboxSelectedBg        :: CheckboxSelectedBg;
     ImGuiCol_SliderGrab                :: SliderGrab;
     ImGuiCol_SliderGrabActive          :: SliderGrabActive;
     ImGuiCol_Button                    :: Button;
@@ -2419,14 +2422,15 @@ StyleVar :: enum s32 {
     TableAngledHeadersTextAlign :: 32;
     TreeLinesSize               :: 33;
     TreeLinesRounding           :: 34;
-    ButtonTextAlign             :: 35;
-    SelectableTextAlign         :: 36;
-    SeparatorSize               :: 37;
-    SeparatorTextBorderSize     :: 38;
-    SeparatorTextAlign          :: 39;
-    SeparatorTextPadding        :: 40;
-    DockingSeparatorSize        :: 41;
-    COUNT                       :: 42;
+    DragDropTargetRounding      :: 35;
+    ButtonTextAlign             :: 36;
+    SelectableTextAlign         :: 37;
+    SeparatorSize               :: 38;
+    SeparatorTextBorderSize     :: 39;
+    SeparatorTextAlign          :: 40;
+    SeparatorTextPadding        :: 41;
+    DockingSeparatorSize        :: 42;
+    COUNT                       :: 43;
 
     ImGuiStyleVar_Alpha                       :: Alpha;
     ImGuiStyleVar_DisabledAlpha               :: DisabledAlpha;
@@ -2463,6 +2467,7 @@ StyleVar :: enum s32 {
     ImGuiStyleVar_TableAngledHeadersTextAlign :: TableAngledHeadersTextAlign;
     ImGuiStyleVar_TreeLinesSize               :: TreeLinesSize;
     ImGuiStyleVar_TreeLinesRounding           :: TreeLinesRounding;
+    ImGuiStyleVar_DragDropTargetRounding      :: DragDropTargetRounding;
     ImGuiStyleVar_ButtonTextAlign             :: ButtonTextAlign;
     ImGuiStyleVar_SelectableTextAlign         :: SelectableTextAlign;
     ImGuiStyleVar_SeparatorSize               :: SeparatorSize;
@@ -2951,7 +2956,7 @@ Style :: struct {
     TabBorderSize:                    float; // Thickness of border around tabs.
     TabMinWidthBase:                  float; // Minimum tab width, to make tabs larger than their contents. TabBar buttons are not affected.
     TabMinWidthShrink:                float; // Minimum tab width after shrinking, when using ImGuiTabBarFlags_FittingPolicyMixed policy.
-    TabCloseButtonMinWidthSelected:   float; // -1: always visible. 0.0f: visible when hovered. >0.0f: visible when hovered if minimum width.
+    TabCloseButtonMinWidthSelected:   float; // -1: always visible. 0.0f: visible when hovered. >0.0f: visible when hovered if minimum width. FLT_MAX: never shrink, will behave like ImGuiTabBarFlags_FittingPolicyScroll.
     TabCloseButtonMinWidthUnselected: float; // -1: always visible. 0.0f: visible when hovered. >0.0f: visible when hovered if minimum width. FLT_MAX: never show close button when unselected.
     TabBarBorderSize:                 float; // Thickness of tab-bar separator, which takes on the tab active color to denote focus.
     TabBarOverlineSize:               float; // Thickness of tab-bar overline, which highlights the selected tab-bar.
@@ -2960,14 +2965,14 @@ Style :: struct {
     TreeLinesFlags:                   TreeNodeFlags; // Default way to draw lines connecting TreeNode hierarchy. ImGuiTreeNodeFlags_DrawLinesNone or ImGuiTreeNodeFlags_DrawLinesFull or ImGuiTreeNodeFlags_DrawLinesToNodes.
     TreeLinesSize:                    float; // Thickness of outlines when using ImGuiTreeNodeFlags_DrawLines.
     TreeLinesRounding:                float; // Radius of lines connecting child nodes to the vertical line.
-    DragDropTargetRounding:           float; // Radius of the drag and drop target frame.
+    DragDropTargetRounding:           float; // Radius of the drag and drop target frame. When <0.0f: use FrameRounding.
     DragDropTargetBorderSize:         float; // Thickness of the drag and drop target border.
     DragDropTargetPadding:            float; // Size to expand the drag and drop target from actual target item size.
     ColorMarkerSize:                  float; // Size of R/G/B/A color markers for ColorEdit4() and for Drags/Sliders when using ImGuiSliderFlags_ColorMarkers.
     ColorButtonPosition:              Dir; // Side of the color button in the ColorEdit4 widget (left/right). Defaults to ImGuiDir_Right.
     ButtonTextAlign:                  ImVec2; // Alignment of button text when button is larger than text. Defaults to (0.5f, 0.5f) (centered).
     SelectableTextAlign:              ImVec2; // Alignment of selectable text. Defaults to (0.0f, 0.0f) (top-left aligned). It's generally important to keep this left-aligned if you want to lay multiple items on a same line.
-    SeparatorSize:                    float; // Thickness of border in Separator()
+    SeparatorSize:                    float; // Thickness of border in Separator(). Must be >= 1.0f.
     SeparatorTextBorderSize:          float; // Thickness of border in SeparatorText()
     SeparatorTextAlign:               ImVec2; // Alignment of text within the separator. Defaults to (0.0f, 0.5f) (left aligned, center).
     SeparatorTextPadding:             ImVec2; // Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
@@ -2983,7 +2988,7 @@ Style :: struct {
     CircleTessellationMaxError:       float; // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
 
     // Colors
-    Colors:                           [62] ImVec4;
+    Colors:                           [63] ImVec4;
 
     HoverStationaryDelay:             float; // Delay for IsItemHovered(ImGuiHoveredFlags_Stationary). Time required to consider mouse stationary.
     HoverDelayShort:                  float; // Delay for IsItemHovered(ImGuiHoveredFlags_DelayShort). Usually used along with HoverStationaryDelay.
@@ -3040,7 +3045,7 @@ IO :: struct {
     ConfigViewportsNoAutoMerge:                    bool; // = false;         // Set to make all floating imgui windows always create their own viewport. Otherwise, they are merged into the main host viewports when overlapping it. May also set ImGuiViewportFlags_NoAutoMerge on individual viewport.
     ConfigViewportsNoTaskBarIcon:                  bool; // = false          // Disable default OS task bar icon flag for secondary viewports. When a viewport doesn't want a task bar icon, ImGuiViewportFlags_NoTaskBarIcon will be set on it.
     ConfigViewportsNoDecoration:                   bool; // = true           // Disable default OS window decoration flag for secondary viewports. When a viewport doesn't want window decorations, ImGuiViewportFlags_NoDecoration will be set on it. Enabling decoration can create subsequent issues at OS levels (e.g. minimum window size).
-    ConfigViewportsNoDefaultParent:                bool; // = true           // When false: set secondary viewports' ParentViewportId to main viewport ID by default. Expects the platform backend to setup a parent/child relationship between the OS windows based on this value. Some backend may ignore this. Set to true if you want viewports to automatically be parent of main viewport, otherwise all viewports will be top-level OS windows.
+    ConfigViewportsNoDefaultParent:                bool; // = true           // Disable setting OS window parent to main viewport by default. The platform backend is expected to honor `viewport->ParentViewportID` to setup a parent/child relationship between the OS windows (supported if ImGuiBackendFlags_HasParentViewport is set). When parented: child windows always appear in front of their parent. Set to false if you want viewports to automatically be parent of main viewport, otherwise all viewports will be top-level OS windows. Parent/child relationship may be set on a per-window basis using ImGuiWindowClass.
     ConfigViewportsPlatformFocusSetsImGuiFocus:    bool; //= true // When a platform window is focused (e.g. using Alt+Tab, clicking Platform Title Bar), apply corresponding focus on imgui windows (may clear focus/active id from imgui windows location in other platform windows). In principle this is better enabled but we provide an opt-out, because some Linux window managers tend to eagerly focus windows (e.g. on mouse hover, or even a simple window pos/size change).
 
     ConfigDpiScaleFonts:                           bool; // = false          // [EXPERIMENTAL] Automatically overwrite style.FontScaleDpi when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
@@ -3184,7 +3189,7 @@ InputTextCallbackData :: struct {
     EventFlag:      InputTextFlags; // One ImGuiInputTextFlags_Callback*    // Read-only
     Flags:          InputTextFlags; // What user passed to InputText()      // Read-only
     UserData:       *void; // What user passed to InputText()      // Read-only
-    ID_:            ID; // Widget ID                             // Read-only
+    ID_:            ID; // Widget ID                            // Read-only
 
     EventKey:       Key; // Key pressed (Up/Down/TAB)            // Read-only    // [Completion,History]
     EventChar:      ImWchar; // Character input                      // Read-write   // [CharFilter] Replace character with another one, or set to zero to drop. return 1 is equivalent to setting EventChar=0;
@@ -3193,9 +3198,9 @@ InputTextCallbackData :: struct {
     Buf:            *u8; // Text buffer                          // Read-write   // [Resize] Can replace pointer / [Completion,History,Always] Only write to pointed data, don't replace the actual pointer!
     BufTextLen:     s32; // Text length (in bytes)               // Read-write   // [Resize,Completion,History,Always] Exclude zero-terminator storage. In C land: == strlen(some_text), in C++ land: string.length()
     BufSize:        s32; // Buffer size (in bytes) = capacity+1  // Read-only    // [Resize,Completion,History,Always] Include zero-terminator storage. In C land: == ARRAYSIZE(my_char_array), in C++ land: string.capacity()+1
-    CursorPos:      s32; //                                      // Read-write   // [Completion,History,Always]
-    SelectionStart: s32; //                                      // Read-write   // [Completion,History,Always] == to SelectionEnd when no selection
-    SelectionEnd:   s32; //                                      // Read-write   // [Completion,History,Always]
+    CursorPos:      s32; //                                      // Read-write   // [Completion,History,Always,CharFilter]
+    SelectionStart: s32; //                                      // Read-write   // [Completion,History,Always,CharFilter] == to SelectionEnd when no selection
+    SelectionEnd:   s32; //                                      // Read-write   // [Completion,History,Always,CharFilter]
 
     // Helper functions for text manipulation.
     // Use those function to benefit from the CallbackResize behaviors. Calling those function reset the selection.
@@ -3221,7 +3226,7 @@ SizeCallbackData :: struct {
 // before we stabilize Docking features. Please be mindful if using this.
 // Provide hints:
 // - To the platform backend via altered viewport flags (enable/disable OS decoration, OS task bar icons, etc.)
-// - To the platform backend for OS level parent/child relationships of viewport.
+// - To the platform backend for OS level parent/child relationships of viewport (otherwise: default is configured via io.ConfigViewportsNoDefaultParent)
 // - To the docking system for various options and filtering.
 WindowClass :: struct {
     ClassId:                    ID; // User data. 0 = Default class (unclassed). Windows of different classes cannot be docked with each others.
@@ -3233,6 +3238,7 @@ WindowClass :: struct {
     DockNodeFlagsOverrideSet:   DockNodeFlags; // [EXPERIMENTAL] Dock node flags to set when a window of this class is hosted by a dock node (it doesn't have to be selected!)
     DockingAlwaysTabBar:        bool; // Set to true to enforce single floating windows of this class always having their own docking node (equivalent of setting the global io.ConfigDockingAlwaysTabBar)
     DockingAllowUnclassed:      bool; // Set to true to allow windows of this class to be docked/merged with an unclassed window. // FIXME-DOCK: Move to DockNodeFlags override?
+    PlatformIconData:           *void; // [EXPERIMENTAL] Pass opaque data for Platform backend to handle.
 }
 
 // Data payload for Drag and Drop operations: AcceptDragDropPayload(), GetDragDropPayload()
@@ -3563,15 +3569,14 @@ ImDrawListSplitter :: struct {
 }
 
 // Flags for ImDrawList functions
-// (Legacy: bit 0 must always correspond to ImDrawFlags_Closed to be backward compatible with old API using a bool. Bits 1..3 must be unused)
 ImDrawFlags :: enum_flags s32 {
     None                    :: 0x0;
-    Closed                  :: 0x1;
     RoundCornersTopLeft     :: 0x10;
     RoundCornersTopRight    :: 0x20;
     RoundCornersBottomLeft  :: 0x40;
     RoundCornersBottomRight :: 0x80;
     RoundCornersNone        :: 0x100;
+    Closed                  :: 0x200;
     RoundCornersTop         :: 0x30;
     RoundCornersBottom      :: 0xc0;
     RoundCornersLeft        :: 0x50;
@@ -3579,14 +3584,15 @@ ImDrawFlags :: enum_flags s32 {
     RoundCornersAll         :: 0xf0;
     RoundCornersDefault_    :: 0xf0;
     RoundCornersMask_       :: 0x1f0;
+    InvalidMask_            :: 0x8000000f;
 
     ImDrawFlags_None                    :: None;
-    ImDrawFlags_Closed                  :: Closed;
     ImDrawFlags_RoundCornersTopLeft     :: RoundCornersTopLeft;
     ImDrawFlags_RoundCornersTopRight    :: RoundCornersTopRight;
     ImDrawFlags_RoundCornersBottomLeft  :: RoundCornersBottomLeft;
     ImDrawFlags_RoundCornersBottomRight :: RoundCornersBottomRight;
     ImDrawFlags_RoundCornersNone        :: RoundCornersNone;
+    ImDrawFlags_Closed                  :: Closed;
     ImDrawFlags_RoundCornersTop         :: RoundCornersTop;
     ImDrawFlags_RoundCornersBottom      :: RoundCornersBottom;
     ImDrawFlags_RoundCornersLeft        :: RoundCornersLeft;
@@ -3594,6 +3600,7 @@ ImDrawFlags :: enum_flags s32 {
     ImDrawFlags_RoundCornersAll         :: RoundCornersAll;
     ImDrawFlags_RoundCornersDefault_    :: RoundCornersDefault_;
     ImDrawFlags_RoundCornersMask_       :: RoundCornersMask_;
+    ImDrawFlags_InvalidMask_            :: InvalidMask_;
 }
 
 // Flags for ImDrawList instance. Those are set automatically by ImGui:: functions from ImGuiIO settings, and generally not manipulated directly.
@@ -3665,9 +3672,11 @@ ImDrawList :: struct {
     AddLine :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, col: ImU32, thickness: float = 1.0) #no_context {
         AddLine(this, *p1, *p2, col, thickness);
     }
-    AddRect :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None, thickness: float = 1.0) -> void #cpp_method #foreign imgui "?AddRect@ImDrawList@@QEAAXAEBUImVec2@@0IMHM@Z";
-    AddRect :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None, thickness: float = 1.0) #no_context {
-        AddRect(this, *p_min, *p_max, col, rounding, flags, thickness);
+    AddLineH :: (this: *ImDrawList, min_x: float, max_x: float, y: float, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "?AddLineH@ImDrawList@@QEAAXMMMIM@Z";
+    AddLineV :: (this: *ImDrawList, x: float, min_y: float, max_y: float, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "?AddLineV@ImDrawList@@QEAAXMMMIM@Z";
+    AddRect :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "?AddRect@ImDrawList@@QEAAXAEBUImVec2@@0IMMH@Z";
+    AddRect :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddRect(this, *p_min, *p_max, col, rounding, thickness, flags);
     }
     AddRectFilled :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "?AddRectFilled@ImDrawList@@QEAAXAEBUImVec2@@0IMH@Z";
     AddRectFilled :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None) #no_context {
@@ -3737,7 +3746,7 @@ ImDrawList :: struct {
     // General polygon
     // - Only simple polygons are supported by filling functions (no self-intersections, no holes).
     // - Concave polygon fill is more expensive than convex one: it has O(N^2) complexity. Provided as a convenience for the user but not used by the main library.
-    AddPolyline :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, flags: ImDrawFlags, thickness: float) -> void #cpp_method #foreign imgui "?AddPolyline@ImDrawList@@QEAAXPEBUImVec2@@HIHM@Z";
+    AddPolyline :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, thickness: float, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "?AddPolyline@ImDrawList@@QEAAXPEBUImVec2@@HIMH@Z";
     AddConvexPolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32) -> void #cpp_method #foreign imgui "?AddConvexPolyFilled@ImDrawList@@QEAAXPEBUImVec2@@HI@Z";
     AddConcavePolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32) -> void #cpp_method #foreign imgui "?AddConcavePolyFilled@ImDrawList@@QEAAXPEBUImVec2@@HI@Z";
 
@@ -3785,14 +3794,15 @@ ImDrawList :: struct {
 
     // Advanced: Draw Callbacks
     // - May be used to alter render state (change sampler, blending, current shader). May be used to emit custom rendering commands (difficult to do correctly, but possible).
-    // - Use special ImDrawCallback_ResetRenderState callback to instruct backend to reset its render state to the default.
+    // - Use special GetPlatformIO().DrawCallback_ResetRenderState callback to instruct backend to reset its render state to the default.
+    // - See other standard callbacks in GetPlatformIO(), which may or not be supported by your backend.
     // - Your rendering loop must check for 'UserCallback' in ImDrawCmd and call the function instead of rendering triangles. All standard backends are honoring this.
     // - For some backends, the callback may access selected render-states exposed by the backend in a ImGui_ImplXXXX_RenderState structure pointed to by platform_io.Renderer_RenderState.
     // - IMPORTANT: please be mindful of the different level of indirection between using size==0 (copying argument) and using size>0 (copying pointed data into a buffer).
     //   - If userdata_size == 0: we copy/store the 'userdata' argument as-is. It will be available unmodified in ImDrawCmd::UserCallbackData during render.
     //   - If userdata_size > 0,  we copy/store 'userdata_size' bytes pointed to by 'userdata'. We store them in a buffer stored inside the drawlist. ImDrawCmd::UserCallbackData will point inside that buffer so you have to retrieve data from there. Your callback may need to use ImDrawCmd::UserCallbackDataSize if you expect dynamically-sized data.
     //   - Support for userdata_size > 0 was added in v1.91.4, October 2024. So earlier code always only allowed to copy/store a simple void*.
-    AddCallback :: (this: *ImDrawList, callback: ImDrawCallback, userdata: *void, userdata_size: u64 = 0) -> void #cpp_method #foreign imgui "?AddCallback@ImDrawList@@QEAAXP6AXPEBU1@PEBUImDrawCmd@@@ZPEAX_K@Z";
+    AddCallback :: (this: *ImDrawList, callback: ImDrawCallback, userdata: *void = null, userdata_size: u64 = 0) -> void #cpp_method #foreign imgui "?AddCallback@ImDrawList@@QEAAXP6AXPEBU1@PEBUImDrawCmd@@@ZPEAX_K@Z";
 
     // Advanced: Miscellaneous
     AddDrawCmd :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "?AddDrawCmd@ImDrawList@@QEAAXXZ";
@@ -4093,12 +4103,12 @@ ImFontAtlas :: struct {
     RemoveFont :: (this: *ImFontAtlas, font: *ImFont) -> void #cpp_method #foreign imgui "?RemoveFont@ImFontAtlas@@QEAAXPEAUImFont@@@Z";
 
     Clear :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "?Clear@ImFontAtlas@@QEAAXXZ";
+    ClearFonts :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "?ClearFonts@ImFontAtlas@@QEAAXXZ";
     CompactCache :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "?CompactCache@ImFontAtlas@@QEAAXXZ";
     SetFontLoader :: (this: *ImFontAtlas, font_loader: *ImFontLoader) -> void #cpp_method #foreign imgui "?SetFontLoader@ImFontAtlas@@QEAAXPEBUImFontLoader@@@Z";
 
     // As we are transitioning toward a new font system, we expect to obsolete those soon:
     ClearInputData :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "?ClearInputData@ImFontAtlas@@QEAAXXZ";
-    ClearFonts :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "?ClearFonts@ImFontAtlas@@QEAAXXZ";
     ClearTexData :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "?ClearTexData@ImFontAtlas@@QEAAXXZ";
 
     // Legacy path for build atlas + retrieving pixel data.
@@ -4271,15 +4281,17 @@ get_LoadNoRenderOnLayout :: (fields: ImFontBaked) -> bool {
 // Font flags
 // (in future versions as we redesign font loading API, this will become more important and better documented. for now please consider this as internal/advanced use)
 ImFontFlags :: enum_flags s32 {
-    None           :: 0x0;
-    NoLoadError    :: 0x2;
-    NoLoadGlyphs   :: 0x4;
-    LockBakedSizes :: 0x8;
+    None            :: 0x0;
+    NoLoadError     :: 0x2;
+    NoLoadGlyphs    :: 0x4;
+    LockBakedSizes  :: 0x8;
+    ImplicitRefSize :: 0x10;
 
-    ImFontFlags_None           :: None;
-    ImFontFlags_NoLoadError    :: NoLoadError;
-    ImFontFlags_NoLoadGlyphs   :: NoLoadGlyphs;
-    ImFontFlags_LockBakedSizes :: LockBakedSizes;
+    ImFontFlags_None            :: None;
+    ImFontFlags_NoLoadError     :: NoLoadError;
+    ImFontFlags_NoLoadGlyphs    :: NoLoadGlyphs;
+    ImFontFlags_LockBakedSizes  :: LockBakedSizes;
+    ImFontFlags_ImplicitRefSize :: ImplicitRefSize;
 }
 
 // Font runtime data and rendering
@@ -4395,6 +4407,7 @@ Viewport :: struct {
 
     RendererUserData:      *void; // void* to hold custom data structure for the renderer (e.g. swap chain, framebuffers etc.). generally set by your Renderer_CreateWindow function.
     PlatformUserData:      *void; // void* to hold custom data structure for the OS / platform (e.g. windowing info, render context). generally set by your Platform_CreateWindow function.
+    PlatformIconData:      *void; // void* to hold custom data structure for the OS / platform to specify an icon. Currently unused for exposed to allow experiments.
     PlatformHandle:        *void; // void* to hold higher-level, platform window handle (e.g. HWND for Win32 backend, Uint32 WindowID for SDL, GLFWWindow* for GLFW), for FindViewportByPlatformHandle().
     PlatformHandleRaw:     *void; // void* to hold lower-level, platform-native window handle (always HWND on Win32 platform, unused for other platforms).
     PlatformWindowCreated: bool; // Platform window has been created (Platform_CreateWindow() has been called). This is false during the first frame where a viewport is being created.
@@ -4431,6 +4444,10 @@ PlatformIO :: struct {
 
     // Written by some backends during ImGui_ImplXXXX_RenderDrawData() call to point backend_specific ImGui_ImplXXXX_RenderState* structure.
     Renderer_RenderState:               *void;
+
+    DrawCallback_ResetRenderState:      ImDrawCallback; // Request to reset the graphics/render state.
+    DrawCallback_SetSamplerLinear:      ImDrawCallback; // Request backend to set texture sampling to Linear.
+    DrawCallback_SetSamplerNearest:     ImDrawCallback; // Request backend to set texture sampling to Nearest/Point.
 
     Platform_CreateWindow:              #type (vp: *Viewport) -> void #c_call; // . . U . .  // Create a new platform window for the given viewport
     Platform_DestroyWindow:             #type (vp: *Viewport) -> void #c_call; // N . U . D  //
