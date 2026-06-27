@@ -171,7 +171,7 @@ EOF
         array_add(*source_files,  
             tprint("%/imgui.h", IMGUI_PATH),  
             tprint("%/implot.h", IMGUI_PATH),
-            tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH)
+            tprint("%/imgui_threaded_rendering.h", IMGUI_PATH)
         );
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
