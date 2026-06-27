@@ -8,3 +8,6 @@
 [submodule "src/include/legit_profiler"]
 	path = src/include/legit_profiler
 	url = git@github.com:Raikiri/LegitProfiler.git
+[submodule "src/imgui_club"]
+	path = src/imgui_club
+	url = git@github.com:ocornut/imgui_club.git

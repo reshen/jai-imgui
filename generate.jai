@@ -57,6 +57,10 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         array_add(*imgui_src_files, tprint("%/implot_items.cpp", IMGUI_PATH));
         array_add(*imgui_src_files, tprint("%/implot_demo.cpp", IMGUI_PATH));
 
+        // For imgui_threaded_rendering, added the submodule to src/imgui_club, copied out the
+        // header to src/imgui, and created a cpp file including that header so we could add it here:
+        array_add(*imgui_src_files, tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH));
+
         if !no_demo
             array_add(*imgui_src_files, tprint("%/imgui_demo.cpp", IMGUI_PATH));
 
@@ -164,7 +168,11 @@ EOF
         }
 
         array_add(*include_paths, IMGUI_PATH);
-        array_add(*source_files,  tprint("%/imgui.h", IMGUI_PATH),  tprint("%/implot.h", IMGUI_PATH));
+        array_add(*source_files,  
+            tprint("%/imgui.h", IMGUI_PATH),  
+            tprint("%/implot.h", IMGUI_PATH),
+            tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH)
+        );
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
         array_add(*strip_prefixes, "ImGui");
@@ -297,7 +305,7 @@ END
         array_add(*strip_prefixes, "ImGui", "Imgui");
 
         auto_detect_enum_prefixes = false;
-        log_stripped_declarations = false;
+        log_stripped_declarations = true;
         generate_compile_time_struct_checks = false;
 
         visitor = imgui_visitor;
@@ -638,15 +646,15 @@ imgui_get_function_arg_for_printing :: (func: *Function, type: *Function_Type, m
                         base_arg_name = slice(it.name, 0, it.name.count - "_begin".count);
                     }
 
-					arg_copy := New(Declaration);
-					arg_copy.* = it.*;
-					arg_copy.output_name = tprint("%.data", base_arg_name);
-					array_add(*args, arg_copy);
+                    arg_copy := New(Declaration);
+                    arg_copy.* = it.*;
+                    arg_copy.output_name = tprint("%.data", base_arg_name);
+                    array_add(*args, arg_copy);
 
-					arg_copy_2 := New(Declaration);
-					arg_copy_2.* = it.*;
-					arg_copy_2.output_name = tprint("%.data + %.count", base_arg_name, base_arg_name);
-					array_add(*args, arg_copy_2);
+                    arg_copy_2 := New(Declaration);
+                    arg_copy_2.* = it.*;
+                    arg_copy_2.output_name = tprint("%.data + %.count", base_arg_name, base_arg_name);
+                    array_add(*args, arg_copy_2);
 
                     it_index += 1; // skip the next arg, since we already added a second one above
                     continue;
