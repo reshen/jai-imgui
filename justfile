@@ -3,8 +3,18 @@ set shell := ["nu", "--experimental-options", "pipefail=true", "--no-newline", "
 jai := if os() == 'windows' { 'jai.exe' } else { 'jai-macos'}
 
 alias b := build
+alias rb := rebuild
+
+rebuild: clean build
+
+[windows]
+clean:
+    rm -rf windows/*
+    rm -rf backends/windows/*
 
 build:
+    {{jai}} generate.jai - -compile -debug
+    {{jai}} generate.jai - -backend_sdl3_only_platform -debug
     {{jai}} generate.jai - -compile
     {{jai}} generate.jai - -backend_sdl3_only_platform
     @echo "\n\n------------------------\n"

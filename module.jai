@@ -1,4 +1,4 @@
-#module_parameters ();
+#module_parameters (DEBUG := true);
 
 ImVec2      :: Vector2;
 ImVec4      :: Vector4;
@@ -18,7 +18,11 @@ ImDrawCallback :: #type (parent_list: *ImDrawList, cmd: *ImDrawCmd) #c_call;
 #import "Math";
 
 #if OS == .WINDOWS {
-    #load "windows/windows.jai";
+    #if DEBUG {
+        #load "windows/debug/windows.jai";
+    } else {
+        #load "windows/release/windows.jai";
+    }
 
     // Note: Check imconfig.h for a full list of compilation flags and the resulting
     // changes in features and system libraries required

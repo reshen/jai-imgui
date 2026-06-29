@@ -6,6 +6,9 @@ IMGUI_PATH :: "src/imgui"; // Docking e11ad6b77e5c7f7ed28467fec42fe2c72068b68e (
 SDL3_INCLUDE_PATH :: "src/include"; // Used for SDL v3.2.14
 GLFW_INCLUDE_PATH :: "src/include"; // Used for GLFW v3.4
 
+// reshen@ - disabling dll, since I don't use them
+BUILD_DYNAMIC_LIB :: false;
+
 DECLARATIONS_TO_OMIT :: string.[
     // We have custom declarations for these in module.jai:
     "ImVec2",
@@ -60,6 +63,7 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         // For imgui_threaded_rendering, added the submodule to src/imgui_club, copied out the
         // header to src/imgui, and created a cpp file including that header so we could add it here:
         array_add(*imgui_src_files, tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH));
+        // array_add(*imgui_src_files, tprint("%/imgui_multicontext_compositor.cpp", IMGUI_PATH));
 
         if !no_demo
             array_add(*imgui_src_files, tprint("%/imgui_demo.cpp", IMGUI_PATH));
@@ -67,16 +71,17 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         success := true;
         #if OS == .WINDOWS {
 
-            make_directory_if_it_does_not_exist("windows");
+            lib_dir := ifx compile_debug then "windows/debug" else "windows/release";
+            make_directory_if_it_does_not_exist(lib_dir);
 
-            success &&= build_cpp_dynamic_lib("windows/ImGui", ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)"], debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib(tprint("%/ImGui", lib_dir), ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)"], debug=compile_debug);
 
             // We set IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS. Otherwise all users of the ImGui module have to link against "imm32".
-            success &&= build_cpp_static_lib("windows/ImGui.static", ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)", "/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS"], debug=compile_debug);
+            success &&= build_cpp_static_lib(tprint("%/ImGui.static", lib_dir), ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)", "/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS"], debug=compile_debug);
 
         } else #if OS == .LINUX {
             make_directory_if_it_does_not_exist("linux");
-            success &&= build_cpp_dynamic_lib("linux/ImGui", ..imgui_src_files, debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("linux/ImGui", ..imgui_src_files, debug=compile_debug);
             // @Hack: Is -fno-threadsafe-statics really the way to go? Without it, we get linker errors when using the static library
             // due to "__cxa_guard_acquire" et al not being defined. The library users probably need to link agains libc++ or something. But do we really want to enforce that?
             success &&= build_cpp_static_lib("linux/ImGui", ..imgui_src_files, extra = .["-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", "-fPIC"], debug=compile_debug);
@@ -90,14 +95,14 @@ generate_imgui_bindings :: (args: [] string) -> bool {
             macos_arm64_version_arg := "-mmacos-version-min=11.0";  // Earliest version that supports arm64
 
             // x64 variant
-            success &&= build_cpp_dynamic_lib("macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", macos_x64_version_arg], debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", macos_x64_version_arg], debug=compile_debug);
 
             // @Hack: Is -fno-threadsafe-statics really the way to go? Without it, we get linker errors when using the static library
             // due to "__cxa_guard_acquire" et al not being defined. The library users probably need to link agains libc++ or something. But do we really want to enforce that?
             success &&= build_cpp_static_lib( "macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_x64_version_arg], debug=compile_debug);
 
             // arm64 variant
-            success &&= build_cpp_dynamic_lib("macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", macos_arm64_version_arg], debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", macos_arm64_version_arg], debug=compile_debug);
 
             success &&= build_cpp_static_lib( "macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_arm64_version_arg], debug=compile_debug);
 
@@ -142,9 +147,11 @@ generate_imgui_bindings :: (args: [] string) -> bool {
 
         #if OS == .WINDOWS {
 
+            lib_dir := ifx compile_debug then "windows/debug" else "windows/release";
+            make_directory_if_it_does_not_exist(lib_dir);
             array_add(*libraries, .{filename="ImGui.static"});
-            array_add(*library_search_paths, "windows");
-            output_filename = "windows/windows.jai";
+            array_add(*library_search_paths, lib_dir);
+            output_filename = tprint("%/windows.jai", lib_dir);
             generate_library_declarations = false;
 
             footer = #string EOF
@@ -172,6 +179,7 @@ EOF
             tprint("%/imgui.h", IMGUI_PATH),  
             tprint("%/implot.h", IMGUI_PATH),
             tprint("%/imgui_threaded_rendering.h", IMGUI_PATH)
+            // tprint("%/imgui_multicontext_compositor.h", IMGUI_PATH)
         );
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
@@ -206,11 +214,11 @@ compile_and_generate_bindings_backend_sdl3 :: (compile_debug: bool, include_gpu:
 
     // Generate binaries
     #if OS == .WINDOWS {
-
-        make_directory_if_it_does_not_exist("backends/windows");
+        backend_dir := ifx compile_debug then "backends/windows/debug" else "backends/windows/release";
+        make_directory_if_it_does_not_exist(backend_dir);
 
         // We set IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS. Otherwise all users of the ImGui module have to link against "imm32".
-        success = build_cpp_static_lib("backends/windows/ImGui_sdl3.static", ..src_files, extra = .["/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS", tprint("/I%", IMGUI_PATH), tprint("/I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
+        success = build_cpp_static_lib(tprint("%/ImGui_sdl3.static", backend_dir), ..src_files, extra = .["/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS", tprint("/I%", IMGUI_PATH), tprint("/I%", SDL3_INCLUDE_PATH)], debug=compile_debug);
 
         if !success return false;
 
@@ -257,9 +265,10 @@ compile_and_generate_bindings_backend_sdl3 :: (compile_debug: bool, include_gpu:
 
         #if OS == .WINDOWS {
 
-            array_add(*library_search_paths, "backends/windows");
+            backend_dir := ifx compile_debug then "backends/windows/debug" else "backends/windows/release";
+            array_add(*library_search_paths, backend_dir);
             array_add(*libraries, .{filename="ImGui_sdl3.static"});
-            output_filename = "backends/windows/windows_sdl3.jai";
+            output_filename = tprint("%/windows_sdl3.jai", backend_dir);
             generate_library_declarations = false;
 
             footer = #string EOF
@@ -619,20 +628,20 @@ imgui_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_
 // Modify function with _begin and _end string arguments as they get printed.
 // See the note above about "text_begin".
 imgui_get_function_arg_for_printing :: (func: *Function, type: *Function_Type, mode: Arg_Print_Mode) -> []*Declaration {
-	args: [..]*Declaration;
-	for type.arguments {
-		if array_find(begin_end_string_args, it) {
-			if mode == {
-				case .OUTER_WRAPPER;
-					// For the outer wrapper, remove any "_begin" part of the argument, and
-					// change its type to a jai string
-					arg_copy := New(Declaration);
-					arg_copy.* = it.*;
-					arg_copy.type = context.generator.type_def_jai_string;
-					if ends_with(it.name, "_begin") {
-						arg_copy.output_name = slice(it.name, 0, it.name.count - "_begin".count);
-					}
-					array_add(*args, arg_copy);
+    args: [..]*Declaration;
+    for type.arguments {
+        if array_find(begin_end_string_args, it) {
+            if mode == {
+                case .OUTER_WRAPPER;
+                    // For the outer wrapper, remove any "_begin" part of the argument, and
+                    // change its type to a jai string
+                    arg_copy := New(Declaration);
+                    arg_copy.* = it.*;
+                    arg_copy.type = context.generator.type_def_jai_string;
+                    if ends_with(it.name, "_begin") {
+                        arg_copy.output_name = slice(it.name, 0, it.name.count - "_begin".count);
+                    }
+                    array_add(*args, arg_copy);
 
                     it_index += 1; // skip the next argument-we collpase the _begin and _end args into one string arg
 
