@@ -186,7 +186,7 @@ EOF
         array_add(*strip_prefixes, "ImGui");
         auto_detect_enum_prefixes = false;
         log_stripped_declarations = false;
-        generate_compile_time_struct_checks = false;
+        generate_compile_time_struct_checks = true;
         strip_flags |= .INLINED_FUNCTIONS; // "inline" functions are not present in the static library.
 
         visitor = imgui_visitor;
@@ -314,8 +314,8 @@ END
         array_add(*strip_prefixes, "ImGui", "Imgui");
 
         auto_detect_enum_prefixes = false;
-        log_stripped_declarations = true;
-        generate_compile_time_struct_checks = false;
+        log_stripped_declarations = false;
+        generate_compile_time_struct_checks = true;
 
         visitor = imgui_visitor;
         get_func_args_for_printing = imgui_get_function_arg_for_printing;
@@ -462,7 +462,7 @@ END
 
         auto_detect_enum_prefixes = false;
         log_stripped_declarations = false;
-        generate_compile_time_struct_checks = false;
+        generate_compile_time_struct_checks = true;
 
         visitor = imgui_visitor;
         get_func_args_for_printing = imgui_get_function_arg_for_printing;
