@@ -32,6 +32,11 @@ IMPLOT_VERSION :: "1.0";
 
 IMPLOT_VERSION_NUM :: 10000;
 
+// The following enables imgui's thread-safety to allow N threads to access N different
+// contexts. There is also the actual thread local variable defined in ./imgui_threaded_rendering.cpp
+ImGuiContext :: struct {}
+MyImGuiTLS: *ImGuiContext #elsewhere imgui "?MyImGuiTLS@@3PEAUImGuiContext@@EA";
+
 // Scalar data types
 ID :: u32;
 ImS8 :: s8;
@@ -48,9 +53,6 @@ ImDrawListSharedData :: struct {}
 ImFontAtlasBuilder :: struct {}
 
 ImFontLoader :: struct {}
-
-// Forward declarations: ImGui layer
-ImGuiContext :: struct {}
 
 // Enumerations
 // - We don't use strongly typed enums much because they add constraints (can't extend in private code, can't store typed in bit fields, extra casting on iteration)
@@ -5804,44 +5806,6 @@ ImPlot :: struct {
     ShowDemoWindow :: (p_open: *bool = null) -> void #foreign imgui "?ShowDemoWindow@ImPlot@@YAXPEA_N@Z";
 }
 
-ImHashData :: (data: *void, data_size: u64, seed: ID = 0) -> ID #foreign imgui "?ImHashData@@YAIPEBX_KI@Z";
-
-// Helper: ImPool<>
-// Basic keyed storage for contiguous instances, slow/amortized insertion, O(1) indexable, O(Log N) queries by ID over a dense/hot buffer,
-// Honor constructor/destructor. Add/remove invalidate all pointers. Indexes have the same lifetime as the associated object.
-ImPoolIdx :: s32;
-
-ImPool :: struct(T: Type) {
-    Buf:        ImVector(T); // Contiguous data
-    Map:        Storage; // ID->Index
-    FreeIdx:    ImPoolIdx; // Next free idx to use
-    AliveCount: ImPoolIdx; // Number of active/alive items (for display purpose)
-}
-
-//-----------------------------------------------------------------------------
-// ImDrawDataSnapshot - HEADERS
-//-----------------------------------------------------------------------------
-ImDrawDataSnapshotEntry :: struct {
-    SrcCopy:      *ImDrawList = null; // Drawlist owned by main context
-    OurCopy:      *ImDrawList = null; // Our copy
-    LastUsedTime: float64 = 0.0;
-}
-
-ImDrawDataSnapshot :: struct {
-    // Members
-    DrawData:           ImDrawData;
-    Cache:              ImPool(ImDrawDataSnapshotEntry);
-    MemoryCompactTimer: float = 20.0; // Discard unused data after 20 seconds
-
-    // NOTE: reshen@ removing inline so jai generate sees this function
-    // inline void ImDrawDataSnapshot::Clear()
-    Clear :: (this: *ImDrawDataSnapshot) -> void #cpp_method #foreign imgui "?Clear@ImDrawDataSnapshot@@QEAAXXZ";
-
-    // NOTE: reshen@ removing inline so jai generate sees this function
-    // inline void ImDrawDataSnapshot::SnapUsingSwap(ImDrawData* src, double current_time)
-    SnapUsingSwap :: (this: *ImDrawDataSnapshot, src: *ImDrawData, current_time: float64) -> void #cpp_method #foreign imgui "?SnapUsingSwap@ImDrawDataSnapshot@@QEAAXPEAUImDrawData@@N@Z";
-}
-
 #scope_file
 
 #import "Basic"; // For assert, print_to_builder
@@ -7996,42 +7960,6 @@ ImDrawDataSnapshot :: struct {
             }
         }
         assert(size_of(ImPlotInputMap) == 48, "ImPlotInputMap has size % instead of 48", size_of(ImPlotInputMap));
-    }
-
-    {
-        info := type_info(ImDrawDataSnapshotEntry);
-        for info.members {
-            if it.name == {
-                case "SrcCopy";
-                    assert(it.offset_in_bytes == 0, "ImDrawDataSnapshotEntry.SrcCopy has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawDataSnapshotEntry.SrcCopy has unexpected size % instead of 8", it.type.runtime_size);
-                case "OurCopy";
-                    assert(it.offset_in_bytes == 8, "ImDrawDataSnapshotEntry.OurCopy has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawDataSnapshotEntry.OurCopy has unexpected size % instead of 8", it.type.runtime_size);
-                case "LastUsedTime";
-                    assert(it.offset_in_bytes == 16, "ImDrawDataSnapshotEntry.LastUsedTime has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawDataSnapshotEntry.LastUsedTime has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawDataSnapshotEntry) == 24, "ImDrawDataSnapshotEntry has size % instead of 24", size_of(ImDrawDataSnapshotEntry));
-    }
-
-    {
-        info := type_info(ImDrawDataSnapshot);
-        for info.members {
-            if it.name == {
-                case "DrawData";
-                    assert(it.offset_in_bytes == 0, "ImDrawDataSnapshot.DrawData has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 72, "ImDrawDataSnapshot.DrawData has unexpected size % instead of 72", it.type.runtime_size);
-                case "Cache";
-                    assert(it.offset_in_bytes == 72, "ImDrawDataSnapshot.Cache has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "ImDrawDataSnapshot.Cache has unexpected size % instead of 40", it.type.runtime_size);
-                case "MemoryCompactTimer";
-                    assert(it.offset_in_bytes == 112, "ImDrawDataSnapshot.MemoryCompactTimer has unexpected offset % instead of 112", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawDataSnapshot.MemoryCompactTimer has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawDataSnapshot) == 120, "ImDrawDataSnapshot has size % instead of 120", size_of(ImDrawDataSnapshot));
     }
 }
 

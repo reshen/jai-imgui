@@ -16,6 +16,7 @@ DECLARATIONS_TO_OMIT :: string.[
     "ImColor",
     "ImVector",
     "ImDrawCallback",
+    "GImGui",
 
     // Jai has its own, better "String_Builder"
     "ImGuiTextBuffer",
@@ -60,10 +61,8 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         array_add(*imgui_src_files, tprint("%/implot_items.cpp", IMGUI_PATH));
         array_add(*imgui_src_files, tprint("%/implot_demo.cpp", IMGUI_PATH));
 
-        // For imgui_threaded_rendering, added the submodule to src/imgui_club, copied out the
-        // header to src/imgui, and created a cpp file including that header so we could add it here:
+        // For multi-thread, multi-contexted, added content to imconfig.h and the follwoing:
         array_add(*imgui_src_files, tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH));
-        // array_add(*imgui_src_files, tprint("%/imgui_multicontext_compositor.cpp", IMGUI_PATH));
 
         if !no_demo
             array_add(*imgui_src_files, tprint("%/imgui_demo.cpp", IMGUI_PATH));
@@ -178,8 +177,6 @@ EOF
         array_add(*source_files,  
             tprint("%/imgui.h", IMGUI_PATH),  
             tprint("%/implot.h", IMGUI_PATH),
-            tprint("%/imgui_threaded_rendering.h", IMGUI_PATH)
-            // tprint("%/imgui_multicontext_compositor.h", IMGUI_PATH)
         );
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
