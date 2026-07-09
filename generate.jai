@@ -105,9 +105,13 @@ generate_imgui_bindings :: (args: [] string) -> bool {
 
             success &&= build_cpp_static_lib( "macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_arm64_version_arg], debug=compile_debug);
 
+            run_result: Process_Result;
+
             // create universal binaries
-            run_result := run_command("lipo", "-create", "macos/ImGui_x64.dylib", "macos/ImGui_arm64.dylib", "-output", "macos/ImGui.dylib");
-            success &&= (run_result.exit_code == 0);
+            #if BUILD_DYNAMIC_LIB  {
+                run_result = run_command("lipo", "-create", "macos/ImGui_x64.dylib", "macos/ImGui_arm64.dylib", "-output", "macos/ImGui.dylib");
+                success &&= (run_result.exit_code == 0);
+            }
 
             run_result =  run_command("lipo", "-create", "macos/ImGui_x64.a", "macos/ImGui_arm64.a", "-output", "macos/ImGui.a");
             success &&= (run_result.exit_code == 0);
@@ -182,15 +186,48 @@ EOF
         array_add(*flatten_namespaces, "ImGui");
         array_add(*strip_prefixes, "ImGui");
         auto_detect_enum_prefixes = false;
-        log_stripped_declarations = false;
+        log_stripped_declarations = true;
         generate_compile_time_struct_checks = true;
         strip_flags |= .INLINED_FUNCTIONS; // "inline" functions are not present in the static library.
+
+        // For some reason generation on macos doesn't find
+        // the library and so strips the functions we want them.
+        //
+        // So for now we avoid stripping them and then do the horrible hack
+        // below to replace '#foreign __UnknownLib' and '#elsewhere __UnknownLib'
+        // with '#foreign imgui_sdl3'
+        strip_flags &= ~.SYMBOLS_WITH_UNKNOWN_FOREIGN_LIBS;
 
         visitor = imgui_visitor;
         get_func_args_for_printing = imgui_get_function_arg_for_printing;
     }
 
     success := generate_bindings(opts, output_filename);
+
+    // Horrible hack but...
+    #if OS == .MACOS {
+
+        file_path := "unix.jai";
+        defer {
+            if !success {
+                log("failed to replace invalid library name from generated MacOS bindings at '%'. You will have to manually replace '#foreign __UnknownLib' and '#elsewhere __UnknownLib' with '#foreign imgui_sdl3' and '#elsewhere imgui_sdl3'", file_path, flags=.ERROR);
+            }
+        }
+
+        contents, success= := read_entire_file(file_path);
+        if success {
+            defer free(contents);
+
+            replace1 := replace(contents, "#foreign __UnknownLib", "#foreign imgui");
+            defer free(replace1);
+
+            replace2 := replace(replace1, "#elsewhere __UnknownLib", "#elsewhere imgui");
+            defer free(replace2);
+
+            success = write_entire_file(file_path, replace2);
+        }
+    }
+
     return success;
 }
 

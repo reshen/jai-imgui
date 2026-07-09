@@ -12,23 +12,35 @@ clean:
     rm -rf windows/*
     rm -rf backends/windows/*
 
-build:
+[macos]
+clean:
+    rm -rf macos/*
+    rm -rf backends/macos/*
+
+common-build:
     {{jai}} generate.jai - -compile -debug
     {{jai}} generate.jai - -backend_sdl3_only_platform -debug
     {{jai}} generate.jai - -compile
     {{jai}} generate.jai - -backend_sdl3_only_platform
-    sed -i 's/0xffffffff8000000f/0x8000000f/' windows\debug\windows.jai
-    sed -i 's/0xffffffff8000000f/0x8000000f/' windows\release\windows.jai
+    sed -i 's/0xffffffff8000000f/0x8000000f/' **/*.jai
+    cp ./module.jai ../../forge/modules/imgui/
+
+[windows]
+build: common-build
     rm -rf ../../forge/modules/imgui/windows/
     mkdir ../../forge/modules/imgui/windows/
     cp -r ./windows ../../forge/modules/imgui/
     cp -r ./backends/windows/* ../../forge/modules/imgui/windows/
+
+[macos]
+build: common-build
+    rm -rf ../../forge/modules/imgui/macos/
+    mkdir ../../forge/modules/imgui/macos/
+    # copy universal binaries only
+    cp ./macos/ImGui.a ../../forge/modules/imgui/macos/
+    cp ./backends/macos/ImGui_sdl3.a ../../forge/modules/imgui/macos/
+    cp ./backends/unix_sdl3.jai ../../forge/modules/imgui/
     cp ./unix.jai ../../forge/modules/imgui/
-    cp ./module.jai ../../forge/modules/imgui/
-    # @echo "\n\n------------------------\n"
-    # @echo "1. Copy platform subdir you just built to forge/modules/imgui/, e.g. ./macos/ -> forge/modules/imgui/macos\n"
-    # @echo "2. Copy backends platform subdir you just built to forge/modules/imgui_backends/, e.g. ./backends/macos/ -> forge/modules/imgui_backends/\n"
-    # @echo "3. Copy ./unix.jai and ./module.jai to forge/modules/imgui/\n\n"
 
 update-imgui:
     git submodule update --init --recursive --remote

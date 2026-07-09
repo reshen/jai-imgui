@@ -1,13 +1,13 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate.jai
+// jai generate.jai - -compile
 //
 
 
 
-IMGUI_VERSION :: "1.92.7";
-IMGUI_VERSION_NUM :: 19270;
+IMGUI_VERSION :: "1.92.8";
+IMGUI_VERSION_NUM :: 19280;
 
 ImTextureID_Invalid :: cast(ImTextureID) 0;
 
@@ -28,6 +28,15 @@ IM_DRAWLIST_TEX_LINES_WIDTH_MAX :: 32;
 
 ImFontAtlasRectId_Invalid :: -1;
 
+IMPLOT_VERSION :: "1.0";
+
+IMPLOT_VERSION_NUM :: 10000;
+
+// The following enables imgui's thread-safety to allow N threads to access N different
+// contexts. There is also the actual thread local variable defined in ./imgui_threaded_rendering.cpp
+ImGuiContext :: struct {}
+MyImGuiTLS: *ImGuiContext #elsewhere imgui;
+
 // Scalar data types
 ID :: u32;
 ImS8 :: s8;
@@ -44,9 +53,6 @@ ImDrawListSharedData :: struct {}
 ImFontAtlasBuilder :: struct {}
 
 ImFontLoader :: struct {}
-
-// Forward declarations: ImGui layer
-ImGuiContext :: struct {}
 
 // Enumerations
 // - We don't use strongly typed enums much because they add constraints (can't extend in private code, can't store typed in bit fields, extra casting on iteration)
@@ -1458,10 +1464,11 @@ SetNextItemShortcut :: (key_chord: KeyChord, flags: InputFlags = .None) -> void 
 // Inputs Utilities: Key/Input Ownership [BETA]
 // - One common use case would be to allow your items to disable standard inputs behaviors such
 //   as Tab or Alt key handling, Mouse Wheel scrolling, etc.
-//   e.g. Button(...); SetItemKeyOwner(ImGuiKey_MouseWheelY); to make hovering/activating a button disable wheel for scrolling.
+//   e.g. `Button(...); if (SetItemKeyOwner(ImGuiKey_MouseWheelY)) { ... }` to make hovering/activating a button disable wheel for scrolling.
 // - Reminder ImGuiKey enum include access to mouse buttons and gamepad, so key ownership can apply to them.
+// - The return value of SetItemKeyOwner() says if ownership has been requested for the item, which is a shortcut to calling yet non-public TestKeyOwner() function.
 // - Many related features are still in imgui_internal.h. For instance, most IsKeyXXX()/IsMouseXXX() functions have an owner-id-aware version.
-SetItemKeyOwner :: (key: Key) -> void #foreign imgui "_ZN5ImGui15SetItemKeyOwnerE8ImGuiKey";
+SetItemKeyOwner :: (key: Key) -> bool #foreign imgui "_ZN5ImGui15SetItemKeyOwnerE8ImGuiKey";
 
 // Inputs Utilities: Mouse
 // - To refer to a mouse button, you may use named enums in your code e.g. ImGuiMouseButton_Left, ImGuiMouseButton_Right.
@@ -2251,55 +2258,56 @@ Col :: enum u32 {
     ScrollbarGrabHovered      :: 16;
     ScrollbarGrabActive       :: 17;
     CheckMark                 :: 18;
-    SliderGrab                :: 19;
-    SliderGrabActive          :: 20;
-    Button                    :: 21;
-    ButtonHovered             :: 22;
-    ButtonActive              :: 23;
-    Header                    :: 24;
-    HeaderHovered             :: 25;
-    HeaderActive              :: 26;
-    Separator                 :: 27;
-    SeparatorHovered          :: 28;
-    SeparatorActive           :: 29;
-    ResizeGrip                :: 30;
-    ResizeGripHovered         :: 31;
-    ResizeGripActive          :: 32;
-    InputTextCursor           :: 33;
-    TabHovered                :: 34;
-    Tab                       :: 35;
-    TabSelected               :: 36;
-    TabSelectedOverline       :: 37;
-    TabDimmed                 :: 38;
-    TabDimmedSelected         :: 39;
-    TabDimmedSelectedOverline :: 40;
-    DockingPreview            :: 41;
-    DockingEmptyBg            :: 42;
-    PlotLines                 :: 43;
-    PlotLinesHovered          :: 44;
-    PlotHistogram             :: 45;
-    PlotHistogramHovered      :: 46;
-    TableHeaderBg             :: 47;
-    TableBorderStrong         :: 48;
-    TableBorderLight          :: 49;
-    TableRowBg                :: 50;
-    TableRowBgAlt             :: 51;
-    TextLink                  :: 52;
-    TextSelectedBg            :: 53;
-    TreeLines                 :: 54;
-    DragDropTarget            :: 55;
-    DragDropTargetBg          :: 56;
-    UnsavedMarker             :: 57;
-    NavCursor                 :: 58;
-    NavWindowingHighlight     :: 59;
-    NavWindowingDimBg         :: 60;
-    ModalWindowDimBg          :: 61;
-    COUNT                     :: 62;
+    CheckboxSelectedBg        :: 19;
+    SliderGrab                :: 20;
+    SliderGrabActive          :: 21;
+    Button                    :: 22;
+    ButtonHovered             :: 23;
+    ButtonActive              :: 24;
+    Header                    :: 25;
+    HeaderHovered             :: 26;
+    HeaderActive              :: 27;
+    Separator                 :: 28;
+    SeparatorHovered          :: 29;
+    SeparatorActive           :: 30;
+    ResizeGrip                :: 31;
+    ResizeGripHovered         :: 32;
+    ResizeGripActive          :: 33;
+    InputTextCursor           :: 34;
+    TabHovered                :: 35;
+    Tab                       :: 36;
+    TabSelected               :: 37;
+    TabSelectedOverline       :: 38;
+    TabDimmed                 :: 39;
+    TabDimmedSelected         :: 40;
+    TabDimmedSelectedOverline :: 41;
+    DockingPreview            :: 42;
+    DockingEmptyBg            :: 43;
+    PlotLines                 :: 44;
+    PlotLinesHovered          :: 45;
+    PlotHistogram             :: 46;
+    PlotHistogramHovered      :: 47;
+    TableHeaderBg             :: 48;
+    TableBorderStrong         :: 49;
+    TableBorderLight          :: 50;
+    TableRowBg                :: 51;
+    TableRowBgAlt             :: 52;
+    TextLink                  :: 53;
+    TextSelectedBg            :: 54;
+    TreeLines                 :: 55;
+    DragDropTarget            :: 56;
+    DragDropTargetBg          :: 57;
+    UnsavedMarker             :: 58;
+    NavCursor                 :: 59;
+    NavWindowingHighlight     :: 60;
+    NavWindowingDimBg         :: 61;
+    ModalWindowDimBg          :: 62;
+    COUNT                     :: 63;
 
-    TabActive                 :: 36;
-    TabUnfocused              :: 38;
-    TabUnfocusedActive        :: 39;
-    NavHighlight              :: 58;
+    TabActive                 :: 37;
+    TabUnfocused              :: 39;
+    TabUnfocusedActive        :: 40;
+    NavHighlight              :: 59;
 
     ImGuiCol_Text                      :: Text;
     ImGuiCol_TextDisabled              :: TextDisabled;
@@ -2320,6 +2328,7 @@ Col :: enum u32 {
     ImGuiCol_ScrollbarGrabHovered      :: ScrollbarGrabHovered;
     ImGuiCol_ScrollbarGrabActive       :: ScrollbarGrabActive;
     ImGuiCol_CheckMark                 :: CheckMark;
+    ImGuiCol_CheckboxSelectedBg        :: CheckboxSelectedBg;
     ImGuiCol_SliderGrab                :: SliderGrab;
     ImGuiCol_SliderGrabActive          :: SliderGrabActive;
     ImGuiCol_Button                    :: Button;
@@ -2415,14 +2424,15 @@ StyleVar :: enum u32 {
     TableAngledHeadersTextAlign :: 32;
     TreeLinesSize               :: 33;
     TreeLinesRounding           :: 34;
-    ButtonTextAlign             :: 35;
-    SelectableTextAlign         :: 36;
-    SeparatorSize               :: 37;
-    SeparatorTextBorderSize     :: 38;
-    SeparatorTextAlign          :: 39;
-    SeparatorTextPadding        :: 40;
-    DockingSeparatorSize        :: 41;
-    COUNT                       :: 42;
+    DragDropTargetRounding      :: 35;
+    ButtonTextAlign             :: 36;
+    SelectableTextAlign         :: 37;
+    SeparatorSize               :: 38;
+    SeparatorTextBorderSize     :: 39;
+    SeparatorTextAlign          :: 40;
+    SeparatorTextPadding        :: 41;
+    DockingSeparatorSize        :: 42;
+    COUNT                       :: 43;
 
     ImGuiStyleVar_Alpha                       :: Alpha;
     ImGuiStyleVar_DisabledAlpha               :: DisabledAlpha;
@@ -2459,6 +2469,7 @@ StyleVar :: enum u32 {
     ImGuiStyleVar_TableAngledHeadersTextAlign :: TableAngledHeadersTextAlign;
     ImGuiStyleVar_TreeLinesSize               :: TreeLinesSize;
     ImGuiStyleVar_TreeLinesRounding           :: TreeLinesRounding;
+    ImGuiStyleVar_DragDropTargetRounding      :: DragDropTargetRounding;
     ImGuiStyleVar_ButtonTextAlign             :: ButtonTextAlign;
     ImGuiStyleVar_SelectableTextAlign         :: SelectableTextAlign;
     ImGuiStyleVar_SeparatorSize               :: SeparatorSize;
@@ -2947,7 +2958,7 @@ Style :: struct {
     TabBorderSize:                    float; // Thickness of border around tabs.
     TabMinWidthBase:                  float; // Minimum tab width, to make tabs larger than their contents. TabBar buttons are not affected.
     TabMinWidthShrink:                float; // Minimum tab width after shrinking, when using ImGuiTabBarFlags_FittingPolicyMixed policy.
-    TabCloseButtonMinWidthSelected:   float; // -1: always visible. 0.0f: visible when hovered. >0.0f: visible when hovered if minimum width.
+    TabCloseButtonMinWidthSelected:   float; // -1: always visible. 0.0f: visible when hovered. >0.0f: visible when hovered if minimum width. FLT_MAX: never shrink, will behave like ImGuiTabBarFlags_FittingPolicyScroll.
     TabCloseButtonMinWidthUnselected: float; // -1: always visible. 0.0f: visible when hovered. >0.0f: visible when hovered if minimum width. FLT_MAX: never show close button when unselected.
     TabBarBorderSize:                 float; // Thickness of tab-bar separator, which takes on the tab active color to denote focus.
     TabBarOverlineSize:               float; // Thickness of tab-bar overline, which highlights the selected tab-bar.
@@ -2956,14 +2967,14 @@ Style :: struct {
     TreeLinesFlags:                   TreeNodeFlags; // Default way to draw lines connecting TreeNode hierarchy. ImGuiTreeNodeFlags_DrawLinesNone or ImGuiTreeNodeFlags_DrawLinesFull or ImGuiTreeNodeFlags_DrawLinesToNodes.
     TreeLinesSize:                    float; // Thickness of outlines when using ImGuiTreeNodeFlags_DrawLines.
     TreeLinesRounding:                float; // Radius of lines connecting child nodes to the vertical line.
-    DragDropTargetRounding:           float; // Radius of the drag and drop target frame.
+    DragDropTargetRounding:           float; // Radius of the drag and drop target frame. When <0.0f: use FrameRounding.
     DragDropTargetBorderSize:         float; // Thickness of the drag and drop target border.
     DragDropTargetPadding:            float; // Size to expand the drag and drop target from actual target item size.
     ColorMarkerSize:                  float; // Size of R/G/B/A color markers for ColorEdit4() and for Drags/Sliders when using ImGuiSliderFlags_ColorMarkers.
     ColorButtonPosition:              Dir; // Side of the color button in the ColorEdit4 widget (left/right). Defaults to ImGuiDir_Right.
     ButtonTextAlign:                  ImVec2; // Alignment of button text when button is larger than text. Defaults to (0.5f, 0.5f) (centered).
     SelectableTextAlign:              ImVec2; // Alignment of selectable text. Defaults to (0.0f, 0.0f) (top-left aligned). It's generally important to keep this left-aligned if you want to lay multiple items on a same line.
-    SeparatorSize:                    float; // Thickness of border in Separator()
+    SeparatorSize:                    float; // Thickness of border in Separator(). Must be >= 1.0f.
     SeparatorTextBorderSize:          float; // Thickness of border in SeparatorText()
     SeparatorTextAlign:               ImVec2; // Alignment of text within the separator. Defaults to (0.0f, 0.5f) (left aligned, center).
     SeparatorTextPadding:             ImVec2; // Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
@@ -2979,7 +2990,7 @@ Style :: struct {
     CircleTessellationMaxError:       float; // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
 
     // Colors
-    Colors:                           [62] ImVec4;
+    Colors:                           [63] ImVec4;
 
     HoverStationaryDelay:             float; // Delay for IsItemHovered(ImGuiHoveredFlags_Stationary). Time required to consider mouse stationary.
     HoverDelayShort:                  float; // Delay for IsItemHovered(ImGuiHoveredFlags_DelayShort). Usually used along with HoverStationaryDelay.
@@ -3036,7 +3047,7 @@ IO :: struct {
     ConfigViewportsNoAutoMerge:                    bool; // = false;         // Set to make all floating imgui windows always create their own viewport. Otherwise, they are merged into the main host viewports when overlapping it. May also set ImGuiViewportFlags_NoAutoMerge on individual viewport.
     ConfigViewportsNoTaskBarIcon:                  bool; // = false          // Disable default OS task bar icon flag for secondary viewports. When a viewport doesn't want a task bar icon, ImGuiViewportFlags_NoTaskBarIcon will be set on it.
     ConfigViewportsNoDecoration:                   bool; // = true           // Disable default OS window decoration flag for secondary viewports. When a viewport doesn't want window decorations, ImGuiViewportFlags_NoDecoration will be set on it. Enabling decoration can create subsequent issues at OS levels (e.g. minimum window size).
-    ConfigViewportsNoDefaultParent:                bool; // = true           // When false: set secondary viewports' ParentViewportId to main viewport ID by default. Expects the platform backend to setup a parent/child relationship between the OS windows based on this value. Some backend may ignore this. Set to true if you want viewports to automatically be parent of main viewport, otherwise all viewports will be top-level OS windows.
+    ConfigViewportsNoDefaultParent:                bool; // = true           // Disable setting OS window parent to main viewport by default. The platform backend is expected to honor `viewport->ParentViewportID` to setup a parent/child relationship between the OS windows (supported if ImGuiBackendFlags_HasParentViewport is set). When parented: child windows always appear in front of their parent. Set to false if you want viewports to automatically be parent of main viewport, otherwise all viewports will be top-level OS windows. Parent/child relationship may be set on a per-window basis using ImGuiWindowClass.
     ConfigViewportsPlatformFocusSetsImGuiFocus:    bool; //= true // When a platform window is focused (e.g. using Alt+Tab, clicking Platform Title Bar), apply corresponding focus on imgui windows (may clear focus/active id from imgui windows location in other platform windows). In principle this is better enabled but we provide an opt-out, because some Linux window managers tend to eagerly focus windows (e.g. on mouse hover, or even a simple window pos/size change).
 
     ConfigDpiScaleFonts:                           bool; // = false          // [EXPERIMENTAL] Automatically overwrite style.FontScaleDpi when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
@@ -3180,7 +3191,7 @@ InputTextCallbackData :: struct {
     EventFlag:      InputTextFlags; // One ImGuiInputTextFlags_Callback*    // Read-only
     Flags:          InputTextFlags; // What user passed to InputText()      // Read-only
     UserData:       *void; // What user passed to InputText()      // Read-only
-    ID_:            ID; // Widget ID                             // Read-only
+    ID_:            ID; // Widget ID                            // Read-only
 
     EventKey:       Key; // Key pressed (Up/Down/TAB)            // Read-only    // [Completion,History]
     EventChar:      ImWchar; // Character input                      // Read-write   // [CharFilter] Replace character with another one, or set to zero to drop. return 1 is equivalent to setting EventChar=0;
@@ -3189,9 +3200,9 @@ InputTextCallbackData :: struct {
     Buf:            *u8; // Text buffer                          // Read-write   // [Resize] Can replace pointer / [Completion,History,Always] Only write to pointed data, don't replace the actual pointer!
     BufTextLen:     s32; // Text length (in bytes)               // Read-write   // [Resize,Completion,History,Always] Exclude zero-terminator storage. In C land: == strlen(some_text), in C++ land: string.length()
     BufSize:        s32; // Buffer size (in bytes) = capacity+1  // Read-only    // [Resize,Completion,History,Always] Include zero-terminator storage. In C land: == ARRAYSIZE(my_char_array), in C++ land: string.capacity()+1
-    CursorPos:      s32; //                                      // Read-write   // [Completion,History,Always]
-    SelectionStart: s32; //                                      // Read-write   // [Completion,History,Always] == to SelectionEnd when no selection
-    SelectionEnd:   s32; //                                      // Read-write   // [Completion,History,Always]
+    CursorPos:      s32; //                                      // Read-write   // [Completion,History,Always,CharFilter]
+    SelectionStart: s32; //                                      // Read-write   // [Completion,History,Always,CharFilter] == to SelectionEnd when no selection
+    SelectionEnd:   s32; //                                      // Read-write   // [Completion,History,Always,CharFilter]
 
     // Helper functions for text manipulation.
     // Use those function to benefit from the CallbackResize behaviors. Calling those function reset the selection.
@@ -3217,7 +3228,7 @@ SizeCallbackData :: struct {
 // before we stabilize Docking features. Please be mindful if using this.
 // Provide hints:
 // - To the platform backend via altered viewport flags (enable/disable OS decoration, OS task bar icons, etc.)
-// - To the platform backend for OS level parent/child relationships of viewport.
+// - To the platform backend for OS level parent/child relationships of viewport (otherwise: default is configured via io.ConfigViewportsNoDefaultParent)
 // - To the docking system for various options and filtering.
 WindowClass :: struct {
     ClassId:                    ID; // User data. 0 = Default class (unclassed). Windows of different classes cannot be docked with each others.
@@ -3229,6 +3240,7 @@ WindowClass :: struct {
     DockNodeFlagsOverrideSet:   DockNodeFlags; // [EXPERIMENTAL] Dock node flags to set when a window of this class is hosted by a dock node (it doesn't have to be selected!)
     DockingAlwaysTabBar:        bool; // Set to true to enforce single floating windows of this class always having their own docking node (equivalent of setting the global io.ConfigDockingAlwaysTabBar)
     DockingAllowUnclassed:      bool; // Set to true to allow windows of this class to be docked/merged with an unclassed window. // FIXME-DOCK: Move to DockNodeFlags override?
+    PlatformIconData:           *void; // [EXPERIMENTAL] Pass opaque data for Platform backend to handle.
 }
 
 // Data payload for Drag and Drop operations: AcceptDragDropPayload(), GetDragDropPayload()
@@ -3560,15 +3572,14 @@ ImDrawListSplitter :: struct {
 }
 
 // Flags for ImDrawList functions
-// (Legacy: bit 0 must always correspond to ImDrawFlags_Closed to be backward compatible with old API using a bool. Bits 1..3 must be unused)
-ImDrawFlags :: enum_flags u32 {
+ImDrawFlags :: enum_flags s32 {
     None                    :: 0x0;
-    Closed                  :: 0x1;
     RoundCornersTopLeft     :: 0x10;
     RoundCornersTopRight    :: 0x20;
     RoundCornersBottomLeft  :: 0x40;
     RoundCornersBottomRight :: 0x80;
     RoundCornersNone        :: 0x100;
+    Closed                  :: 0x200;
     RoundCornersTop         :: 0x30;
     RoundCornersBottom      :: 0xc0;
     RoundCornersLeft        :: 0x50;
@@ -3576,14 +3587,15 @@ ImDrawFlags :: enum_flags u32 {
     RoundCornersAll         :: 0xf0;
     RoundCornersDefault_    :: 0xf0;
     RoundCornersMask_       :: 0x1f0;
+    InvalidMask_            :: 0x8000000f;
 
     ImDrawFlags_None                    :: None;
-    ImDrawFlags_Closed                  :: Closed;
     ImDrawFlags_RoundCornersTopLeft     :: RoundCornersTopLeft;
     ImDrawFlags_RoundCornersTopRight    :: RoundCornersTopRight;
     ImDrawFlags_RoundCornersBottomLeft  :: RoundCornersBottomLeft;
     ImDrawFlags_RoundCornersBottomRight :: RoundCornersBottomRight;
     ImDrawFlags_RoundCornersNone        :: RoundCornersNone;
+    ImDrawFlags_Closed                  :: Closed;
     ImDrawFlags_RoundCornersTop         :: RoundCornersTop;
     ImDrawFlags_RoundCornersBottom      :: RoundCornersBottom;
     ImDrawFlags_RoundCornersLeft        :: RoundCornersLeft;
@@ -3591,6 +3603,7 @@ ImDrawFlags :: enum_flags u32 {
     ImDrawFlags_RoundCornersAll         :: RoundCornersAll;
     ImDrawFlags_RoundCornersDefault_    :: RoundCornersDefault_;
     ImDrawFlags_RoundCornersMask_       :: RoundCornersMask_;
+    ImDrawFlags_InvalidMask_            :: InvalidMask_;
 }
 
 // Flags for ImDrawList instance. Those are set automatically by ImGui:: functions from ImGuiIO settings, and generally not manipulated directly.
@@ -3663,9 +3676,11 @@ ImDrawList :: struct {
     AddLine :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, col: ImU32, thickness: float = 1.0) #no_context {
         AddLine(this, *p1, *p2, col, thickness);
     }
-    AddRect :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddRectERK6ImVec2S2_jfif";
-    AddRect :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None, thickness: float = 1.0) #no_context {
-        AddRect(this, *p_min, *p_max, col, rounding, flags, thickness);
+    AddLineH :: (this: *ImDrawList, min_x: float, max_x: float, y: float, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8AddLineHEfffjf";
+    AddLineV :: (this: *ImDrawList, x: float, min_y: float, max_y: float, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8AddLineVEfffjf";
+    AddRect :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddRectERK6ImVec2S2_jffi";
+    AddRect :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddRect(this, *p_min, *p_max, col, rounding, thickness, flags);
     }
     AddRectFilled :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList13AddRectFilledERK6ImVec2S2_jfi";
     AddRectFilled :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, flags: ImDrawFlags = .None) #no_context {
@@ -3735,7 +3750,7 @@ ImDrawList :: struct {
     // General polygon
     // - Only simple polygons are supported by filling functions (no self-intersections, no holes).
     // - Concave polygon fill is more expensive than convex one: it has O(N^2) complexity. Provided as a convenience for the user but not used by the main library.
-    AddPolyline :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, flags: ImDrawFlags, thickness: float) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddPolylineEPK6ImVec2ijif";
+    AddPolyline :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, thickness: float, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddPolylineEPK6ImVec2ijfi";
     AddConvexPolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList19AddConvexPolyFilledEPK6ImVec2ij";
     AddConcavePolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList20AddConcavePolyFilledEPK6ImVec2ij";
 
@@ -3783,14 +3798,15 @@ ImDrawList :: struct {
 
     // Advanced: Draw Callbacks
     // - May be used to alter render state (change sampler, blending, current shader). May be used to emit custom rendering commands (difficult to do correctly, but possible).
-    // - Use special ImDrawCallback_ResetRenderState callback to instruct backend to reset its render state to the default.
+    // - Use special GetPlatformIO().DrawCallback_ResetRenderState callback to instruct backend to reset its render state to the default.
+    // - See other standard callbacks in GetPlatformIO(), which may or not be supported by your backend.
     // - Your rendering loop must check for 'UserCallback' in ImDrawCmd and call the function instead of rendering triangles. All standard backends are honoring this.
     // - For some backends, the callback may access selected render-states exposed by the backend in a ImGui_ImplXXXX_RenderState structure pointed to by platform_io.Renderer_RenderState.
     // - IMPORTANT: please be mindful of the different level of indirection between using size==0 (copying argument) and using size>0 (copying pointed data into a buffer).
     //   - If userdata_size == 0: we copy/store the 'userdata' argument as-is. It will be available unmodified in ImDrawCmd::UserCallbackData during render.
     //   - If userdata_size > 0,  we copy/store 'userdata_size' bytes pointed to by 'userdata'. We store them in a buffer stored inside the drawlist. ImDrawCmd::UserCallbackData will point inside that buffer so you have to retrieve data from there. Your callback may need to use ImDrawCmd::UserCallbackDataSize if you expect dynamically-sized data.
     //   - Support for userdata_size > 0 was added in v1.91.4, October 2024. So earlier code always only allowed to copy/store a simple void*.
-    AddCallback :: (this: *ImDrawList, callback: ImDrawCallback, userdata: *void, userdata_size: u64 = 0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddCallbackEPFvPKS_PK9ImDrawCmdEPvm";
+    AddCallback :: (this: *ImDrawList, callback: ImDrawCallback, userdata: *void = null, userdata_size: u64 = 0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddCallbackEPFvPKS_PK9ImDrawCmdEPvm";
 
     // Advanced: Miscellaneous
     AddDrawCmd :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList10AddDrawCmdEv";
@@ -4092,12 +4108,12 @@ ImFontAtlas :: struct {
     RemoveFont :: (this: *ImFontAtlas, font: *ImFont) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas10RemoveFontEP6ImFont";
 
     Clear :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas5ClearEv";
+    ClearFonts :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas10ClearFontsEv";
     CompactCache :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas12CompactCacheEv";
     SetFontLoader :: (this: *ImFontAtlas, font_loader: *ImFontLoader) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas13SetFontLoaderEPK12ImFontLoader";
 
     // As we are transitioning toward a new font system, we expect to obsolete those soon:
     ClearInputData :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas14ClearInputDataEv";
-    ClearFonts :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas10ClearFontsEv";
     ClearTexData :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas12ClearTexDataEv";
 
     // Legacy path for build atlas + retrieving pixel data.
@@ -4270,15 +4286,17 @@ get_LoadNoRenderOnLayout :: (fields: ImFontBaked) -> bool {
 // Font flags
 // (in future versions as we redesign font loading API, this will become more important and better documented. for now please consider this as internal/advanced use)
 ImFontFlags :: enum_flags u32 {
-    None           :: 0x0;
-    NoLoadError    :: 0x2;
-    NoLoadGlyphs   :: 0x4;
-    LockBakedSizes :: 0x8;
+    None            :: 0x0;
+    NoLoadError     :: 0x2;
+    NoLoadGlyphs    :: 0x4;
+    LockBakedSizes  :: 0x8;
+    ImplicitRefSize :: 0x10;
 
-    ImFontFlags_None           :: None;
-    ImFontFlags_NoLoadError    :: NoLoadError;
-    ImFontFlags_NoLoadGlyphs   :: NoLoadGlyphs;
-    ImFontFlags_LockBakedSizes :: LockBakedSizes;
+    ImFontFlags_None            :: None;
+    ImFontFlags_NoLoadError     :: NoLoadError;
+    ImFontFlags_NoLoadGlyphs    :: NoLoadGlyphs;
+    ImFontFlags_LockBakedSizes  :: LockBakedSizes;
+    ImFontFlags_ImplicitRefSize :: ImplicitRefSize;
 }
 
 // Font runtime data and rendering
@@ -4395,6 +4413,7 @@ Viewport :: struct {
 
     RendererUserData:      *void; // void* to hold custom data structure for the renderer (e.g. swap chain, framebuffers etc.). generally set by your Renderer_CreateWindow function.
     PlatformUserData:      *void; // void* to hold custom data structure for the OS / platform (e.g. windowing info, render context). generally set by your Platform_CreateWindow function.
+    PlatformIconData:      *void; // void* to hold custom data structure for the OS / platform to specify an icon. Currently unused for exposed to allow experiments.
     PlatformHandle:        *void; // void* to hold higher-level, platform window handle (e.g. HWND for Win32 backend, Uint32 WindowID for SDL, GLFWWindow* for GLFW), for FindViewportByPlatformHandle().
     PlatformHandleRaw:     *void; // void* to hold lower-level, platform-native window handle (always HWND on Win32 platform, unused for other platforms).
     PlatformWindowCreated: bool; // Platform window has been created (Platform_CreateWindow() has been called). This is false during the first frame where a viewport is being created.
@@ -4431,6 +4450,10 @@ PlatformIO :: struct {
 
     // Written by some backends during ImGui_ImplXXXX_RenderDrawData() call to point backend_specific ImGui_ImplXXXX_RenderState* structure.
     Renderer_RenderState:               *void;
+
+    DrawCallback_ResetRenderState:      ImDrawCallback; // Request to reset the graphics/render state.
+    DrawCallback_SetSamplerLinear:      ImDrawCallback; // Request backend to set texture sampling to Linear.
+    DrawCallback_SetSamplerNearest:     ImDrawCallback; // Request backend to set texture sampling to Nearest/Point.
 
     Platform_CreateWindow:              #type (vp: *Viewport) -> void #c_call; // . . U . .  // Create a new platform window for the given viewport
     Platform_DestroyWindow:             #type (vp: *Viewport) -> void #c_call; // N . U . D  //
@@ -4502,9 +4525,3447 @@ PlatformImeData :: struct {
 // We could make ImTextureRect an union to use old names, but 1) this would be confusing 2) the fix is easy 3) ImFontAtlasCustomRect was always a rather esoteric api.
 ImFontAtlasCustomRect :: ImFontAtlasRect;
 
+// Indicates variable should deduced automatically.
+IMPLOT_AUTO: s32 : -1;
+
+// Special color used to indicate that a color should be deduced automatically.
+IMPLOT_AUTO_COL: ImVec4 : .{0, 0, 0, -1};
+
+// Forward declarations
+ImPlotContext :: struct {}
+
+// Axis indices. The values assigned may change; NEVER hardcode these.
+ImAxis :: enum u32 {
+    X1    :: 0;
+    X2    :: 1;
+    X3    :: 2;
+
+    Y1    :: 3;
+    Y2    :: 4;
+    Y3    :: 5;
+
+    COUNT :: 6;
+
+    ImAxis_X1    :: X1;
+    ImAxis_X2    :: X2;
+    ImAxis_X3    :: X3;
+
+    ImAxis_Y1    :: Y1;
+    ImAxis_Y2    :: Y2;
+    ImAxis_Y3    :: Y3;
+
+    ImAxis_COUNT :: COUNT;
+}
+
+// Plotting properties. These provide syntactic sugar for creating ImPlotSpecs from (ImPlotProp,value) pairs. See ImPlotSpec documentation.
+ImPlotProp :: enum u32 {
+    LineColor        :: 0;
+    LineColors       :: 1;
+    LineWeight       :: 2;
+    FillColor        :: 3;
+    FillColors       :: 4;
+    FillAlpha        :: 5;
+    Marker           :: 6;
+    MarkerSize       :: 7;
+    MarkerSizes      :: 8;
+    MarkerLineColor  :: 9;
+    MarkerLineColors :: 10;
+    MarkerFillColor  :: 11;
+    MarkerFillColors :: 12;
+    Size             :: 13;
+    Offset           :: 14;
+    Stride           :: 15;
+    Flags            :: 16;
+
+    ImPlotProp_LineColor        :: LineColor;
+    ImPlotProp_LineColors       :: LineColors;
+    ImPlotProp_LineWeight       :: LineWeight;
+    ImPlotProp_FillColor        :: FillColor;
+    ImPlotProp_FillColors       :: FillColors;
+    ImPlotProp_FillAlpha        :: FillAlpha;
+    ImPlotProp_Marker           :: Marker;
+    ImPlotProp_MarkerSize       :: MarkerSize;
+    ImPlotProp_MarkerSizes      :: MarkerSizes;
+    ImPlotProp_MarkerLineColor  :: MarkerLineColor;
+    ImPlotProp_MarkerLineColors :: MarkerLineColors;
+    ImPlotProp_MarkerFillColor  :: MarkerFillColor;
+    ImPlotProp_MarkerFillColors :: MarkerFillColors;
+    ImPlotProp_Size             :: Size;
+    ImPlotProp_Offset           :: Offset;
+    ImPlotProp_Stride           :: Stride;
+    ImPlotProp_Flags            :: Flags;
+}
+
+// Options for plots (see BeginPlot).
+ImPlotFlags :: enum_flags u32 {
+    None        :: 0x0;
+    NoTitle     :: 0x1;
+    NoLegend    :: 0x2;
+    NoMouseText :: 0x4;
+    NoInputs    :: 0x8;
+    NoMenus     :: 0x10;
+    NoBoxSelect :: 0x20;
+    NoFrame     :: 0x40;
+    Equal       :: 0x80;
+    Crosshairs  :: 0x100;
+    CanvasOnly  :: 0x37;
+
+    ImPlotFlags_None        :: None;
+    ImPlotFlags_NoTitle     :: NoTitle;
+    ImPlotFlags_NoLegend    :: NoLegend;
+    ImPlotFlags_NoMouseText :: NoMouseText;
+    ImPlotFlags_NoInputs    :: NoInputs;
+    ImPlotFlags_NoMenus     :: NoMenus;
+    ImPlotFlags_NoBoxSelect :: NoBoxSelect;
+    ImPlotFlags_NoFrame     :: NoFrame;
+    ImPlotFlags_Equal       :: Equal;
+    ImPlotFlags_Crosshairs  :: Crosshairs;
+    ImPlotFlags_CanvasOnly  :: CanvasOnly;
+}
+
+// Options for plot axes (see SetupAxis).
+ImPlotAxisFlags :: enum_flags u32 {
+    None          :: 0x0;
+    NoLabel       :: 0x1;
+    NoGridLines   :: 0x2;
+    NoTickMarks   :: 0x4;
+    NoTickLabels  :: 0x8;
+    NoInitialFit  :: 0x10;
+    NoMenus       :: 0x20;
+    NoSideSwitch  :: 0x40;
+    NoHighlight   :: 0x80;
+    Opposite      :: 0x100;
+    Foreground    :: 0x200;
+    Invert        :: 0x400;
+    AutoFit       :: 0x800;
+    RangeFit      :: 0x1000;
+    PanStretch    :: 0x2000;
+    LockMin       :: 0x4000;
+    LockMax       :: 0x8000;
+    Lock          :: 0xc000;
+    NoDecorations :: 0xf;
+    AuxDefault    :: 0x102;
+
+    ImPlotAxisFlags_None          :: None;
+    ImPlotAxisFlags_NoLabel       :: NoLabel;
+    ImPlotAxisFlags_NoGridLines   :: NoGridLines;
+    ImPlotAxisFlags_NoTickMarks   :: NoTickMarks;
+    ImPlotAxisFlags_NoTickLabels  :: NoTickLabels;
+    ImPlotAxisFlags_NoInitialFit  :: NoInitialFit;
+    ImPlotAxisFlags_NoMenus       :: NoMenus;
+    ImPlotAxisFlags_NoSideSwitch  :: NoSideSwitch;
+    ImPlotAxisFlags_NoHighlight   :: NoHighlight;
+    ImPlotAxisFlags_Opposite      :: Opposite;
+    ImPlotAxisFlags_Foreground    :: Foreground;
+    ImPlotAxisFlags_Invert        :: Invert;
+    ImPlotAxisFlags_AutoFit       :: AutoFit;
+    ImPlotAxisFlags_RangeFit      :: RangeFit;
+    ImPlotAxisFlags_PanStretch    :: PanStretch;
+    ImPlotAxisFlags_LockMin       :: LockMin;
+    ImPlotAxisFlags_LockMax       :: LockMax;
+    ImPlotAxisFlags_Lock          :: Lock;
+    ImPlotAxisFlags_NoDecorations :: NoDecorations;
+    ImPlotAxisFlags_AuxDefault    :: AuxDefault;
+}
+
+// Options for subplots (see BeginSubplot)
+ImPlotSubplotFlags :: enum_flags u32 {
+    None       :: 0x0;
+    NoTitle    :: 0x1;
+    NoLegend   :: 0x2;
+    NoMenus    :: 0x4;
+    NoResize   :: 0x8;
+    NoAlign    :: 0x10;
+    ShareItems :: 0x20;
+    LinkRows   :: 0x40;
+    LinkCols   :: 0x80;
+    LinkAllX   :: 0x100;
+    LinkAllY   :: 0x200;
+    ColMajor   :: 0x400;
+
+    ImPlotSubplotFlags_None       :: None;
+    ImPlotSubplotFlags_NoTitle    :: NoTitle;
+    ImPlotSubplotFlags_NoLegend   :: NoLegend;
+    ImPlotSubplotFlags_NoMenus    :: NoMenus;
+    ImPlotSubplotFlags_NoResize   :: NoResize;
+    ImPlotSubplotFlags_NoAlign    :: NoAlign;
+    ImPlotSubplotFlags_ShareItems :: ShareItems;
+    ImPlotSubplotFlags_LinkRows   :: LinkRows;
+    ImPlotSubplotFlags_LinkCols   :: LinkCols;
+    ImPlotSubplotFlags_LinkAllX   :: LinkAllX;
+    ImPlotSubplotFlags_LinkAllY   :: LinkAllY;
+    ImPlotSubplotFlags_ColMajor   :: ColMajor;
+}
+
+// Options for legends (see SetupLegend)
+ImPlotLegendFlags :: enum_flags u32 {
+    None            :: 0x0;
+    NoButtons       :: 0x1;
+    NoHighlightItem :: 0x2;
+    NoHighlightAxis :: 0x4;
+    NoMenus         :: 0x8;
+    Outside         :: 0x10;
+    Horizontal      :: 0x20;
+    Sort            :: 0x40;
+    Reverse         :: 0x80;
+
+    ImPlotLegendFlags_None            :: None;
+    ImPlotLegendFlags_NoButtons       :: NoButtons;
+    ImPlotLegendFlags_NoHighlightItem :: NoHighlightItem;
+    ImPlotLegendFlags_NoHighlightAxis :: NoHighlightAxis;
+    ImPlotLegendFlags_NoMenus         :: NoMenus;
+    ImPlotLegendFlags_Outside         :: Outside;
+    ImPlotLegendFlags_Horizontal      :: Horizontal;
+    ImPlotLegendFlags_Sort            :: Sort;
+    ImPlotLegendFlags_Reverse         :: Reverse;
+}
+
+// Options for mouse hover text (see SetupMouseText)
+ImPlotMouseTextFlags :: enum_flags u32 {
+    None       :: 0x0;
+    NoAuxAxes  :: 0x1;
+    NoFormat   :: 0x2;
+    ShowAlways :: 0x4;
+
+    ImPlotMouseTextFlags_None       :: None;
+    ImPlotMouseTextFlags_NoAuxAxes  :: NoAuxAxes;
+    ImPlotMouseTextFlags_NoFormat   :: NoFormat;
+    ImPlotMouseTextFlags_ShowAlways :: ShowAlways;
+}
+
+// Options for DragPoint, DragLine, DragRect
+ImPlotDragToolFlags :: enum_flags u32 {
+    None      :: 0x0;
+    NoCursors :: 0x1;
+    NoFit     :: 0x2;
+    NoInputs  :: 0x4;
+    Delayed   :: 0x8;
+
+    ImPlotDragToolFlags_None      :: None;
+    ImPlotDragToolFlags_NoCursors :: NoCursors;
+    ImPlotDragToolFlags_NoFit     :: NoFit;
+    ImPlotDragToolFlags_NoInputs  :: NoInputs;
+    ImPlotDragToolFlags_Delayed   :: Delayed;
+}
+
+// Flags for ColormapScale
+ImPlotColormapScaleFlags :: enum_flags u32 {
+    None     :: 0x0;
+    NoLabel  :: 0x1;
+    Opposite :: 0x2;
+    Invert   :: 0x4;
+
+    ImPlotColormapScaleFlags_None     :: None;
+    ImPlotColormapScaleFlags_NoLabel  :: NoLabel;
+    ImPlotColormapScaleFlags_Opposite :: Opposite;
+    ImPlotColormapScaleFlags_Invert   :: Invert;
+}
+
+// Flags for ANY PlotX function. Used by setting ImPlotSpec::Flags.
+ImPlotItemFlags :: enum_flags u32 {
+    None     :: 0x0;
+    NoLegend :: 0x1;
+    NoFit    :: 0x2;
+
+    ImPlotItemFlags_None     :: None;
+    ImPlotItemFlags_NoLegend :: NoLegend;
+    ImPlotItemFlags_NoFit    :: NoFit;
+}
+
+// Flags for PlotLine. Used by setting ImPlotSpec::Flags.
+ImPlotLineFlags :: enum_flags u32 {
+    None     :: 0x0;
+    Segments :: 0x400;
+    Loop     :: 0x800;
+    SkipNaN  :: 0x1000;
+    NoClip   :: 0x2000;
+    Shaded   :: 0x4000;
+
+    ImPlotLineFlags_None     :: None;
+    ImPlotLineFlags_Segments :: Segments;
+    ImPlotLineFlags_Loop     :: Loop;
+    ImPlotLineFlags_SkipNaN  :: SkipNaN;
+    ImPlotLineFlags_NoClip   :: NoClip;
+    ImPlotLineFlags_Shaded   :: Shaded;
+}
+
+// Flags for PlotScatter. Used by setting ImPlotSpec::Flags.
+ImPlotScatterFlags :: enum_flags u32 {
+    None   :: 0x0;
+    NoClip :: 0x400;
+
+    ImPlotScatterFlags_None   :: None;
+    ImPlotScatterFlags_NoClip :: NoClip;
+}
+
+// Flags for PlotBubbles. Used by setting ImPlotSpec::Flags.
+ImPlotBubblesFlags :: enum_flags u32 {
+    None :: 0x0;
+    ImPlotBubblesFlags_None :: None;
+}
+
+// Flags for PlotPolygon. Used by setting ImPlotSpec::Flags.
+ImPlotPolygonFlags :: enum_flags u32 {
+    None    :: 0x0;
+    Concave :: 0x400;
+
+    ImPlotPolygonFlags_None    :: None;
+    ImPlotPolygonFlags_Concave :: Concave;
+}
+
+// Flags for PlotStairs. Used by setting ImPlotSpec::Flags.
+ImPlotStairsFlags :: enum_flags u32 {
+    None    :: 0x0;
+    PreStep :: 0x400;
+    Shaded  :: 0x800;
+
+    ImPlotStairsFlags_None    :: None;
+    ImPlotStairsFlags_PreStep :: PreStep;
+    ImPlotStairsFlags_Shaded  :: Shaded;
+}
+
+// Flags for PlotShaded (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotShadedFlags :: enum_flags u32 {
+    None :: 0x0;
+    ImPlotShadedFlags_None :: None;
+}
+
+// Flags for PlotBars. Used by setting ImPlotSpec::Flags.
+ImPlotBarsFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotBarsFlags_None       :: None;
+    ImPlotBarsFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotBarGroups. Used by setting ImPlotSpec::Flags.
+ImPlotBarGroupsFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+    Stacked    :: 0x800;
+
+    ImPlotBarGroupsFlags_None       :: None;
+    ImPlotBarGroupsFlags_Horizontal :: Horizontal;
+    ImPlotBarGroupsFlags_Stacked    :: Stacked;
+}
+
+// Flags for PlotErrorBars. Used by setting ImPlotSpec::Flags.
+ImPlotErrorBarsFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotErrorBarsFlags_None       :: None;
+    ImPlotErrorBarsFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotStems. Used by setting ImPlotSpec::Flags.
+ImPlotStemsFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotStemsFlags_None       :: None;
+    ImPlotStemsFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotInfLines. Used by setting ImPlotSpec::Flags.
+ImPlotInfLinesFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+
+    ImPlotInfLinesFlags_None       :: None;
+    ImPlotInfLinesFlags_Horizontal :: Horizontal;
+}
+
+// Flags for PlotPieChart. Used by setting ImPlotSpec::Flags.
+ImPlotPieChartFlags :: enum_flags u32 {
+    None          :: 0x0;
+    Normalize     :: 0x400;
+    IgnoreHidden  :: 0x800;
+    Exploding     :: 0x1000;
+    NoSliceBorder :: 0x2000;
+
+    ImPlotPieChartFlags_None          :: None;
+    ImPlotPieChartFlags_Normalize     :: Normalize;
+    ImPlotPieChartFlags_IgnoreHidden  :: IgnoreHidden;
+    ImPlotPieChartFlags_Exploding     :: Exploding;
+    ImPlotPieChartFlags_NoSliceBorder :: NoSliceBorder;
+}
+
+// Flags for PlotHeatmap. Used by setting ImPlotSpec::Flags.
+ImPlotHeatmapFlags :: enum_flags u32 {
+    None     :: 0x0;
+    ColMajor :: 0x400;
+
+    ImPlotHeatmapFlags_None     :: None;
+    ImPlotHeatmapFlags_ColMajor :: ColMajor;
+}
+
+// Flags for PlotHistogram and PlotHistogram2D. Used by setting ImPlotSpec::Flags.
+ImPlotHistogramFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Horizontal :: 0x400;
+    Cumulative :: 0x800;
+    Density    :: 0x1000;
+    NoOutliers :: 0x2000;
+    ColMajor   :: 0x4000;
+
+    ImPlotHistogramFlags_None       :: None;
+    ImPlotHistogramFlags_Horizontal :: Horizontal;
+    ImPlotHistogramFlags_Cumulative :: Cumulative;
+    ImPlotHistogramFlags_Density    :: Density;
+    ImPlotHistogramFlags_NoOutliers :: NoOutliers;
+    ImPlotHistogramFlags_ColMajor   :: ColMajor;
+}
+
+// Flags for PlotDigital (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotDigitalFlags :: enum_flags u32 {
+    None :: 0x0;
+    ImPlotDigitalFlags_None :: None;
+}
+
+// Flags for PlotImage (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotImageFlags :: enum_flags u32 {
+    None :: 0x0;
+    ImPlotImageFlags_None :: None;
+}
+
+// Flags for PlotText. Used by setting ImPlotSpec::Flags.
+ImPlotTextFlags :: enum_flags u32 {
+    None     :: 0x0;
+    Vertical :: 0x400;
+
+    ImPlotTextFlags_None     :: None;
+    ImPlotTextFlags_Vertical :: Vertical;
+}
+
+// Flags for PlotDummy (placeholder). Used by setting ImPlotSpec::Flags.
+ImPlotDummyFlags :: enum_flags u32 {
+    None :: 0x0;
+    ImPlotDummyFlags_None :: None;
+}
+
+// Represents a condition for SetupAxisLimits etc. (same as ImGuiCond, but we only support a subset of those enums)
+ImPlotCond :: enum u32 {
+    None   :: 0;
+    Always :: 1;
+    Once   :: 2;
+
+    ImPlotCond_None   :: None;
+    ImPlotCond_Always :: Always;
+    ImPlotCond_Once   :: Once;
+}
+
+// Plot styling colors.
+ImPlotCol :: enum u32 {
+    FrameBg       :: 0;
+    PlotBg        :: 1;
+    PlotBorder    :: 2;
+    LegendBg      :: 3;
+    LegendBorder  :: 4;
+    LegendText    :: 5;
+    TitleText     :: 6;
+    InlayText     :: 7;
+    AxisText      :: 8;
+    AxisGrid      :: 9;
+    AxisTick      :: 10;
+    AxisBg        :: 11;
+    AxisBgHovered :: 12;
+    AxisBgActive  :: 13;
+    Selection     :: 14;
+    Crosshairs    :: 15;
+    COUNT         :: 16;
+
+    ImPlotCol_FrameBg       :: FrameBg;
+    ImPlotCol_PlotBg        :: PlotBg;
+    ImPlotCol_PlotBorder    :: PlotBorder;
+    ImPlotCol_LegendBg      :: LegendBg;
+    ImPlotCol_LegendBorder  :: LegendBorder;
+    ImPlotCol_LegendText    :: LegendText;
+    ImPlotCol_TitleText     :: TitleText;
+    ImPlotCol_InlayText     :: InlayText;
+    ImPlotCol_AxisText      :: AxisText;
+    ImPlotCol_AxisGrid      :: AxisGrid;
+    ImPlotCol_AxisTick      :: AxisTick;
+    ImPlotCol_AxisBg        :: AxisBg;
+    ImPlotCol_AxisBgHovered :: AxisBgHovered;
+    ImPlotCol_AxisBgActive  :: AxisBgActive;
+    ImPlotCol_Selection     :: Selection;
+    ImPlotCol_Crosshairs    :: Crosshairs;
+    ImPlotCol_COUNT         :: COUNT;
+}
+
+// Plot styling variables.
+ImPlotStyleVar :: enum u32 {
+    PlotDefaultSize    :: 0;
+    PlotMinSize        :: 1;
+    PlotBorderSize     :: 2;
+    MinorAlpha         :: 3;
+    MajorTickLen       :: 4;
+    MinorTickLen       :: 5;
+    MajorTickSize      :: 6;
+    MinorTickSize      :: 7;
+    MajorGridSize      :: 8;
+    MinorGridSize      :: 9;
+    PlotPadding        :: 10;
+    LabelPadding       :: 11;
+    LegendPadding      :: 12;
+    LegendInnerPadding :: 13;
+    LegendSpacing      :: 14;
+    MousePosPadding    :: 15;
+    AnnotationPadding  :: 16;
+    FitPadding         :: 17;
+    DigitalPadding     :: 18;
+    DigitalSpacing     :: 19;
+    COUNT              :: 20;
+
+    ImPlotStyleVar_PlotDefaultSize    :: PlotDefaultSize;
+    ImPlotStyleVar_PlotMinSize        :: PlotMinSize;
+    ImPlotStyleVar_PlotBorderSize     :: PlotBorderSize;
+    ImPlotStyleVar_MinorAlpha         :: MinorAlpha;
+    ImPlotStyleVar_MajorTickLen       :: MajorTickLen;
+    ImPlotStyleVar_MinorTickLen       :: MinorTickLen;
+    ImPlotStyleVar_MajorTickSize      :: MajorTickSize;
+    ImPlotStyleVar_MinorTickSize      :: MinorTickSize;
+    ImPlotStyleVar_MajorGridSize      :: MajorGridSize;
+    ImPlotStyleVar_MinorGridSize      :: MinorGridSize;
+    ImPlotStyleVar_PlotPadding        :: PlotPadding;
+    ImPlotStyleVar_LabelPadding       :: LabelPadding;
+    ImPlotStyleVar_LegendPadding      :: LegendPadding;
+    ImPlotStyleVar_LegendInnerPadding :: LegendInnerPadding;
+    ImPlotStyleVar_LegendSpacing      :: LegendSpacing;
+    ImPlotStyleVar_MousePosPadding    :: MousePosPadding;
+    ImPlotStyleVar_AnnotationPadding  :: AnnotationPadding;
+    ImPlotStyleVar_FitPadding         :: FitPadding;
+    ImPlotStyleVar_DigitalPadding     :: DigitalPadding;
+    ImPlotStyleVar_DigitalSpacing     :: DigitalSpacing;
+    ImPlotStyleVar_COUNT              :: COUNT;
+}
+
+// Axis scale
+ImPlotScale :: enum u32 {
+    Linear :: 0;
+    Time   :: 1;
+    Log10  :: 2;
+    SymLog :: 3;
+
+    ImPlotScale_Linear :: Linear;
+    ImPlotScale_Time   :: Time;
+    ImPlotScale_Log10  :: Log10;
+    ImPlotScale_SymLog :: SymLog;
+}
+
+// Marker specifications.
+ImPlotMarker :: enum s32 {
+    None     :: -2;
+    Auto     :: -1;
+    Circle   :: 0;
+    Square   :: 1;
+    Diamond  :: 2;
+    Up       :: 3;
+    Down     :: 4;
+    Left     :: 5;
+    Right    :: 6;
+    Cross    :: 7;
+    Plus     :: 8;
+    Asterisk :: 9;
+    COUNT    :: 10;
+
+    ImPlotMarker_None     :: None;
+    ImPlotMarker_Auto     :: Auto;
+    ImPlotMarker_Circle   :: Circle;
+    ImPlotMarker_Square   :: Square;
+    ImPlotMarker_Diamond  :: Diamond;
+    ImPlotMarker_Up       :: Up;
+    ImPlotMarker_Down     :: Down;
+    ImPlotMarker_Left     :: Left;
+    ImPlotMarker_Right    :: Right;
+    ImPlotMarker_Cross    :: Cross;
+    ImPlotMarker_Plus     :: Plus;
+    ImPlotMarker_Asterisk :: Asterisk;
+    ImPlotMarker_COUNT    :: COUNT;
+}
+
+// Built-in colormaps
+ImPlotColormap :: enum u32 {
+    Deep     :: 0;
+    Dark     :: 1;
+    Pastel   :: 2;
+    Paired   :: 3;
+    Viridis  :: 4;
+    Plasma   :: 5;
+    Hot      :: 6;
+    Cool     :: 7;
+    Pink     :: 8;
+    Jet      :: 9;
+    Twilight :: 10;
+    RdBu     :: 11;
+    BrBG     :: 12;
+    PiYG     :: 13;
+    Spectral :: 14;
+    Greys    :: 15;
+
+    ImPlotColormap_Deep     :: Deep;
+    ImPlotColormap_Dark     :: Dark;
+    ImPlotColormap_Pastel   :: Pastel;
+    ImPlotColormap_Paired   :: Paired;
+    ImPlotColormap_Viridis  :: Viridis;
+    ImPlotColormap_Plasma   :: Plasma;
+    ImPlotColormap_Hot      :: Hot;
+    ImPlotColormap_Cool     :: Cool;
+    ImPlotColormap_Pink     :: Pink;
+    ImPlotColormap_Jet      :: Jet;
+    ImPlotColormap_Twilight :: Twilight;
+    ImPlotColormap_RdBu     :: RdBu;
+    ImPlotColormap_BrBG     :: BrBG;
+    ImPlotColormap_PiYG     :: PiYG;
+    ImPlotColormap_Spectral :: Spectral;
+    ImPlotColormap_Greys    :: Greys;
+}
+
+// Used to position items on a plot (e.g. legends, labels, etc.)
+ImPlotLocation :: enum u32 {
+    Center    :: 0;
+    North     :: 1;
+    South     :: 2;
+    West      :: 4;
+    East      :: 8;
+    NorthWest :: 5;
+    NorthEast :: 9;
+    SouthWest :: 6;
+    SouthEast :: 10;
+
+    ImPlotLocation_Center    :: Center;
+    ImPlotLocation_North     :: North;
+    ImPlotLocation_South     :: South;
+    ImPlotLocation_West      :: West;
+    ImPlotLocation_East      :: East;
+    ImPlotLocation_NorthWest :: NorthWest;
+    ImPlotLocation_NorthEast :: NorthEast;
+    ImPlotLocation_SouthWest :: SouthWest;
+    ImPlotLocation_SouthEast :: SouthEast;
+}
+
+// Enums for different automatic histogram binning methods (k = bin count or w = bin width)
+ImPlotBin :: enum s32 {
+    Sqrt    :: -1;
+    Sturges :: -2;
+    Rice    :: -3;
+    Scott   :: -4;
+
+    ImPlotBin_Sqrt    :: Sqrt;
+    ImPlotBin_Sturges :: Sturges;
+    ImPlotBin_Rice    :: Rice;
+    ImPlotBin_Scott   :: Scott;
+}
+
+// Plot item styling specification. Provide these to PlotX functions to override styling, specify
+// offsetting or stride, or set optional flags. This struct can be used in the following ways:
+//
+// 1. By declaring and defining a struct instance:
+//
+//    ImPlotSpec spec;
+//    spec.LineColor = ImVec4(1,0,0,1);
+//    spec.LineWeight = 2.0f;
+//    spec.Marker = ImPlotMarker_Circle;
+//    spec.Flags = ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments;
+//    ImPlot::PlotLine("MyLine", xs, ys, 100, spec);
+//
+// 2. Inline using (ImPlotProp,value) pairs (order does NOT matter):
+//
+//    ImPlot::PlotLine("MyLine", xs, ys, 100, {
+//      ImPlotProp_LineColor, ImVec4(1,0,0,1),
+//      ImPlotProp_LineWeight, 2.0f,
+//      ImPlotProp_Marker, ImPlotMarker_Circle,
+//      ImPlotProp_Flags, ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments
+//    });
+ImPlotSpec :: struct {
+    LineColor:        ImVec4; // line color (applies to lines, bar edges); IMPLOT_AUTO_COL will use next Colormap color or current item color
+    LineColors:       *ImU32 = null; // array of colors for each line; if nullptr, use LineColor for all lines
+    LineWeight:       float = 1.0; // line weight in pixels (applies to lines, bar edges, marker edges)
+    FillColor:        ImVec4; // fill color (applies to shaded regions, bar faces); IMPLOT_AUTO_COL will use next Colormap color or current item color
+    FillColors:       *ImU32 = null; // array of colors for each fill; if nullptr, use FillColor for all fills
+    FillAlpha:        float = 1.0; // alpha multiplier (applies to FillColor, FillColors, MarkerFillColor, and MarkerFillColors)
+    Marker:           ImPlotMarker = cast(ImPlotMarker).None; // marker type; specify ImPlotMarker_Auto to use the next unused marker
+    MarkerSize:       float = 4; // size of markers (radius) *in pixels*
+    MarkerSizes:      *float = null; // array of sizes for each marker; if nullptr, use MarkerSize for all markers
+    MarkerLineColor:  ImVec4; // marker edge color; IMPLOT_AUTO_COL will use LineColor
+    MarkerLineColors: *ImU32 = null; // array of colors for each marker edge; if nullptr, use MarkerLineColor for all markers
+    MarkerFillColor:  ImVec4; // marker face color; IMPLOT_AUTO_COL will use LineColor
+    MarkerFillColors: *ImU32 = null; // array of colors for each marker face; if nullptr, use MarkerFillColor for all markers
+    Size:             float = 4; // size of error bar whiskers (width or height), and digital bars (height) *in pixels*
+    Offset:           s32 = 0; // data index offset
+    Stride:           s32 = IMPLOT_AUTO; // data stride in bytes; IMPLOT_AUTO will result in sizeof(T) where T is the type passed to PlotX
+    Flags:            ImPlotItemFlags = cast(ImPlotItemFlags).None; // optional item flags; can be composed from common ImPlotItemFlags and/or specialized ImPlotXFlags
+}
+
+// Double precision version of ImVec2 used by ImPlot. Extensible by end users.
+ImPlotPoint :: struct {
+    x: float64;
+    y: float64;
+}
+
+// Range defined by a min/max value.
+ImPlotRange :: struct {
+    Min: float64;
+    Max: float64;
+}
+
+// Combination of two range limits for X and Y axes. Also an AABB defined by Min()/Max().
+ImPlotRect :: struct {
+    X: ImPlotRange;
+    Y: ImPlotRange;
+}
+
+// Plot style structure
+ImPlotStyle :: struct {
+    PlotDefaultSize:    ImVec2; // = 400,300 default size used when ImVec2(0,0) is passed to BeginPlot
+    PlotMinSize:        ImVec2; // = 200,150 minimum size plot frame can be when shrunk
+    PlotBorderSize:     float; // = 1,      line thickness of border around plot area
+    MinorAlpha:         float; // = 0.25    alpha multiplier applied to minor axis grid lines
+    MajorTickLen:       ImVec2; // = 10,10   major tick lengths for X and Y axes
+    MinorTickLen:       ImVec2; // = 5,5     minor tick lengths for X and Y axes
+    MajorTickSize:      ImVec2; // = 1,1     line thickness of major ticks
+    MinorTickSize:      ImVec2; // = 1,1     line thickness of minor ticks
+    MajorGridSize:      ImVec2; // = 1,1     line thickness of major grid lines
+    MinorGridSize:      ImVec2; // = 1,1     line thickness of minor grid lines
+
+    PlotPadding:        ImVec2; // = 10,10   padding between widget frame and plot area, labels, or outside legends (i.e. main padding)
+    LabelPadding:       ImVec2; // = 5,5     padding between axes labels, tick labels, and plot edge
+    LegendPadding:      ImVec2; // = 10,10   legend padding from plot edges
+    LegendInnerPadding: ImVec2; // = 5,5     legend inner padding from legend edges
+    LegendSpacing:      ImVec2; // = 5,0     spacing between legend entries
+    MousePosPadding:    ImVec2; // = 10,10   padding between plot edge and interior mouse location text
+    AnnotationPadding:  ImVec2; // = 2,2     text padding around annotation labels
+    FitPadding:         ImVec2; // = 0,0     additional fit padding as a percentage of the fit extents (e.g. ImVec2(0.1f,0.1f) adds 10% to the fit extents of X and Y)
+    DigitalPadding:     float; // = 20,     digital plot padding from bottom in pixels
+    DigitalSpacing:     float; // = 4,      digital plot spacing gap in pixels
+
+    Colors:             [16] ImVec4; // Array of styling colors. Indexable with ImPlotCol_ enums.
+
+    Colormap:           ImPlotColormap; // The current colormap. Set this to either an ImPlotColormap_ enum or an index returned by AddColormap.
+
+    UseLocalTime:       bool; // = false,  axis labels will be formatted for your timezone when ImPlotAxisFlag_Time is enabled
+    UseISO8601:         bool; // = false,  dates will be formatted according to ISO 8601 where applicable (e.g. YYYY-MM-DD, YYYY-MM, --MM-DD, etc.)
+    Use24HourClock:     bool; // = false,  times will be formatted using a 24 hour clock
+    Constructor :: (this: *ImPlotStyle) -> void #cpp_method #foreign imgui "_ZN11ImPlotStyleC1Ev";
+}
+
+// Input mapping structure. Default values listed. See also MapInputDefault, MapInputReverse.
+ImPlotInputMap :: struct {
+    Pan:           MouseButton; // LMB    enables panning when held,
+    PanMod:        s32; // none   optional modifier that must be held for panning/fitting
+    Fit:           MouseButton; // LMB    initiates fit when double clicked
+    Select:        MouseButton; // RMB    begins box selection when pressed and confirms selection when released
+    SelectCancel:  MouseButton; // LMB    cancels active box selection when pressed; cannot be same as Select
+    SelectMod:     s32; // none   optional modifier that must be held for box selection
+    SelectHorzMod: s32; // Alt    expands active box selection horizontally to plot edge when held
+    SelectVertMod: s32; // Shift  expands active box selection vertically to plot edge when held
+    Menu:          MouseButton; // RMB    opens context menus (if enabled) when clicked
+    OverrideMod:   s32; // Ctrl   when held, all input is ignored; used to enable axis/plots as DND sources
+    ZoomMod:       s32; // none   optional modifier that must be held for scroll wheel zooming
+    ZoomRate:      float; // 0.1f   zoom rate for scroll (e.g. 0.1f = 10% plot range every scroll click); make negative to invert
+    Constructor :: (this: *ImPlotInputMap) -> void #cpp_method #foreign imgui "_ZN14ImPlotInputMapC1Ev";
+}
+
+// Callback signature for axis tick label formatter.
+ImPlotFormatter :: #type (value: float64, buff: *u8, size: s32, user_data: *void) -> s32 #c_call;
+
+// Callback signature for data getter.
+ImPlotGetter :: #type (idx: s32, user_data: *void) -> ImPlotPoint #c_call;
+
+// Callback signature for axis transform.
+ImPlotTransform :: #type (value: float64, user_data: *void) -> float64 #c_call;
+
+ImPlot :: struct {
+    // Creates a new ImPlot context. Call this after ImGui::CreateContext.
+    CreateContext :: () -> *ImPlotContext #foreign imgui "_ZN6ImPlot13CreateContextEv";
+
+    // Destroys an ImPlot context. Call this before ImGui::DestroyContext. nullptr = destroy current context.
+    DestroyContext :: (ctx: *ImPlotContext = null) -> void #foreign imgui "_ZN6ImPlot14DestroyContextEP13ImPlotContext";
+
+    // Returns the current ImPlot context. nullptr if no context has ben set.
+    GetCurrentContext :: () -> *ImPlotContext #foreign imgui "_ZN6ImPlot17GetCurrentContextEv";
+
+    // Sets the current ImPlot context.
+    SetCurrentContext :: (ctx: *ImPlotContext) -> void #foreign imgui "_ZN6ImPlot17SetCurrentContextEP13ImPlotContext";
+
+    // Sets the current **ImGui** context. This is ONLY necessary if you are compiling
+    // ImPlot as a DLL (not recommended) separate from your ImGui compilation. It
+    // sets the global variable GImGui, which is not shared across DLL boundaries.
+    // See GImGui documentation in imgui.cpp for more details.
+    SetImGuiContext :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN6ImPlot15SetImGuiContextEP12ImGuiContext";
+
+    // Starts a 2D plotting context. If this function returns true, EndPlot() MUST
+    // be called! You are encouraged to use the following convention:
+    //
+    // if (BeginPlot(...)) {
+    //     PlotLine(...);
+    //     ...
+    //     EndPlot();
+    // }
+    //
+    // Important notes:
+    //
+    // - #title_id must be unique to the current ImGui ID scope. If you need to avoid ID
+    //   collisions or don't want to display a title in the plot, use double hashes
+    //   (e.g. "MyPlot##HiddenIdText" or "##NoTitle").
+    // - #size is the **frame** size of the plot widget, not the plot area. The default
+    //   size of plots (i.e. when ImVec2(0,0)) can be modified in your ImPlotStyle.
+    BeginPlot :: (title_id: *u8, size: *ImVec2, flags: ImPlotFlags = .None) -> bool #foreign imgui "_ZN6ImPlot9BeginPlotEPKcRK6ImVec2i";
+    BeginPlot :: (title_id: *u8, size: ImVec2 = ImVec2.{-1, 0}, flags: ImPlotFlags = .None) -> bool #no_context {
+        return BeginPlot(title_id, *size, flags);
+    }
+
+    // Only call EndPlot() if BeginPlot() returns true! Typically called at the end
+    // of an if statement conditioned on BeginPlot(). See example above.
+    EndPlot :: () -> void #foreign imgui "_ZN6ImPlot7EndPlotEv";
+
+    // Starts a subdivided plotting context. If the function returns true,
+    // EndSubplots() MUST be called! Call BeginPlot/EndPlot AT MOST [rows*cols]
+    // times in  between the beginning and end of the subplot context. Plots are
+    // added in row major order.
+    //
+    // Example:
+    //
+    // if (BeginSubplots("My Subplot",2,3,ImVec2(800,400)) {
+    //     for (int i = 0; i < 6; ++i) {
+    //         if (BeginPlot(...)) {
+    //             ImPlot::PlotLine(...);
+    //             ...
+    //             EndPlot();
+    //         }
+    //     }
+    //     EndSubplots();
+    // }
+    //
+    // Produces:
+    //
+    // [0] | [1] | [2]
+    // ----|-----|----
+    // [3] | [4] | [5]
+    //
+    // Important notes:
+    //
+    // - #title_id must be unique to the current ImGui ID scope. If you need to avoid ID
+    //   collisions or don't want to display a title in the plot, use double hashes
+    //   (e.g. "MySubplot##HiddenIdText" or "##NoTitle").
+    // - #rows and #cols must be greater than 0.
+    // - #size is the size of the entire grid of subplots, not the individual plots
+    // - #row_ratios and #col_ratios must have AT LEAST #rows and #cols elements,
+    //   respectively. These are the sizes of the rows and columns expressed in ratios.
+    //   If the user adjusts the dimensions, the arrays are updated with new ratios.
+    //
+    // Important notes regarding BeginPlot from inside of BeginSubplots:
+    //
+    // - The #title_id parameter of _BeginPlot_ (see above) does NOT have to be
+    //   unique when called inside of a subplot context. Subplot IDs are hashed
+    //   for your convenience so you don't have call PushID or generate unique title
+    //   strings. Simply pass an empty string to BeginPlot unless you want to title
+    //   each subplot.
+    // - The #size parameter of _BeginPlot_ (see above) is ignored when inside of a
+    //   subplot context. The actual size of the subplot will be based on the
+    //   #size value you pass to _BeginSubplots_ and #row/#col_ratios if provided.
+    BeginSubplots :: (title_id: *u8, rows: s32, cols: s32, size: *ImVec2, flags: ImPlotSubplotFlags = .None, row_ratios: *float = null, col_ratios: *float = null) -> bool #foreign imgui "_ZN6ImPlot13BeginSubplotsEPKciiRK6ImVec2iPfS5_";
+    BeginSubplots :: (title_id: *u8, rows: s32, cols: s32, size: ImVec2, flags: ImPlotSubplotFlags = .None, row_ratios: *float = null, col_ratios: *float = null) -> bool #no_context {
+        return BeginSubplots(title_id, rows, cols, *size, flags, row_ratios, col_ratios);
+    }
+
+    // Only call EndSubplots() if BeginSubplots() returns true! Typically called at the end
+    // of an if statement conditioned on BeginSubplots(). See example above.
+    EndSubplots :: () -> void #foreign imgui "_ZN6ImPlot11EndSubplotsEv";
+
+    // Enables an axis or sets the label and/or flags for an existing axis. Leave #label = nullptr for no label.
+    SetupAxis :: (axis: ImAxis, label: *u8 = null, flags: ImPlotAxisFlags = .None) -> void #foreign imgui "_ZN6ImPlot9SetupAxisEiPKci";
+
+    // Sets an axis range limits. If ImPlotCond_Always is used, the axes limits will be locked. Inversion with v_min > v_max is not supported; use SetupAxisLimits instead.
+    SetupAxisLimits :: (axis: ImAxis, v_min: float64, v_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "_ZN6ImPlot15SetupAxisLimitsEiddi";
+
+    // Links an axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot.
+    SetupAxisLinks :: (axis: ImAxis, link_min: *float64, link_max: *float64) -> void #foreign imgui "_ZN6ImPlot14SetupAxisLinksEiPdS0_";
+
+    // Sets the format of numeric axis labels via formatter specifier (default="%g"). Formatted values will be double (i.e. use %f).
+    SetupAxisFormat :: (axis: ImAxis, fmt: *u8) -> void #foreign imgui "_ZN6ImPlot15SetupAxisFormatEiPKc";
+
+    // Sets the format of numeric axis labels via formatter callback. Given #value, write a label into #buff. Optionally pass user data.
+    SetupAxisFormat :: (axis: ImAxis, formatter: ImPlotFormatter, data: *void = null) -> void #foreign imgui "_ZN6ImPlot15SetupAxisFormatEiPFidPciPvES1_";
+
+    // Sets an axis' ticks and optionally the labels. To keep the default ticks, set #keep_default=true.
+    SetupAxisTicks :: (axis: ImAxis, values: *float64, n_ticks: s32, labels: **u8 = null, keep_default := false) -> void #foreign imgui "_ZN6ImPlot14SetupAxisTicksEiPKdiPKPKcb";
+
+    // Sets an axis' ticks and optionally the labels for the next plot. To keep the default ticks, set #keep_default=true.
+    SetupAxisTicks :: (axis: ImAxis, v_min: float64, v_max: float64, n_ticks: s32, labels: **u8 = null, keep_default := false) -> void #foreign imgui "_ZN6ImPlot14SetupAxisTicksEiddiPKPKcb";
+
+    // Sets an axis' scale using built-in options.
+    SetupAxisScale :: (axis: ImAxis, scale: ImPlotScale) -> void #foreign imgui "_ZN6ImPlot14SetupAxisScaleEii";
+
+    // Sets an axis' scale using user supplied forward and inverse transforms.
+    SetupAxisScale :: (axis: ImAxis, forward: ImPlotTransform, inverse: ImPlotTransform, data: *void = null) -> void #foreign imgui "_ZN6ImPlot14SetupAxisScaleEiPFddPvES2_S0_";
+
+    // Sets an axis' limits constraints.
+    SetupAxisLimitsConstraints :: (axis: ImAxis, v_min: float64, v_max: float64) -> void #foreign imgui "_ZN6ImPlot26SetupAxisLimitsConstraintsEidd";
+
+    // Sets an axis' zoom constraints.
+    SetupAxisZoomConstraints :: (axis: ImAxis, z_min: float64, z_max: float64) -> void #foreign imgui "_ZN6ImPlot24SetupAxisZoomConstraintsEidd";
+
+    // Sets the label and/or flags for primary X and Y axes (shorthand for two calls to SetupAxis).
+    SetupAxes :: (x_label: *u8, y_label: *u8, x_flags: ImPlotAxisFlags = .None, y_flags: ImPlotAxisFlags = .None) -> void #foreign imgui "_ZN6ImPlot9SetupAxesEPKcS1_ii";
+
+    // Sets the primary X and Y axes range limits. If ImPlotCond_Always is used, the axes limits will be locked (shorthand for two calls to SetupAxisLimits).
+    SetupAxesLimits :: (x_min: float64, x_max: float64, y_min: float64, y_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "_ZN6ImPlot15SetupAxesLimitsEddddi";
+
+    // Sets up the plot legend. This can also be called immediately after BeginSubplots when using ImPlotSubplotFlags_ShareItems.
+    SetupLegend :: (location: ImPlotLocation, flags: ImPlotLegendFlags = .None) -> void #foreign imgui "_ZN6ImPlot11SetupLegendEii";
+
+    // Set the location of the current plot's mouse position text (default = South|East).
+    SetupMouseText :: (location: ImPlotLocation, flags: ImPlotMouseTextFlags = .None) -> void #foreign imgui "_ZN6ImPlot14SetupMouseTextEii";
+
+    // Explicitly finalize plot setup. Once you call this, you cannot make anymore Setup calls for the current plot!
+    // Note that calling this function is OPTIONAL; it will be called by the first subsequent setup-locking API call.
+    SetupFinish :: () -> void #foreign imgui "_ZN6ImPlot11SetupFinishEv";
+
+    // Sets an upcoming axis range limits. If ImPlotCond_Always is used, the axes limits will be locked.
+    SetNextAxisLimits :: (axis: ImAxis, v_min: float64, v_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "_ZN6ImPlot17SetNextAxisLimitsEiddi";
+
+    // Links an upcoming axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot!
+    SetNextAxisLinks :: (axis: ImAxis, link_min: *float64, link_max: *float64) -> void #foreign imgui "_ZN6ImPlot16SetNextAxisLinksEiPdS0_";
+
+    // Set an upcoming axis to auto fit to its data.
+    SetNextAxisToFit :: (axis: ImAxis) -> void #foreign imgui "_ZN6ImPlot16SetNextAxisToFitEi";
+
+    // Sets the upcoming primary X and Y axes range limits. If ImPlotCond_Always is used, the axes limits will be locked (shorthand for two calls to SetupAxisLimits).
+    SetNextAxesLimits :: (x_min: float64, x_max: float64, y_min: float64, y_max: float64, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "_ZN6ImPlot17SetNextAxesLimitsEddddi";
+
+    // Sets all upcoming axes to auto fit to their data.
+    SetNextAxesToFit :: () -> void #foreign imgui "_ZN6ImPlot16SetNextAxesToFitEv";
+
+    PlotLineG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot9PlotLineGEPKcPF11ImPlotPointiPvES3_iRK10ImPlotSpec";
+    PlotLineG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotLineG(label_id, getter, data, count, *spec);
+    }
+
+    PlotScatterG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot12PlotScatterGEPKcPF11ImPlotPointiPvES3_iRK10ImPlotSpec";
+    PlotScatterG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotScatterG(label_id, getter, data, count, *spec);
+    }
+
+    PlotStairsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot11PlotStairsGEPKcPF11ImPlotPointiPvES3_iRK10ImPlotSpec";
+    PlotStairsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotStairsG(label_id, getter, data, count, *spec);
+    }
+
+    PlotShadedG :: (label_id: *u8, getter1: ImPlotGetter, data1: *void, getter2: ImPlotGetter, data2: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot11PlotShadedGEPKcPF11ImPlotPointiPvES3_S5_S3_iRK10ImPlotSpec";
+    PlotShadedG :: (label_id: *u8, getter1: ImPlotGetter, data1: *void, getter2: ImPlotGetter, data2: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotShadedG(label_id, getter1, data1, getter2, data2, count, *spec);
+    }
+
+    PlotBarsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, bar_size: float64, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot9PlotBarsGEPKcPF11ImPlotPointiPvES3_idRK10ImPlotSpec";
+    PlotBarsG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, bar_size: float64, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotBarsG(label_id, getter, data, count, bar_size, *spec);
+    }
+
+    PlotDigitalG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot12PlotDigitalGEPKcPF11ImPlotPointiPvES3_iRK10ImPlotSpec";
+    PlotDigitalG :: (label_id: *u8, getter: ImPlotGetter, data: *void, count: s32, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotDigitalG(label_id, getter, data, count, *spec);
+    }
+
+    PlotImage :: (label_id: *u8, tex_ref: ImTextureRef, bounds_min: *ImPlotPoint, bounds_max: *ImPlotPoint, uv0: *ImVec2, uv1: *ImVec2, tint_col: *ImVec4, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot9PlotImageEPKc12ImTextureRefRK11ImPlotPointS5_RK6ImVec2S8_RK6ImVec4RK10ImPlotSpec";
+    PlotImage :: (label_id: *u8, tex_ref: ImTextureRef, bounds_min: ImPlotPoint, bounds_max: ImPlotPoint, uv0: ImVec2 = ImVec2.{0, 0}, uv1: ImVec2 = ImVec2.{1, 1}, tint_col: ImVec4 = ImVec4.{1, 1, 1, 1}, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotImage(label_id, tex_ref, *bounds_min, *bounds_max, *uv0, *uv1, *tint_col, *spec);
+    }
+
+    // Plots a centered text label at point x,y with an optional pixel offset. Text color can be changed with ImPlot::PushStyleColor(ImPlotCol_InlayText, ...).
+    PlotText :: (text: *u8, x: float64, y: float64, pix_offset: *ImVec2, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot8PlotTextEPKcddRK6ImVec2RK10ImPlotSpec";
+    PlotText :: (text: *u8, x: float64, y: float64, pix_offset: ImVec2 = ImVec2.{0, 0}, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotText(text, x, y, *pix_offset, *spec);
+    }
+
+    // Plots a dummy item (i.e. adds a legend entry colored by ImPlotCol_Line)
+    PlotDummy :: (label_id: *u8, spec: *ImPlotSpec) -> void #foreign imgui "_ZN6ImPlot9PlotDummyEPKcRK10ImPlotSpec";
+    PlotDummy :: (label_id: *u8, spec: ImPlotSpec = ImPlotSpec.{}) #no_context {
+        PlotDummy(label_id, *spec);
+    }
+
+    // Shows a draggable point at x,y. #col defaults to ImGuiCol_Text.
+    DragPoint :: (id: s32, x: *float64, y: *float64, col: *ImVec4, size: float = 4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "_ZN6ImPlot9DragPointEiPdS0_RK6ImVec4fiPbS4_S4_";
+    DragPoint :: (id: s32, x: *float64, y: *float64, col: ImVec4, size: float = 4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragPoint(id, x, y, *col, size, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows a draggable vertical guide line at an x-value. #col defaults to ImGuiCol_Text.
+    DragLineX :: (id: s32, x: *float64, col: *ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "_ZN6ImPlot9DragLineXEiPdRK6ImVec4fiPbS4_S4_";
+    DragLineX :: (id: s32, x: *float64, col: ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragLineX(id, x, *col, thickness, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows a draggable horizontal guide line at a y-value. #col defaults to ImGuiCol_Text.
+    DragLineY :: (id: s32, y: *float64, col: *ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "_ZN6ImPlot9DragLineYEiPdRK6ImVec4fiPbS4_S4_";
+    DragLineY :: (id: s32, y: *float64, col: ImVec4, thickness: float = 1, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragLineY(id, y, *col, thickness, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows a draggable and resizeable rectangle.
+    DragRect :: (id: s32, x1: *float64, y1: *float64, x2: *float64, y2: *float64, col: *ImVec4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #foreign imgui "_ZN6ImPlot8DragRectEiPdS0_S0_S0_RK6ImVec4iPbS4_S4_";
+    DragRect :: (id: s32, x1: *float64, y1: *float64, x2: *float64, y2: *float64, col: ImVec4, flags: ImPlotDragToolFlags = .None, out_clicked: *bool = null, out_hovered: *bool = null, out_held: *bool = null) -> bool #no_context {
+        return DragRect(id, x1, y1, x2, y2, *col, flags, out_clicked, out_hovered, out_held);
+    }
+
+    // Shows an annotation callout at a chosen point. Clamping keeps annotations in the plot area. Annotations are always rendered on top.
+    Annotation :: (x: float64, y: float64, col: *ImVec4, pix_offset: *ImVec2, clamp: bool, round := false) -> void #foreign imgui "_ZN6ImPlot10AnnotationEddRK6ImVec4RK6ImVec2bb";
+    Annotation :: (x: float64, y: float64, col: ImVec4, pix_offset: ImVec2, clamp: bool, round := false) #no_context {
+        Annotation(x, y, *col, *pix_offset, clamp, round);
+    }
+    Annotation_CFormat :: (x: float64, y: float64, col: *ImVec4, pix_offset: *ImVec2, clamp: bool, fmt: *u8, __args: ..Any) -> void #foreign imgui "_ZN6ImPlot10AnnotationEddRK6ImVec4RK6ImVec2bPKcz";
+    Annotation :: (x: float64, y: float64, col: ImVec4, pix_offset: ImVec2, clamp: bool, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        Annotation_CFormat(x, y, *col, *pix_offset, clamp, "%s", formatted_text.data);
+    } @PrintLike
+
+    // Shows a x-axis tag at the specified coordinate value.
+    TagX :: (x: float64, col: *ImVec4, round := false) -> void #foreign imgui "_ZN6ImPlot4TagXEdRK6ImVec4b";
+    TagX :: (x: float64, col: ImVec4, round := false) #no_context {
+        TagX(x, *col, round);
+    }
+    TagX_CFormat :: (x: float64, col: *ImVec4, fmt: *u8, __args: ..Any) -> void #foreign imgui "_ZN6ImPlot4TagXEdRK6ImVec4PKcz";
+    TagX :: (x: float64, col: ImVec4, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        TagX_CFormat(x, *col, "%s", formatted_text.data);
+    } @PrintLike
+
+    // Shows a y-axis tag at the specified coordinate value.
+    TagY :: (y: float64, col: *ImVec4, round := false) -> void #foreign imgui "_ZN6ImPlot4TagYEdRK6ImVec4b";
+    TagY :: (y: float64, col: ImVec4, round := false) #no_context {
+        TagY(y, *col, round);
+    }
+    TagY_CFormat :: (y: float64, col: *ImVec4, fmt: *u8, __args: ..Any) -> void #foreign imgui "_ZN6ImPlot4TagYEdRK6ImVec4PKcz";
+    TagY :: (y: float64, col: ImVec4, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        TagY_CFormat(y, *col, "%s", formatted_text.data);
+    } @PrintLike
+
+    // Select which axis/axes will be used for subsequent plot elements.
+    SetAxis :: (axis: ImAxis) -> void #foreign imgui "_ZN6ImPlot7SetAxisEi";
+    SetAxes :: (x_axis: ImAxis, y_axis: ImAxis) -> void #foreign imgui "_ZN6ImPlot7SetAxesEii";
+
+    // Convert pixels to a position in the current plot's coordinate system. Passing IMPLOT_AUTO uses the current axes.
+    PixelsToPlot :: (pix: *ImVec2, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #foreign imgui "_ZN6ImPlot12PixelsToPlotERK6ImVec2ii";
+    PixelsToPlot :: (pix: ImVec2, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #no_context {
+        return PixelsToPlot(*pix, x_axis, y_axis);
+    }
+    PixelsToPlot :: (x: float, y: float, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #foreign imgui "_ZN6ImPlot12PixelsToPlotEffii";
+
+    // Convert a position in the current plot's coordinate system to pixels. Passing IMPLOT_AUTO uses the current axes.
+    PlotToPixels :: (plt: *ImPlotPoint, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImVec2 #foreign imgui "_ZN6ImPlot12PlotToPixelsERK11ImPlotPointii";
+    PlotToPixels :: (plt: ImPlotPoint, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImVec2 #no_context {
+        return PlotToPixels(*plt, x_axis, y_axis);
+    }
+    PlotToPixels :: (x: float64, y: float64, x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImVec2 #foreign imgui "_ZN6ImPlot12PlotToPixelsEddii";
+
+    // Get the current Plot position (top-left) in pixels.
+    GetPlotPos :: () -> ImVec2 #foreign imgui "_ZN6ImPlot10GetPlotPosEv";
+
+    // Get the current Plot size in pixels.
+    GetPlotSize :: () -> ImVec2 #foreign imgui "_ZN6ImPlot11GetPlotSizeEv";
+
+    // Returns the mouse position in x,y coordinates of the current plot. Passing IMPLOT_AUTO uses the current axes.
+    GetPlotMousePos :: (x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotPoint #foreign imgui "_ZN6ImPlot15GetPlotMousePosEii";
+
+    // Returns the current plot axis range.
+    GetPlotLimits :: (x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotRect #foreign imgui "_ZN6ImPlot13GetPlotLimitsEii";
+
+    // Returns true if the plot area in the current plot is hovered.
+    IsPlotHovered :: () -> bool #foreign imgui "_ZN6ImPlot13IsPlotHoveredEv";
+
+    // Returns true if the axis label area in the current plot is hovered.
+    IsAxisHovered :: (axis: ImAxis) -> bool #foreign imgui "_ZN6ImPlot13IsAxisHoveredEi";
+
+    // Returns true if the bounding frame of a subplot is hovered.
+    IsSubplotsHovered :: () -> bool #foreign imgui "_ZN6ImPlot17IsSubplotsHoveredEv";
+
+    // Returns true if the current plot is being box selected.
+    IsPlotSelected :: () -> bool #foreign imgui "_ZN6ImPlot14IsPlotSelectedEv";
+
+    // Returns the current plot box selection bounds. Passing IMPLOT_AUTO uses the current axes.
+    GetPlotSelection :: (x_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO, y_axis: ImAxis = cast(ImAxis)xx IMPLOT_AUTO) -> ImPlotRect #foreign imgui "_ZN6ImPlot16GetPlotSelectionEii";
+
+    // Cancels a the current plot box selection.
+    CancelPlotSelection :: () -> void #foreign imgui "_ZN6ImPlot19CancelPlotSelectionEv";
+
+    // Hides or shows the next plot item (i.e. as if it were toggled from the legend).
+    // Use ImPlotCond_Always if you need to forcefully set this every frame.
+    HideNextItem :: (hidden := true, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "_ZN6ImPlot12HideNextItemEbi";
+
+    // Align axis padding over multiple plots in a single row or column. #group_id must
+    // be unique. If this function returns true, EndAlignedPlots() must be called.
+    BeginAlignedPlots :: (group_id: *u8, vertical := true) -> bool #foreign imgui "_ZN6ImPlot17BeginAlignedPlotsEPKcb";
+
+    // Only call EndAlignedPlots() if BeginAlignedPlots() returns true!
+    EndAlignedPlots :: () -> void #foreign imgui "_ZN6ImPlot15EndAlignedPlotsEv";
+
+    // Begin a popup for a legend entry.
+    BeginLegendPopup :: (label_id: *u8, mouse_button: MouseButton = .Right) -> bool #foreign imgui "_ZN6ImPlot16BeginLegendPopupEPKci";
+
+    // End a popup for a legend entry.
+    EndLegendPopup :: () -> void #foreign imgui "_ZN6ImPlot14EndLegendPopupEv";
+
+    // Returns true if a plot item legend entry is hovered.
+    IsLegendEntryHovered :: (label_id: *u8) -> bool #foreign imgui "_ZN6ImPlot20IsLegendEntryHoveredEPKc";
+
+    // Turns the current plot's plotting area into a drag and drop target. Don't forget to call EndDragDropTarget!
+    BeginDragDropTargetPlot :: () -> bool #foreign imgui "_ZN6ImPlot23BeginDragDropTargetPlotEv";
+
+    // Turns the current plot's X-axis into a drag and drop target. Don't forget to call EndDragDropTarget!
+    BeginDragDropTargetAxis :: (axis: ImAxis) -> bool #foreign imgui "_ZN6ImPlot23BeginDragDropTargetAxisEi";
+
+    // Turns the current plot's legend into a drag and drop target. Don't forget to call EndDragDropTarget!
+    BeginDragDropTargetLegend :: () -> bool #foreign imgui "_ZN6ImPlot25BeginDragDropTargetLegendEv";
+
+    // Ends a drag and drop target (currently just an alias for ImGui::EndDragDropTarget).
+    EndDragDropTarget :: () -> void #foreign imgui "_ZN6ImPlot17EndDragDropTargetEv";
+
+    // Turns the current plot's plotting area into a drag and drop source. You must hold Ctrl. Don't forget to call EndDragDropSource!
+    BeginDragDropSourcePlot :: (flags: DragDropFlags = .None) -> bool #foreign imgui "_ZN6ImPlot23BeginDragDropSourcePlotEi";
+
+    // Turns the current plot's X-axis into a drag and drop source. You must hold Ctrl. Don't forget to call EndDragDropSource!
+    BeginDragDropSourceAxis :: (axis: ImAxis, flags: DragDropFlags = .None) -> bool #foreign imgui "_ZN6ImPlot23BeginDragDropSourceAxisEii";
+
+    // Turns an item in the current plot's legend into drag and drop source. Don't forget to call EndDragDropSource!
+    BeginDragDropSourceItem :: (label_id: *u8, flags: DragDropFlags = .None) -> bool #foreign imgui "_ZN6ImPlot23BeginDragDropSourceItemEPKci";
+
+    // Ends a drag and drop source (currently just an alias for ImGui::EndDragDropSource).
+    EndDragDropSource :: () -> void #foreign imgui "_ZN6ImPlot17EndDragDropSourceEv";
+
+    // Provides access to plot style structure for permanent modifications to colors, sizes, etc.
+    GetStyle :: () -> *ImPlotStyle #foreign imgui "_ZN6ImPlot8GetStyleEv";
+
+    // Style plot colors for current ImGui style (default).
+    StyleColorsAuto :: (dst: *ImPlotStyle = null) -> void #foreign imgui "_ZN6ImPlot15StyleColorsAutoEP11ImPlotStyle";
+
+    // Style plot colors for ImGui "Classic".
+    StyleColorsClassic :: (dst: *ImPlotStyle = null) -> void #foreign imgui "_ZN6ImPlot18StyleColorsClassicEP11ImPlotStyle";
+
+    // Style plot colors for ImGui "Dark".
+    StyleColorsDark :: (dst: *ImPlotStyle = null) -> void #foreign imgui "_ZN6ImPlot15StyleColorsDarkEP11ImPlotStyle";
+
+    // Style plot colors for ImGui "Light".
+    StyleColorsLight :: (dst: *ImPlotStyle = null) -> void #foreign imgui "_ZN6ImPlot16StyleColorsLightEP11ImPlotStyle";
+
+    // Temporarily modify a style color. Don't forget to call PopStyleColor!
+    PushStyleColor :: (idx: ImPlotCol, col: ImU32) -> void #foreign imgui "_ZN6ImPlot14PushStyleColorEij";
+    PushStyleColor :: (idx: ImPlotCol, col: *ImVec4) -> void #foreign imgui "_ZN6ImPlot14PushStyleColorEiRK6ImVec4";
+    PushStyleColor :: (idx: ImPlotCol, col: ImVec4) #no_context {
+        PushStyleColor(idx, *col);
+    }
+
+    // Undo temporary style color modification(s). Undo multiple pushes at once by increasing count.
+    PopStyleColor :: (count: s32 = 1) -> void #foreign imgui "_ZN6ImPlot13PopStyleColorEi";
+
+    // Temporarily modify a style variable of float type. Don't forget to call PopStyleVar!
+    PushStyleVar :: (idx: ImPlotStyleVar, val: float) -> void #foreign imgui "_ZN6ImPlot12PushStyleVarEif";
+
+    // Temporarily modify a style variable of int type. Don't forget to call PopStyleVar!
+    PushStyleVar :: (idx: ImPlotStyleVar, val: s32) -> void #foreign imgui "_ZN6ImPlot12PushStyleVarEii";
+
+    // Temporarily modify a style variable of ImVec2 type. Don't forget to call PopStyleVar!
+    PushStyleVar :: (idx: ImPlotStyleVar, val: *ImVec2) -> void #foreign imgui "_ZN6ImPlot12PushStyleVarEiRK6ImVec2";
+    PushStyleVar :: (idx: ImPlotStyleVar, val: ImVec2) #no_context {
+        PushStyleVar(idx, *val);
+    }
+
+    // Undo temporary style variable modification(s). Undo multiple pushes at once by increasing count.
+    PopStyleVar :: (count: s32 = 1) -> void #foreign imgui "_ZN6ImPlot11PopStyleVarEi";
+
+    // Gets the last item primary color (i.e. its legend icon color)
+    GetLastItemColor :: () -> ImVec4 #foreign imgui "_ZN6ImPlot16GetLastItemColorEv";
+
+    // Returns the null terminated string name for an ImPlotCol.
+    GetStyleColorName :: (idx: ImPlotCol) -> *u8 #foreign imgui "_ZN6ImPlot17GetStyleColorNameEi";
+
+    // Returns the null terminated string name for an ImPlotMarker.
+    GetMarkerName :: (idx: ImPlotMarker) -> *u8 #foreign imgui "_ZN6ImPlot13GetMarkerNameEi";
+
+    // Returns the next marker and advances the marker for the current plot. You need to call this between Begin/EndPlot!
+    NextMarker :: () -> ImPlotMarker #foreign imgui "_ZN6ImPlot10NextMarkerEv";
+
+    // Add a new colormap. The color data will be copied. The colormap can be used by pushing either the returned index or the
+    // string name with PushColormap. The colormap name must be unique and the size must be greater than 1. You will receive
+    // an assert otherwise! By default colormaps are considered to be qualitative (i.e. discrete). If you want to create a
+    // continuous colormap, set #qual=false. This will treat the colors you provide as keys, and ImPlot will build a linearly
+    // interpolated lookup table. The memory footprint of this table will be exactly ((size-1)*255+1)*4 bytes.
+    AddColormap :: (name: *u8, cols: *ImVec4, size: s32, qual := true) -> ImPlotColormap #foreign imgui "_ZN6ImPlot11AddColormapEPKcPK6ImVec4ib";
+    AddColormap :: (name: *u8, cols: *ImU32, size: s32, qual := true) -> ImPlotColormap #foreign imgui "_ZN6ImPlot11AddColormapEPKcPKjib";
+
+    // Returns the number of available colormaps (i.e. the built-in + user-added count).
+    GetColormapCount :: () -> s32 #foreign imgui "_ZN6ImPlot16GetColormapCountEv";
+
+    // Returns a null terminated string name for a colormap given an index. Returns nullptr if index is invalid.
+    GetColormapName :: (cmap: ImPlotColormap) -> *u8 #foreign imgui "_ZN6ImPlot15GetColormapNameEi";
+
+    // Returns an index number for a colormap given a valid string name. Returns -1 if name is invalid.
+    GetColormapIndex :: (name: *u8) -> ImPlotColormap #foreign imgui "_ZN6ImPlot16GetColormapIndexEPKc";
+
+    // Temporarily switch to one of the built-in (i.e. ImPlotColormap_XXX) or user-added colormaps (i.e. a return value of AddColormap). Don't forget to call PopColormap!
+    PushColormap :: (cmap: ImPlotColormap) -> void #foreign imgui "_ZN6ImPlot12PushColormapEi";
+
+    // Push a colormap by string name. Use built-in names such as "Default", "Deep", "Jet", etc. or a string you provided to AddColormap. Don't forget to call PopColormap!
+    PushColormap :: (name: *u8) -> void #foreign imgui "_ZN6ImPlot12PushColormapEPKc";
+
+    // Undo temporary colormap modification(s). Undo multiple pushes at once by increasing count.
+    PopColormap :: (count: s32 = 1) -> void #foreign imgui "_ZN6ImPlot11PopColormapEi";
+
+    // Returns the next color from the current colormap and advances the colormap for the current plot.
+    // Can also be used with no return value to skip colors if desired. You need to call this between Begin/EndPlot!
+    NextColormapColor :: () -> ImVec4 #foreign imgui "_ZN6ImPlot17NextColormapColorEv";
+
+    // Returns the size of a colormap.
+    GetColormapSize :: (cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> s32 #foreign imgui "_ZN6ImPlot15GetColormapSizeEi";
+
+    // Returns a color from a colormap given an index >= 0 (modulo will be performed).
+    GetColormapColor :: (idx: s32, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> ImVec4 #foreign imgui "_ZN6ImPlot16GetColormapColorEii";
+
+    // Sample a color from the current colormap given t between 0 and 1.
+    SampleColormap :: (t: float, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> ImVec4 #foreign imgui "_ZN6ImPlot14SampleColormapEfi";
+
+    // Shows a vertical color scale with linear spaced ticks using the specified color map. Use double hashes to hide label (e.g. "##NoLabel"). If scale_min > scale_max, the scale to color mapping will be reversed.
+    ColormapScale :: (label: *u8, scale_min: float64, scale_max: float64, size: *ImVec2, format: *u8 = "%g", flags: ImPlotColormapScaleFlags = .None, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> void #foreign imgui "_ZN6ImPlot13ColormapScaleEPKcddRK6ImVec2S1_ii";
+    ColormapScale :: (label: *u8, scale_min: float64, scale_max: float64, size: ImVec2 = ImVec2.{0, 0}, format: *u8 = "%g", flags: ImPlotColormapScaleFlags = .None, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) #no_context {
+        ColormapScale(label, scale_min, scale_max, *size, format, flags, cmap);
+    }
+
+    // Shows a horizontal slider with a colormap gradient background. Optionally returns the color sampled at t in [0 1].
+    ColormapSlider :: (label: *u8, t: *float, out: *ImVec4 = null, format: *u8 = "", cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> bool #foreign imgui "_ZN6ImPlot14ColormapSliderEPKcPfP6ImVec4S1_i";
+
+    // Shows a button with a colormap gradient background.
+    ColormapButton :: (label: *u8, size: *ImVec2, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> bool #foreign imgui "_ZN6ImPlot14ColormapButtonEPKcRK6ImVec2i";
+    ColormapButton :: (label: *u8, size: ImVec2 = ImVec2.{0, 0}, cmap: ImPlotColormap = cast(ImPlotColormap)xx IMPLOT_AUTO) -> bool #no_context {
+        return ColormapButton(label, *size, cmap);
+    }
+
+    // When items in a plot sample their color from a colormap, the color is cached and does not change
+    // unless explicitly overridden. Therefore, if you change the colormap after the item has already been plotted,
+    // item colors will NOT update. If you need item colors to resample the new colormap, then use this
+    // function to bust the cached colors. If #plot_title_id is nullptr, then every item in EVERY existing plot
+    // will be cache busted. Otherwise only the plot specified by #plot_title_id will be busted. For the
+    // latter, this function must be called in the same ImGui ID scope that the plot is in. You should rarely if ever
+    // need this function, but it is available for applications that require runtime colormap swaps (e.g. Heatmaps demo).
+    BustColorCache :: (plot_title_id: *u8 = null) -> void #foreign imgui "_ZN6ImPlot14BustColorCacheEPKc";
+
+    // Provides access to input mapping structure for permanent modifications to controls for pan, select, etc.
+    GetInputMap :: () -> *ImPlotInputMap #foreign imgui "_ZN6ImPlot11GetInputMapEv";
+
+    // Default input mapping: pan = LMB drag, box select = RMB drag, fit = LMB double click, context menu = RMB click, zoom = scroll.
+    MapInputDefault :: (dst: *ImPlotInputMap = null) -> void #foreign imgui "_ZN6ImPlot15MapInputDefaultEP14ImPlotInputMap";
+
+    // Reverse input mapping: pan = RMB drag, box select = LMB drag, fit = LMB double click, context menu = RMB click, zoom = scroll.
+    MapInputReverse :: (dst: *ImPlotInputMap = null) -> void #foreign imgui "_ZN6ImPlot15MapInputReverseEP14ImPlotInputMap";
+
+    // Render icons similar to those that appear in legends (nifty for data lists).
+    ItemIcon :: (col: *ImVec4) -> void #foreign imgui "_ZN6ImPlot8ItemIconERK6ImVec4";
+    ItemIcon :: (col: ImVec4) #no_context {
+        ItemIcon(*col);
+    }
+    ItemIcon :: (col: ImU32) -> void #foreign imgui "_ZN6ImPlot8ItemIconEj";
+    ColormapIcon :: (cmap: ImPlotColormap) -> void #foreign imgui "_ZN6ImPlot12ColormapIconEi";
+
+    // Get the plot draw list for custom rendering to the current plot area. Call between Begin/EndPlot.
+    GetPlotDrawList :: () -> *ImDrawList #foreign imgui "_ZN6ImPlot15GetPlotDrawListEv";
+
+    // Push clip rect for rendering to current plot area. The rect can be expanded or contracted by #expand pixels. Call between Begin/EndPlot.
+    PushPlotClipRect :: (expand: float = 0) -> void #foreign imgui "_ZN6ImPlot16PushPlotClipRectEf";
+
+    // Pop plot clip rect. Call between Begin/EndPlot.
+    PopPlotClipRect :: () -> void #foreign imgui "_ZN6ImPlot15PopPlotClipRectEv";
+
+    // Shows ImPlot style selector dropdown menu.
+    ShowStyleSelector :: (label: *u8) -> bool #foreign imgui "_ZN6ImPlot17ShowStyleSelectorEPKc";
+
+    // Shows ImPlot colormap selector dropdown menu.
+    ShowColormapSelector :: (label: *u8) -> bool #foreign imgui "_ZN6ImPlot20ShowColormapSelectorEPKc";
+
+    // Shows ImPlot input map selector dropdown menu.
+    ShowInputMapSelector :: (label: *u8) -> bool #foreign imgui "_ZN6ImPlot20ShowInputMapSelectorEPKc";
+
+    // Shows ImPlot style editor block (not a window).
+    ShowStyleEditor :: (ref: *ImPlotStyle = null) -> void #foreign imgui "_ZN6ImPlot15ShowStyleEditorEP11ImPlotStyle";
+
+    // Add basic help/info block for end users (not a window).
+    ShowUserGuide :: () -> void #foreign imgui "_ZN6ImPlot13ShowUserGuideEv";
+
+    // Shows ImPlot metrics/debug information window.
+    ShowMetricsWindow :: (p_popen: *bool = null) -> void #foreign imgui "_ZN6ImPlot17ShowMetricsWindowEPb";
+
+    // Shows the ImPlot demo window (add implot_demo.cpp to your sources!)
+    ShowDemoWindow :: (p_open: *bool = null) -> void #foreign imgui "_ZN6ImPlot14ShowDemoWindowEPb";
+}
+
 #scope_file
 
-#import "Basic"; // For print_to_builder
+#import "Basic"; // For assert, print_to_builder
+
+
+#run {
+    {
+        info := type_info(ImTextureRef);
+        for info.members {
+            if it.name == {
+                case "_TexData";
+                    assert(it.offset_in_bytes == 0, "ImTextureRef._TexData has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureRef._TexData has unexpected size % instead of 8", it.type.runtime_size);
+                case "_TexID";
+                    assert(it.offset_in_bytes == 8, "ImTextureRef._TexID has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureRef._TexID has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImTextureRef) == 16, "ImTextureRef has size % instead of 16", size_of(ImTextureRef));
+    }
+
+    {
+        info := type_info(TableSortSpecs);
+        for info.members {
+            if it.name == {
+                case "Specs";
+                    assert(it.offset_in_bytes == 0, "TableSortSpecs.Specs has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "TableSortSpecs.Specs has unexpected size % instead of 8", it.type.runtime_size);
+                case "SpecsCount";
+                    assert(it.offset_in_bytes == 8, "TableSortSpecs.SpecsCount has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TableSortSpecs.SpecsCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "SpecsDirty";
+                    assert(it.offset_in_bytes == 12, "TableSortSpecs.SpecsDirty has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "TableSortSpecs.SpecsDirty has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(TableSortSpecs) == 16, "TableSortSpecs has size % instead of 16", size_of(TableSortSpecs));
+    }
+
+    {
+        info := type_info(TableColumnSortSpecs);
+        for info.members {
+            if it.name == {
+                case "ColumnUserID";
+                    assert(it.offset_in_bytes == 0, "TableColumnSortSpecs.ColumnUserID has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TableColumnSortSpecs.ColumnUserID has unexpected size % instead of 4", it.type.runtime_size);
+                case "ColumnIndex";
+                    assert(it.offset_in_bytes == 4, "TableColumnSortSpecs.ColumnIndex has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "TableColumnSortSpecs.ColumnIndex has unexpected size % instead of 2", it.type.runtime_size);
+                case "SortOrder";
+                    assert(it.offset_in_bytes == 6, "TableColumnSortSpecs.SortOrder has unexpected offset % instead of 6", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "TableColumnSortSpecs.SortOrder has unexpected size % instead of 2", it.type.runtime_size);
+                case "SortDirection_";
+                    assert(it.offset_in_bytes == 8, "TableColumnSortSpecs.SortDirection_ has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "TableColumnSortSpecs.SortDirection_ has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(TableColumnSortSpecs) == 12, "TableColumnSortSpecs has size % instead of 12", size_of(TableColumnSortSpecs));
+    }
+
+    assert(size_of(ImNewWrapper) == 1, "ImNewWrapper has size % instead of 1", size_of(ImNewWrapper));
+
+    {
+        info := type_info(Style);
+        for info.members {
+            if it.name == {
+                case "FontSizeBase";
+                    assert(it.offset_in_bytes == 0, "Style.FontSizeBase has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.FontSizeBase has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontScaleMain";
+                    assert(it.offset_in_bytes == 4, "Style.FontScaleMain has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.FontScaleMain has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontScaleDpi";
+                    assert(it.offset_in_bytes == 8, "Style.FontScaleDpi has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.FontScaleDpi has unexpected size % instead of 4", it.type.runtime_size);
+                case "Alpha";
+                    assert(it.offset_in_bytes == 12, "Style.Alpha has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.Alpha has unexpected size % instead of 4", it.type.runtime_size);
+                case "DisabledAlpha";
+                    assert(it.offset_in_bytes == 16, "Style.DisabledAlpha has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.DisabledAlpha has unexpected size % instead of 4", it.type.runtime_size);
+                case "WindowPadding";
+                    assert(it.offset_in_bytes == 20, "Style.WindowPadding has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.WindowPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "WindowRounding";
+                    assert(it.offset_in_bytes == 28, "Style.WindowRounding has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.WindowRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "WindowBorderSize";
+                    assert(it.offset_in_bytes == 32, "Style.WindowBorderSize has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.WindowBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "WindowBorderHoverPadding";
+                    assert(it.offset_in_bytes == 36, "Style.WindowBorderHoverPadding has unexpected offset % instead of 36", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.WindowBorderHoverPadding has unexpected size % instead of 4", it.type.runtime_size);
+                case "WindowMinSize";
+                    assert(it.offset_in_bytes == 40, "Style.WindowMinSize has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.WindowMinSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "WindowTitleAlign";
+                    assert(it.offset_in_bytes == 48, "Style.WindowTitleAlign has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.WindowTitleAlign has unexpected size % instead of 8", it.type.runtime_size);
+                case "WindowMenuButtonPosition";
+                    assert(it.offset_in_bytes == 56, "Style.WindowMenuButtonPosition has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.WindowMenuButtonPosition has unexpected size % instead of 4", it.type.runtime_size);
+                case "ChildRounding";
+                    assert(it.offset_in_bytes == 60, "Style.ChildRounding has unexpected offset % instead of 60", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ChildRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "ChildBorderSize";
+                    assert(it.offset_in_bytes == 64, "Style.ChildBorderSize has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ChildBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "PopupRounding";
+                    assert(it.offset_in_bytes == 68, "Style.PopupRounding has unexpected offset % instead of 68", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.PopupRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "PopupBorderSize";
+                    assert(it.offset_in_bytes == 72, "Style.PopupBorderSize has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.PopupBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "FramePadding";
+                    assert(it.offset_in_bytes == 76, "Style.FramePadding has unexpected offset % instead of 76", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.FramePadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "FrameRounding";
+                    assert(it.offset_in_bytes == 84, "Style.FrameRounding has unexpected offset % instead of 84", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.FrameRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "FrameBorderSize";
+                    assert(it.offset_in_bytes == 88, "Style.FrameBorderSize has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.FrameBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "ItemSpacing";
+                    assert(it.offset_in_bytes == 92, "Style.ItemSpacing has unexpected offset % instead of 92", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.ItemSpacing has unexpected size % instead of 8", it.type.runtime_size);
+                case "ItemInnerSpacing";
+                    assert(it.offset_in_bytes == 100, "Style.ItemInnerSpacing has unexpected offset % instead of 100", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.ItemInnerSpacing has unexpected size % instead of 8", it.type.runtime_size);
+                case "CellPadding";
+                    assert(it.offset_in_bytes == 108, "Style.CellPadding has unexpected offset % instead of 108", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.CellPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "TouchExtraPadding";
+                    assert(it.offset_in_bytes == 116, "Style.TouchExtraPadding has unexpected offset % instead of 116", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.TouchExtraPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "IndentSpacing";
+                    assert(it.offset_in_bytes == 124, "Style.IndentSpacing has unexpected offset % instead of 124", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.IndentSpacing has unexpected size % instead of 4", it.type.runtime_size);
+                case "ColumnsMinSpacing";
+                    assert(it.offset_in_bytes == 128, "Style.ColumnsMinSpacing has unexpected offset % instead of 128", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ColumnsMinSpacing has unexpected size % instead of 4", it.type.runtime_size);
+                case "ScrollbarSize";
+                    assert(it.offset_in_bytes == 132, "Style.ScrollbarSize has unexpected offset % instead of 132", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ScrollbarSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "ScrollbarRounding";
+                    assert(it.offset_in_bytes == 136, "Style.ScrollbarRounding has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ScrollbarRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "ScrollbarPadding";
+                    assert(it.offset_in_bytes == 140, "Style.ScrollbarPadding has unexpected offset % instead of 140", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ScrollbarPadding has unexpected size % instead of 4", it.type.runtime_size);
+                case "GrabMinSize";
+                    assert(it.offset_in_bytes == 144, "Style.GrabMinSize has unexpected offset % instead of 144", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.GrabMinSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "GrabRounding";
+                    assert(it.offset_in_bytes == 148, "Style.GrabRounding has unexpected offset % instead of 148", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.GrabRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "LogSliderDeadzone";
+                    assert(it.offset_in_bytes == 152, "Style.LogSliderDeadzone has unexpected offset % instead of 152", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.LogSliderDeadzone has unexpected size % instead of 4", it.type.runtime_size);
+                case "ImageRounding";
+                    assert(it.offset_in_bytes == 156, "Style.ImageRounding has unexpected offset % instead of 156", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ImageRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "ImageBorderSize";
+                    assert(it.offset_in_bytes == 160, "Style.ImageBorderSize has unexpected offset % instead of 160", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ImageBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabRounding";
+                    assert(it.offset_in_bytes == 164, "Style.TabRounding has unexpected offset % instead of 164", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabBorderSize";
+                    assert(it.offset_in_bytes == 168, "Style.TabBorderSize has unexpected offset % instead of 168", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabMinWidthBase";
+                    assert(it.offset_in_bytes == 172, "Style.TabMinWidthBase has unexpected offset % instead of 172", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabMinWidthBase has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabMinWidthShrink";
+                    assert(it.offset_in_bytes == 176, "Style.TabMinWidthShrink has unexpected offset % instead of 176", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabMinWidthShrink has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabCloseButtonMinWidthSelected";
+                    assert(it.offset_in_bytes == 180, "Style.TabCloseButtonMinWidthSelected has unexpected offset % instead of 180", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabCloseButtonMinWidthSelected has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabCloseButtonMinWidthUnselected";
+                    assert(it.offset_in_bytes == 184, "Style.TabCloseButtonMinWidthUnselected has unexpected offset % instead of 184", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabCloseButtonMinWidthUnselected has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabBarBorderSize";
+                    assert(it.offset_in_bytes == 188, "Style.TabBarBorderSize has unexpected offset % instead of 188", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabBarBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabBarOverlineSize";
+                    assert(it.offset_in_bytes == 192, "Style.TabBarOverlineSize has unexpected offset % instead of 192", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TabBarOverlineSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "TableAngledHeadersAngle";
+                    assert(it.offset_in_bytes == 196, "Style.TableAngledHeadersAngle has unexpected offset % instead of 196", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TableAngledHeadersAngle has unexpected size % instead of 4", it.type.runtime_size);
+                case "TableAngledHeadersTextAlign";
+                    assert(it.offset_in_bytes == 200, "Style.TableAngledHeadersTextAlign has unexpected offset % instead of 200", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.TableAngledHeadersTextAlign has unexpected size % instead of 8", it.type.runtime_size);
+                case "TreeLinesFlags";
+                    assert(it.offset_in_bytes == 208, "Style.TreeLinesFlags has unexpected offset % instead of 208", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TreeLinesFlags has unexpected size % instead of 4", it.type.runtime_size);
+                case "TreeLinesSize";
+                    assert(it.offset_in_bytes == 212, "Style.TreeLinesSize has unexpected offset % instead of 212", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TreeLinesSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "TreeLinesRounding";
+                    assert(it.offset_in_bytes == 216, "Style.TreeLinesRounding has unexpected offset % instead of 216", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.TreeLinesRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "DragDropTargetRounding";
+                    assert(it.offset_in_bytes == 220, "Style.DragDropTargetRounding has unexpected offset % instead of 220", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.DragDropTargetRounding has unexpected size % instead of 4", it.type.runtime_size);
+                case "DragDropTargetBorderSize";
+                    assert(it.offset_in_bytes == 224, "Style.DragDropTargetBorderSize has unexpected offset % instead of 224", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.DragDropTargetBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "DragDropTargetPadding";
+                    assert(it.offset_in_bytes == 228, "Style.DragDropTargetPadding has unexpected offset % instead of 228", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.DragDropTargetPadding has unexpected size % instead of 4", it.type.runtime_size);
+                case "ColorMarkerSize";
+                    assert(it.offset_in_bytes == 232, "Style.ColorMarkerSize has unexpected offset % instead of 232", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ColorMarkerSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "ColorButtonPosition";
+                    assert(it.offset_in_bytes == 236, "Style.ColorButtonPosition has unexpected offset % instead of 236", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.ColorButtonPosition has unexpected size % instead of 4", it.type.runtime_size);
+                case "ButtonTextAlign";
+                    assert(it.offset_in_bytes == 240, "Style.ButtonTextAlign has unexpected offset % instead of 240", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.ButtonTextAlign has unexpected size % instead of 8", it.type.runtime_size);
+                case "SelectableTextAlign";
+                    assert(it.offset_in_bytes == 248, "Style.SelectableTextAlign has unexpected offset % instead of 248", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.SelectableTextAlign has unexpected size % instead of 8", it.type.runtime_size);
+                case "SeparatorSize";
+                    assert(it.offset_in_bytes == 256, "Style.SeparatorSize has unexpected offset % instead of 256", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.SeparatorSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "SeparatorTextBorderSize";
+                    assert(it.offset_in_bytes == 260, "Style.SeparatorTextBorderSize has unexpected offset % instead of 260", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.SeparatorTextBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "SeparatorTextAlign";
+                    assert(it.offset_in_bytes == 264, "Style.SeparatorTextAlign has unexpected offset % instead of 264", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.SeparatorTextAlign has unexpected size % instead of 8", it.type.runtime_size);
+                case "SeparatorTextPadding";
+                    assert(it.offset_in_bytes == 272, "Style.SeparatorTextPadding has unexpected offset % instead of 272", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.SeparatorTextPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "DisplayWindowPadding";
+                    assert(it.offset_in_bytes == 280, "Style.DisplayWindowPadding has unexpected offset % instead of 280", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.DisplayWindowPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "DisplaySafeAreaPadding";
+                    assert(it.offset_in_bytes == 288, "Style.DisplaySafeAreaPadding has unexpected offset % instead of 288", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Style.DisplaySafeAreaPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "DockingNodeHasCloseButton";
+                    assert(it.offset_in_bytes == 296, "Style.DockingNodeHasCloseButton has unexpected offset % instead of 296", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Style.DockingNodeHasCloseButton has unexpected size % instead of 1", it.type.runtime_size);
+                case "DockingSeparatorSize";
+                    assert(it.offset_in_bytes == 300, "Style.DockingSeparatorSize has unexpected offset % instead of 300", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.DockingSeparatorSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseCursorScale";
+                    assert(it.offset_in_bytes == 304, "Style.MouseCursorScale has unexpected offset % instead of 304", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.MouseCursorScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "AntiAliasedLines";
+                    assert(it.offset_in_bytes == 308, "Style.AntiAliasedLines has unexpected offset % instead of 308", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Style.AntiAliasedLines has unexpected size % instead of 1", it.type.runtime_size);
+                case "AntiAliasedLinesUseTex";
+                    assert(it.offset_in_bytes == 309, "Style.AntiAliasedLinesUseTex has unexpected offset % instead of 309", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Style.AntiAliasedLinesUseTex has unexpected size % instead of 1", it.type.runtime_size);
+                case "AntiAliasedFill";
+                    assert(it.offset_in_bytes == 310, "Style.AntiAliasedFill has unexpected offset % instead of 310", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Style.AntiAliasedFill has unexpected size % instead of 1", it.type.runtime_size);
+                case "CurveTessellationTol";
+                    assert(it.offset_in_bytes == 312, "Style.CurveTessellationTol has unexpected offset % instead of 312", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.CurveTessellationTol has unexpected size % instead of 4", it.type.runtime_size);
+                case "CircleTessellationMaxError";
+                    assert(it.offset_in_bytes == 316, "Style.CircleTessellationMaxError has unexpected offset % instead of 316", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.CircleTessellationMaxError has unexpected size % instead of 4", it.type.runtime_size);
+                case "Colors";
+                    assert(it.offset_in_bytes == 320, "Style.Colors has unexpected offset % instead of 320", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1008, "Style.Colors has unexpected size % instead of 1008", it.type.runtime_size);
+                case "HoverStationaryDelay";
+                    assert(it.offset_in_bytes == 1328, "Style.HoverStationaryDelay has unexpected offset % instead of 1328", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.HoverStationaryDelay has unexpected size % instead of 4", it.type.runtime_size);
+                case "HoverDelayShort";
+                    assert(it.offset_in_bytes == 1332, "Style.HoverDelayShort has unexpected offset % instead of 1332", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.HoverDelayShort has unexpected size % instead of 4", it.type.runtime_size);
+                case "HoverDelayNormal";
+                    assert(it.offset_in_bytes == 1336, "Style.HoverDelayNormal has unexpected offset % instead of 1336", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.HoverDelayNormal has unexpected size % instead of 4", it.type.runtime_size);
+                case "HoverFlagsForTooltipMouse";
+                    assert(it.offset_in_bytes == 1340, "Style.HoverFlagsForTooltipMouse has unexpected offset % instead of 1340", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.HoverFlagsForTooltipMouse has unexpected size % instead of 4", it.type.runtime_size);
+                case "HoverFlagsForTooltipNav";
+                    assert(it.offset_in_bytes == 1344, "Style.HoverFlagsForTooltipNav has unexpected offset % instead of 1344", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style.HoverFlagsForTooltipNav has unexpected size % instead of 4", it.type.runtime_size);
+                case "_MainScale";
+                    assert(it.offset_in_bytes == 1348, "Style._MainScale has unexpected offset % instead of 1348", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style._MainScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "_NextFrameFontSizeBase";
+                    assert(it.offset_in_bytes == 1352, "Style._NextFrameFontSizeBase has unexpected offset % instead of 1352", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Style._NextFrameFontSizeBase has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(Style) == 1356, "Style has size % instead of 1356", size_of(Style));
+    }
+
+    {
+        info := type_info(KeyData);
+        for info.members {
+            if it.name == {
+                case "Down";
+                    assert(it.offset_in_bytes == 0, "KeyData.Down has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "KeyData.Down has unexpected size % instead of 1", it.type.runtime_size);
+                case "DownDuration";
+                    assert(it.offset_in_bytes == 4, "KeyData.DownDuration has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "KeyData.DownDuration has unexpected size % instead of 4", it.type.runtime_size);
+                case "DownDurationPrev";
+                    assert(it.offset_in_bytes == 8, "KeyData.DownDurationPrev has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "KeyData.DownDurationPrev has unexpected size % instead of 4", it.type.runtime_size);
+                case "AnalogValue";
+                    assert(it.offset_in_bytes == 12, "KeyData.AnalogValue has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "KeyData.AnalogValue has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(KeyData) == 16, "KeyData has size % instead of 16", size_of(KeyData));
+    }
+
+    {
+        info := type_info(IO);
+        for info.members {
+            if it.name == {
+                case "ConfigFlags_";
+                    assert(it.offset_in_bytes == 0, "IO.ConfigFlags_ has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.ConfigFlags_ has unexpected size % instead of 4", it.type.runtime_size);
+                case "BackendFlags_";
+                    assert(it.offset_in_bytes == 4, "IO.BackendFlags_ has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.BackendFlags_ has unexpected size % instead of 4", it.type.runtime_size);
+                case "DisplaySize";
+                    assert(it.offset_in_bytes == 8, "IO.DisplaySize has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.DisplaySize has unexpected size % instead of 8", it.type.runtime_size);
+                case "DisplayFramebufferScale";
+                    assert(it.offset_in_bytes == 16, "IO.DisplayFramebufferScale has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.DisplayFramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
+                case "DeltaTime";
+                    assert(it.offset_in_bytes == 24, "IO.DeltaTime has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.DeltaTime has unexpected size % instead of 4", it.type.runtime_size);
+                case "IniSavingRate";
+                    assert(it.offset_in_bytes == 28, "IO.IniSavingRate has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.IniSavingRate has unexpected size % instead of 4", it.type.runtime_size);
+                case "IniFilename";
+                    assert(it.offset_in_bytes == 32, "IO.IniFilename has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.IniFilename has unexpected size % instead of 8", it.type.runtime_size);
+                case "LogFilename";
+                    assert(it.offset_in_bytes == 40, "IO.LogFilename has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.LogFilename has unexpected size % instead of 8", it.type.runtime_size);
+                case "UserData";
+                    assert(it.offset_in_bytes == 48, "IO.UserData has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.UserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "Fonts";
+                    assert(it.offset_in_bytes == 56, "IO.Fonts has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.Fonts has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontDefault";
+                    assert(it.offset_in_bytes == 64, "IO.FontDefault has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.FontDefault has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontAllowUserScaling";
+                    assert(it.offset_in_bytes == 72, "IO.FontAllowUserScaling has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.FontAllowUserScaling has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavSwapGamepadButtons";
+                    assert(it.offset_in_bytes == 73, "IO.ConfigNavSwapGamepadButtons has unexpected offset % instead of 73", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavSwapGamepadButtons has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavMoveSetMousePos";
+                    assert(it.offset_in_bytes == 74, "IO.ConfigNavMoveSetMousePos has unexpected offset % instead of 74", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavMoveSetMousePos has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavCaptureKeyboard";
+                    assert(it.offset_in_bytes == 75, "IO.ConfigNavCaptureKeyboard has unexpected offset % instead of 75", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavCaptureKeyboard has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavEscapeClearFocusItem";
+                    assert(it.offset_in_bytes == 76, "IO.ConfigNavEscapeClearFocusItem has unexpected offset % instead of 76", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavEscapeClearFocusItem has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavEscapeClearFocusWindow";
+                    assert(it.offset_in_bytes == 77, "IO.ConfigNavEscapeClearFocusWindow has unexpected offset % instead of 77", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavEscapeClearFocusWindow has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavCursorVisibleAuto";
+                    assert(it.offset_in_bytes == 78, "IO.ConfigNavCursorVisibleAuto has unexpected offset % instead of 78", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavCursorVisibleAuto has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigNavCursorVisibleAlways";
+                    assert(it.offset_in_bytes == 79, "IO.ConfigNavCursorVisibleAlways has unexpected offset % instead of 79", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigNavCursorVisibleAlways has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDockingNoSplit";
+                    assert(it.offset_in_bytes == 80, "IO.ConfigDockingNoSplit has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDockingNoSplit has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDockingNoDockingOver";
+                    assert(it.offset_in_bytes == 81, "IO.ConfigDockingNoDockingOver has unexpected offset % instead of 81", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDockingNoDockingOver has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDockingWithShift";
+                    assert(it.offset_in_bytes == 82, "IO.ConfigDockingWithShift has unexpected offset % instead of 82", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDockingWithShift has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDockingAlwaysTabBar";
+                    assert(it.offset_in_bytes == 83, "IO.ConfigDockingAlwaysTabBar has unexpected offset % instead of 83", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDockingAlwaysTabBar has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDockingTransparentPayload";
+                    assert(it.offset_in_bytes == 84, "IO.ConfigDockingTransparentPayload has unexpected offset % instead of 84", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDockingTransparentPayload has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigViewportsNoAutoMerge";
+                    assert(it.offset_in_bytes == 85, "IO.ConfigViewportsNoAutoMerge has unexpected offset % instead of 85", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoAutoMerge has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigViewportsNoTaskBarIcon";
+                    assert(it.offset_in_bytes == 86, "IO.ConfigViewportsNoTaskBarIcon has unexpected offset % instead of 86", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoTaskBarIcon has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigViewportsNoDecoration";
+                    assert(it.offset_in_bytes == 87, "IO.ConfigViewportsNoDecoration has unexpected offset % instead of 87", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoDecoration has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigViewportsNoDefaultParent";
+                    assert(it.offset_in_bytes == 88, "IO.ConfigViewportsNoDefaultParent has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoDefaultParent has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigViewportsPlatformFocusSetsImGuiFocus";
+                    assert(it.offset_in_bytes == 89, "IO.ConfigViewportsPlatformFocusSetsImGuiFocus has unexpected offset % instead of 89", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsPlatformFocusSetsImGuiFocus has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDpiScaleFonts";
+                    assert(it.offset_in_bytes == 90, "IO.ConfigDpiScaleFonts has unexpected offset % instead of 90", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDpiScaleFonts has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDpiScaleViewports";
+                    assert(it.offset_in_bytes == 91, "IO.ConfigDpiScaleViewports has unexpected offset % instead of 91", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDpiScaleViewports has unexpected size % instead of 1", it.type.runtime_size);
+                case "MouseDrawCursor";
+                    assert(it.offset_in_bytes == 92, "IO.MouseDrawCursor has unexpected offset % instead of 92", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.MouseDrawCursor has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigMacOSXBehaviors";
+                    assert(it.offset_in_bytes == 93, "IO.ConfigMacOSXBehaviors has unexpected offset % instead of 93", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigMacOSXBehaviors has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigInputTrickleEventQueue";
+                    assert(it.offset_in_bytes == 94, "IO.ConfigInputTrickleEventQueue has unexpected offset % instead of 94", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigInputTrickleEventQueue has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigInputTextCursorBlink";
+                    assert(it.offset_in_bytes == 95, "IO.ConfigInputTextCursorBlink has unexpected offset % instead of 95", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigInputTextCursorBlink has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigInputTextEnterKeepActive";
+                    assert(it.offset_in_bytes == 96, "IO.ConfigInputTextEnterKeepActive has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigInputTextEnterKeepActive has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDragClickToInputText";
+                    assert(it.offset_in_bytes == 97, "IO.ConfigDragClickToInputText has unexpected offset % instead of 97", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDragClickToInputText has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigWindowsResizeFromEdges";
+                    assert(it.offset_in_bytes == 98, "IO.ConfigWindowsResizeFromEdges has unexpected offset % instead of 98", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigWindowsResizeFromEdges has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigWindowsMoveFromTitleBarOnly";
+                    assert(it.offset_in_bytes == 99, "IO.ConfigWindowsMoveFromTitleBarOnly has unexpected offset % instead of 99", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigWindowsMoveFromTitleBarOnly has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigWindowsCopyContentsWithCtrlC";
+                    assert(it.offset_in_bytes == 100, "IO.ConfigWindowsCopyContentsWithCtrlC has unexpected offset % instead of 100", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigWindowsCopyContentsWithCtrlC has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigScrollbarScrollByPage";
+                    assert(it.offset_in_bytes == 101, "IO.ConfigScrollbarScrollByPage has unexpected offset % instead of 101", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigScrollbarScrollByPage has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigMemoryCompactTimer";
+                    assert(it.offset_in_bytes == 104, "IO.ConfigMemoryCompactTimer has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.ConfigMemoryCompactTimer has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseDoubleClickTime";
+                    assert(it.offset_in_bytes == 108, "IO.MouseDoubleClickTime has unexpected offset % instead of 108", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseDoubleClickTime has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseDoubleClickMaxDist";
+                    assert(it.offset_in_bytes == 112, "IO.MouseDoubleClickMaxDist has unexpected offset % instead of 112", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseDoubleClickMaxDist has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseDragThreshold";
+                    assert(it.offset_in_bytes == 116, "IO.MouseDragThreshold has unexpected offset % instead of 116", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseDragThreshold has unexpected size % instead of 4", it.type.runtime_size);
+                case "KeyRepeatDelay";
+                    assert(it.offset_in_bytes == 120, "IO.KeyRepeatDelay has unexpected offset % instead of 120", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.KeyRepeatDelay has unexpected size % instead of 4", it.type.runtime_size);
+                case "KeyRepeatRate";
+                    assert(it.offset_in_bytes == 124, "IO.KeyRepeatRate has unexpected offset % instead of 124", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.KeyRepeatRate has unexpected size % instead of 4", it.type.runtime_size);
+                case "ConfigErrorRecovery";
+                    assert(it.offset_in_bytes == 128, "IO.ConfigErrorRecovery has unexpected offset % instead of 128", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecovery has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigErrorRecoveryEnableAssert";
+                    assert(it.offset_in_bytes == 129, "IO.ConfigErrorRecoveryEnableAssert has unexpected offset % instead of 129", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecoveryEnableAssert has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigErrorRecoveryEnableDebugLog";
+                    assert(it.offset_in_bytes == 130, "IO.ConfigErrorRecoveryEnableDebugLog has unexpected offset % instead of 130", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecoveryEnableDebugLog has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigErrorRecoveryEnableTooltip";
+                    assert(it.offset_in_bytes == 131, "IO.ConfigErrorRecoveryEnableTooltip has unexpected offset % instead of 131", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecoveryEnableTooltip has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugIsDebuggerPresent";
+                    assert(it.offset_in_bytes == 132, "IO.ConfigDebugIsDebuggerPresent has unexpected offset % instead of 132", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugIsDebuggerPresent has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugHighlightIdConflicts";
+                    assert(it.offset_in_bytes == 133, "IO.ConfigDebugHighlightIdConflicts has unexpected offset % instead of 133", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugHighlightIdConflicts has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugHighlightIdConflictsShowItemPicker";
+                    assert(it.offset_in_bytes == 134, "IO.ConfigDebugHighlightIdConflictsShowItemPicker has unexpected offset % instead of 134", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugHighlightIdConflictsShowItemPicker has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugBeginReturnValueOnce";
+                    assert(it.offset_in_bytes == 135, "IO.ConfigDebugBeginReturnValueOnce has unexpected offset % instead of 135", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugBeginReturnValueOnce has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugBeginReturnValueLoop";
+                    assert(it.offset_in_bytes == 136, "IO.ConfigDebugBeginReturnValueLoop has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugBeginReturnValueLoop has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugIgnoreFocusLoss";
+                    assert(it.offset_in_bytes == 137, "IO.ConfigDebugIgnoreFocusLoss has unexpected offset % instead of 137", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugIgnoreFocusLoss has unexpected size % instead of 1", it.type.runtime_size);
+                case "ConfigDebugIniSettings";
+                    assert(it.offset_in_bytes == 138, "IO.ConfigDebugIniSettings has unexpected offset % instead of 138", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.ConfigDebugIniSettings has unexpected size % instead of 1", it.type.runtime_size);
+                case "BackendPlatformName";
+                    assert(it.offset_in_bytes == 144, "IO.BackendPlatformName has unexpected offset % instead of 144", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.BackendPlatformName has unexpected size % instead of 8", it.type.runtime_size);
+                case "BackendRendererName";
+                    assert(it.offset_in_bytes == 152, "IO.BackendRendererName has unexpected offset % instead of 152", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.BackendRendererName has unexpected size % instead of 8", it.type.runtime_size);
+                case "BackendPlatformUserData";
+                    assert(it.offset_in_bytes == 160, "IO.BackendPlatformUserData has unexpected offset % instead of 160", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.BackendPlatformUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "BackendRendererUserData";
+                    assert(it.offset_in_bytes == 168, "IO.BackendRendererUserData has unexpected offset % instead of 168", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.BackendRendererUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "BackendLanguageUserData";
+                    assert(it.offset_in_bytes == 176, "IO.BackendLanguageUserData has unexpected offset % instead of 176", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.BackendLanguageUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "WantCaptureMouse";
+                    assert(it.offset_in_bytes == 184, "IO.WantCaptureMouse has unexpected offset % instead of 184", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.WantCaptureMouse has unexpected size % instead of 1", it.type.runtime_size);
+                case "WantCaptureKeyboard";
+                    assert(it.offset_in_bytes == 185, "IO.WantCaptureKeyboard has unexpected offset % instead of 185", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.WantCaptureKeyboard has unexpected size % instead of 1", it.type.runtime_size);
+                case "WantTextInput";
+                    assert(it.offset_in_bytes == 186, "IO.WantTextInput has unexpected offset % instead of 186", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.WantTextInput has unexpected size % instead of 1", it.type.runtime_size);
+                case "WantSetMousePos";
+                    assert(it.offset_in_bytes == 187, "IO.WantSetMousePos has unexpected offset % instead of 187", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.WantSetMousePos has unexpected size % instead of 1", it.type.runtime_size);
+                case "WantSaveIniSettings";
+                    assert(it.offset_in_bytes == 188, "IO.WantSaveIniSettings has unexpected offset % instead of 188", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.WantSaveIniSettings has unexpected size % instead of 1", it.type.runtime_size);
+                case "NavActive";
+                    assert(it.offset_in_bytes == 189, "IO.NavActive has unexpected offset % instead of 189", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.NavActive has unexpected size % instead of 1", it.type.runtime_size);
+                case "NavVisible";
+                    assert(it.offset_in_bytes == 190, "IO.NavVisible has unexpected offset % instead of 190", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.NavVisible has unexpected size % instead of 1", it.type.runtime_size);
+                case "Framerate";
+                    assert(it.offset_in_bytes == 192, "IO.Framerate has unexpected offset % instead of 192", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.Framerate has unexpected size % instead of 4", it.type.runtime_size);
+                case "MetricsRenderVertices";
+                    assert(it.offset_in_bytes == 196, "IO.MetricsRenderVertices has unexpected offset % instead of 196", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MetricsRenderVertices has unexpected size % instead of 4", it.type.runtime_size);
+                case "MetricsRenderIndices";
+                    assert(it.offset_in_bytes == 200, "IO.MetricsRenderIndices has unexpected offset % instead of 200", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MetricsRenderIndices has unexpected size % instead of 4", it.type.runtime_size);
+                case "MetricsRenderWindows";
+                    assert(it.offset_in_bytes == 204, "IO.MetricsRenderWindows has unexpected offset % instead of 204", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MetricsRenderWindows has unexpected size % instead of 4", it.type.runtime_size);
+                case "MetricsActiveWindows";
+                    assert(it.offset_in_bytes == 208, "IO.MetricsActiveWindows has unexpected offset % instead of 208", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MetricsActiveWindows has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseDelta";
+                    assert(it.offset_in_bytes == 212, "IO.MouseDelta has unexpected offset % instead of 212", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.MouseDelta has unexpected size % instead of 8", it.type.runtime_size);
+                case "Ctx";
+                    assert(it.offset_in_bytes == 224, "IO.Ctx has unexpected offset % instead of 224", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.Ctx has unexpected size % instead of 8", it.type.runtime_size);
+                case "MousePos";
+                    assert(it.offset_in_bytes == 232, "IO.MousePos has unexpected offset % instead of 232", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.MousePos has unexpected size % instead of 8", it.type.runtime_size);
+                case "MouseDown";
+                    assert(it.offset_in_bytes == 240, "IO.MouseDown has unexpected offset % instead of 240", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 5, "IO.MouseDown has unexpected size % instead of 5", it.type.runtime_size);
+                case "MouseWheel";
+                    assert(it.offset_in_bytes == 248, "IO.MouseWheel has unexpected offset % instead of 248", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseWheel has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseWheelH";
+                    assert(it.offset_in_bytes == 252, "IO.MouseWheelH has unexpected offset % instead of 252", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseWheelH has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseSource_";
+                    assert(it.offset_in_bytes == 256, "IO.MouseSource_ has unexpected offset % instead of 256", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseSource_ has unexpected size % instead of 4", it.type.runtime_size);
+                case "MouseHoveredViewport";
+                    assert(it.offset_in_bytes == 260, "IO.MouseHoveredViewport has unexpected offset % instead of 260", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.MouseHoveredViewport has unexpected size % instead of 4", it.type.runtime_size);
+                case "KeyCtrl";
+                    assert(it.offset_in_bytes == 264, "IO.KeyCtrl has unexpected offset % instead of 264", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.KeyCtrl has unexpected size % instead of 1", it.type.runtime_size);
+                case "KeyShift";
+                    assert(it.offset_in_bytes == 265, "IO.KeyShift has unexpected offset % instead of 265", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.KeyShift has unexpected size % instead of 1", it.type.runtime_size);
+                case "KeyAlt";
+                    assert(it.offset_in_bytes == 266, "IO.KeyAlt has unexpected offset % instead of 266", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.KeyAlt has unexpected size % instead of 1", it.type.runtime_size);
+                case "KeySuper";
+                    assert(it.offset_in_bytes == 267, "IO.KeySuper has unexpected offset % instead of 267", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.KeySuper has unexpected size % instead of 1", it.type.runtime_size);
+                case "KeyMods";
+                    assert(it.offset_in_bytes == 268, "IO.KeyMods has unexpected offset % instead of 268", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.KeyMods has unexpected size % instead of 4", it.type.runtime_size);
+                case "KeysData";
+                    assert(it.offset_in_bytes == 272, "IO.KeysData has unexpected offset % instead of 272", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2480, "IO.KeysData has unexpected size % instead of 2480", it.type.runtime_size);
+                case "WantCaptureMouseUnlessPopupClose";
+                    assert(it.offset_in_bytes == 2752, "IO.WantCaptureMouseUnlessPopupClose has unexpected offset % instead of 2752", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.WantCaptureMouseUnlessPopupClose has unexpected size % instead of 1", it.type.runtime_size);
+                case "MousePosPrev";
+                    assert(it.offset_in_bytes == 2756, "IO.MousePosPrev has unexpected offset % instead of 2756", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.MousePosPrev has unexpected size % instead of 8", it.type.runtime_size);
+                case "MouseClickedPos";
+                    assert(it.offset_in_bytes == 2764, "IO.MouseClickedPos has unexpected offset % instead of 2764", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 40, "IO.MouseClickedPos has unexpected size % instead of 40", it.type.runtime_size);
+                case "MouseClickedTime";
+                    assert(it.offset_in_bytes == 2808, "IO.MouseClickedTime has unexpected offset % instead of 2808", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 40, "IO.MouseClickedTime has unexpected size % instead of 40", it.type.runtime_size);
+                case "MouseClicked";
+                    assert(it.offset_in_bytes == 2848, "IO.MouseClicked has unexpected offset % instead of 2848", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 5, "IO.MouseClicked has unexpected size % instead of 5", it.type.runtime_size);
+                case "MouseDoubleClicked";
+                    assert(it.offset_in_bytes == 2853, "IO.MouseDoubleClicked has unexpected offset % instead of 2853", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 5, "IO.MouseDoubleClicked has unexpected size % instead of 5", it.type.runtime_size);
+                case "MouseClickedCount";
+                    assert(it.offset_in_bytes == 2858, "IO.MouseClickedCount has unexpected offset % instead of 2858", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 10, "IO.MouseClickedCount has unexpected size % instead of 10", it.type.runtime_size);
+                case "MouseClickedLastCount";
+                    assert(it.offset_in_bytes == 2868, "IO.MouseClickedLastCount has unexpected offset % instead of 2868", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 10, "IO.MouseClickedLastCount has unexpected size % instead of 10", it.type.runtime_size);
+                case "MouseReleased";
+                    assert(it.offset_in_bytes == 2878, "IO.MouseReleased has unexpected offset % instead of 2878", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 5, "IO.MouseReleased has unexpected size % instead of 5", it.type.runtime_size);
+                case "MouseReleasedTime";
+                    assert(it.offset_in_bytes == 2888, "IO.MouseReleasedTime has unexpected offset % instead of 2888", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 40, "IO.MouseReleasedTime has unexpected size % instead of 40", it.type.runtime_size);
+                case "MouseDownOwned";
+                    assert(it.offset_in_bytes == 2928, "IO.MouseDownOwned has unexpected offset % instead of 2928", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 5, "IO.MouseDownOwned has unexpected size % instead of 5", it.type.runtime_size);
+                case "MouseDownOwnedUnlessPopupClose";
+                    assert(it.offset_in_bytes == 2933, "IO.MouseDownOwnedUnlessPopupClose has unexpected offset % instead of 2933", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 5, "IO.MouseDownOwnedUnlessPopupClose has unexpected size % instead of 5", it.type.runtime_size);
+                case "MouseWheelRequestAxisSwap";
+                    assert(it.offset_in_bytes == 2938, "IO.MouseWheelRequestAxisSwap has unexpected offset % instead of 2938", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.MouseWheelRequestAxisSwap has unexpected size % instead of 1", it.type.runtime_size);
+                case "MouseCtrlLeftAsRightClick";
+                    assert(it.offset_in_bytes == 2939, "IO.MouseCtrlLeftAsRightClick has unexpected offset % instead of 2939", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.MouseCtrlLeftAsRightClick has unexpected size % instead of 1", it.type.runtime_size);
+                case "MouseDownDuration";
+                    assert(it.offset_in_bytes == 2940, "IO.MouseDownDuration has unexpected offset % instead of 2940", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 20, "IO.MouseDownDuration has unexpected size % instead of 20", it.type.runtime_size);
+                case "MouseDownDurationPrev";
+                    assert(it.offset_in_bytes == 2960, "IO.MouseDownDurationPrev has unexpected offset % instead of 2960", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 20, "IO.MouseDownDurationPrev has unexpected size % instead of 20", it.type.runtime_size);
+                case "MouseDragMaxDistanceAbs";
+                    assert(it.offset_in_bytes == 2980, "IO.MouseDragMaxDistanceAbs has unexpected offset % instead of 2980", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 40, "IO.MouseDragMaxDistanceAbs has unexpected size % instead of 40", it.type.runtime_size);
+                case "MouseDragMaxDistanceSqr";
+                    assert(it.offset_in_bytes == 3020, "IO.MouseDragMaxDistanceSqr has unexpected offset % instead of 3020", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 20, "IO.MouseDragMaxDistanceSqr has unexpected size % instead of 20", it.type.runtime_size);
+                case "PenPressure";
+                    assert(it.offset_in_bytes == 3040, "IO.PenPressure has unexpected offset % instead of 3040", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.PenPressure has unexpected size % instead of 4", it.type.runtime_size);
+                case "AppFocusLost";
+                    assert(it.offset_in_bytes == 3044, "IO.AppFocusLost has unexpected offset % instead of 3044", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.AppFocusLost has unexpected size % instead of 1", it.type.runtime_size);
+                case "AppAcceptingEvents";
+                    assert(it.offset_in_bytes == 3045, "IO.AppAcceptingEvents has unexpected offset % instead of 3045", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "IO.AppAcceptingEvents has unexpected size % instead of 1", it.type.runtime_size);
+                case "InputQueueSurrogate";
+                    assert(it.offset_in_bytes == 3046, "IO.InputQueueSurrogate has unexpected offset % instead of 3046", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "IO.InputQueueSurrogate has unexpected size % instead of 2", it.type.runtime_size);
+                case "InputQueueCharacters";
+                    assert(it.offset_in_bytes == 3048, "IO.InputQueueCharacters has unexpected offset % instead of 3048", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "IO.InputQueueCharacters has unexpected size % instead of 16", it.type.runtime_size);
+                case "FontGlobalScale";
+                    assert(it.offset_in_bytes == 3064, "IO.FontGlobalScale has unexpected offset % instead of 3064", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "IO.FontGlobalScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "GetClipboardTextFn";
+                    assert(it.offset_in_bytes == 3072, "IO.GetClipboardTextFn has unexpected offset % instead of 3072", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.GetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
+                case "SetClipboardTextFn";
+                    assert(it.offset_in_bytes == 3080, "IO.SetClipboardTextFn has unexpected offset % instead of 3080", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.SetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
+                case "ClipboardUserData";
+                    assert(it.offset_in_bytes == 3088, "IO.ClipboardUserData has unexpected offset % instead of 3088", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IO.ClipboardUserData has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IO) == 3096, "IO has size % instead of 3096", size_of(IO));
+    }
+
+    {
+        info := type_info(InputTextCallbackData);
+        for info.members {
+            if it.name == {
+                case "Ctx";
+                    assert(it.offset_in_bytes == 0, "InputTextCallbackData.Ctx has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "InputTextCallbackData.Ctx has unexpected size % instead of 8", it.type.runtime_size);
+                case "EventFlag";
+                    assert(it.offset_in_bytes == 8, "InputTextCallbackData.EventFlag has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.EventFlag has unexpected size % instead of 4", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 12, "InputTextCallbackData.Flags has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "UserData";
+                    assert(it.offset_in_bytes == 16, "InputTextCallbackData.UserData has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "InputTextCallbackData.UserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "ID_";
+                    assert(it.offset_in_bytes == 24, "InputTextCallbackData.ID_ has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.ID_ has unexpected size % instead of 4", it.type.runtime_size);
+                case "EventKey";
+                    assert(it.offset_in_bytes == 28, "InputTextCallbackData.EventKey has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.EventKey has unexpected size % instead of 4", it.type.runtime_size);
+                case "EventChar";
+                    assert(it.offset_in_bytes == 32, "InputTextCallbackData.EventChar has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "InputTextCallbackData.EventChar has unexpected size % instead of 2", it.type.runtime_size);
+                case "EventActivated";
+                    assert(it.offset_in_bytes == 34, "InputTextCallbackData.EventActivated has unexpected offset % instead of 34", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "InputTextCallbackData.EventActivated has unexpected size % instead of 1", it.type.runtime_size);
+                case "BufDirty";
+                    assert(it.offset_in_bytes == 35, "InputTextCallbackData.BufDirty has unexpected offset % instead of 35", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "InputTextCallbackData.BufDirty has unexpected size % instead of 1", it.type.runtime_size);
+                case "Buf";
+                    assert(it.offset_in_bytes == 40, "InputTextCallbackData.Buf has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "InputTextCallbackData.Buf has unexpected size % instead of 8", it.type.runtime_size);
+                case "BufTextLen";
+                    assert(it.offset_in_bytes == 48, "InputTextCallbackData.BufTextLen has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.BufTextLen has unexpected size % instead of 4", it.type.runtime_size);
+                case "BufSize";
+                    assert(it.offset_in_bytes == 52, "InputTextCallbackData.BufSize has unexpected offset % instead of 52", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.BufSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "CursorPos";
+                    assert(it.offset_in_bytes == 56, "InputTextCallbackData.CursorPos has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.CursorPos has unexpected size % instead of 4", it.type.runtime_size);
+                case "SelectionStart";
+                    assert(it.offset_in_bytes == 60, "InputTextCallbackData.SelectionStart has unexpected offset % instead of 60", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.SelectionStart has unexpected size % instead of 4", it.type.runtime_size);
+                case "SelectionEnd";
+                    assert(it.offset_in_bytes == 64, "InputTextCallbackData.SelectionEnd has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "InputTextCallbackData.SelectionEnd has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(InputTextCallbackData) == 72, "InputTextCallbackData has size % instead of 72", size_of(InputTextCallbackData));
+    }
+
+    {
+        info := type_info(SizeCallbackData);
+        for info.members {
+            if it.name == {
+                case "UserData";
+                    assert(it.offset_in_bytes == 0, "SizeCallbackData.UserData has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SizeCallbackData.UserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "Pos";
+                    assert(it.offset_in_bytes == 8, "SizeCallbackData.Pos has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SizeCallbackData.Pos has unexpected size % instead of 8", it.type.runtime_size);
+                case "CurrentSize";
+                    assert(it.offset_in_bytes == 16, "SizeCallbackData.CurrentSize has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SizeCallbackData.CurrentSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "DesiredSize";
+                    assert(it.offset_in_bytes == 24, "SizeCallbackData.DesiredSize has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SizeCallbackData.DesiredSize has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(SizeCallbackData) == 32, "SizeCallbackData has size % instead of 32", size_of(SizeCallbackData));
+    }
+
+    {
+        info := type_info(WindowClass);
+        for info.members {
+            if it.name == {
+                case "ClassId";
+                    assert(it.offset_in_bytes == 0, "WindowClass.ClassId has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.ClassId has unexpected size % instead of 4", it.type.runtime_size);
+                case "ParentViewportId";
+                    assert(it.offset_in_bytes == 4, "WindowClass.ParentViewportId has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.ParentViewportId has unexpected size % instead of 4", it.type.runtime_size);
+                case "FocusRouteParentWindowId";
+                    assert(it.offset_in_bytes == 8, "WindowClass.FocusRouteParentWindowId has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.FocusRouteParentWindowId has unexpected size % instead of 4", it.type.runtime_size);
+                case "ViewportFlagsOverrideSet";
+                    assert(it.offset_in_bytes == 12, "WindowClass.ViewportFlagsOverrideSet has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.ViewportFlagsOverrideSet has unexpected size % instead of 4", it.type.runtime_size);
+                case "ViewportFlagsOverrideClear";
+                    assert(it.offset_in_bytes == 16, "WindowClass.ViewportFlagsOverrideClear has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.ViewportFlagsOverrideClear has unexpected size % instead of 4", it.type.runtime_size);
+                case "TabItemFlagsOverrideSet";
+                    assert(it.offset_in_bytes == 20, "WindowClass.TabItemFlagsOverrideSet has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.TabItemFlagsOverrideSet has unexpected size % instead of 4", it.type.runtime_size);
+                case "DockNodeFlagsOverrideSet";
+                    assert(it.offset_in_bytes == 24, "WindowClass.DockNodeFlagsOverrideSet has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "WindowClass.DockNodeFlagsOverrideSet has unexpected size % instead of 4", it.type.runtime_size);
+                case "DockingAlwaysTabBar";
+                    assert(it.offset_in_bytes == 28, "WindowClass.DockingAlwaysTabBar has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "WindowClass.DockingAlwaysTabBar has unexpected size % instead of 1", it.type.runtime_size);
+                case "DockingAllowUnclassed";
+                    assert(it.offset_in_bytes == 29, "WindowClass.DockingAllowUnclassed has unexpected offset % instead of 29", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "WindowClass.DockingAllowUnclassed has unexpected size % instead of 1", it.type.runtime_size);
+                case "PlatformIconData";
+                    assert(it.offset_in_bytes == 32, "WindowClass.PlatformIconData has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "WindowClass.PlatformIconData has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(WindowClass) == 40, "WindowClass has size % instead of 40", size_of(WindowClass));
+    }
+
+    {
+        info := type_info(Payload);
+        for info.members {
+            if it.name == {
+                case "Data";
+                    assert(it.offset_in_bytes == 0, "Payload.Data has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Payload.Data has unexpected size % instead of 8", it.type.runtime_size);
+                case "DataSize";
+                    assert(it.offset_in_bytes == 8, "Payload.DataSize has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Payload.DataSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "SourceId";
+                    assert(it.offset_in_bytes == 12, "Payload.SourceId has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Payload.SourceId has unexpected size % instead of 4", it.type.runtime_size);
+                case "SourceParentId";
+                    assert(it.offset_in_bytes == 16, "Payload.SourceParentId has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Payload.SourceParentId has unexpected size % instead of 4", it.type.runtime_size);
+                case "DataFrameCount";
+                    assert(it.offset_in_bytes == 20, "Payload.DataFrameCount has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Payload.DataFrameCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "DataType";
+                    assert(it.offset_in_bytes == 24, "Payload.DataType has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 33, "Payload.DataType has unexpected size % instead of 33", it.type.runtime_size);
+                case "Preview";
+                    assert(it.offset_in_bytes == 57, "Payload.Preview has unexpected offset % instead of 57", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Payload.Preview has unexpected size % instead of 1", it.type.runtime_size);
+                case "Delivery";
+                    assert(it.offset_in_bytes == 58, "Payload.Delivery has unexpected offset % instead of 58", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Payload.Delivery has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(Payload) == 64, "Payload has size % instead of 64", size_of(Payload));
+    }
+
+    {
+        info := type_info(OnceUponAFrame);
+        for info.members {
+            if it.name == {
+                case "RefFrame";
+                    assert(it.offset_in_bytes == 0, "OnceUponAFrame.RefFrame has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "OnceUponAFrame.RefFrame has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(OnceUponAFrame) == 4, "OnceUponAFrame has size % instead of 4", size_of(OnceUponAFrame));
+    }
+
+    {
+        info := type_info(TextFilter.TextRange);
+        for info.members {
+            if it.name == {
+                case "b";
+                    assert(it.offset_in_bytes == 0, "TextFilter.TextRange.b has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "TextFilter.TextRange.b has unexpected size % instead of 8", it.type.runtime_size);
+                case "e";
+                    assert(it.offset_in_bytes == 8, "TextFilter.TextRange.e has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "TextFilter.TextRange.e has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(TextFilter.TextRange) == 16, "TextFilter.TextRange has size % instead of 16", size_of(TextFilter.TextRange));
+    }
+
+    {
+        info := type_info(TextFilter);
+        for info.members {
+            if it.name == {
+                case "InputBuf";
+                    assert(it.offset_in_bytes == 0, "TextFilter.InputBuf has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 256, "TextFilter.InputBuf has unexpected size % instead of 256", it.type.runtime_size);
+                case "Filters";
+                    assert(it.offset_in_bytes == 256, "TextFilter.Filters has unexpected offset % instead of 256", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "TextFilter.Filters has unexpected size % instead of 16", it.type.runtime_size);
+                case "CountGrep";
+                    assert(it.offset_in_bytes == 272, "TextFilter.CountGrep has unexpected offset % instead of 272", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TextFilter.CountGrep has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(TextFilter) == 280, "TextFilter has size % instead of 280", size_of(TextFilter));
+    }
+
+    {
+        info := type_info(StoragePair);
+        for info.members {
+            if it.name == {
+                case "key";
+                    assert(it.offset_in_bytes == 0, "StoragePair.key has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "StoragePair.key has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(StoragePair) == 16, "StoragePair has size % instead of 16", size_of(StoragePair));
+    }
+
+    {
+        info := type_info(Storage);
+        for info.members {
+            if it.name == {
+                case "Data";
+                    assert(it.offset_in_bytes == 0, "Storage.Data has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "Storage.Data has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(Storage) == 16, "Storage has size % instead of 16", size_of(Storage));
+    }
+
+    {
+        info := type_info(ListClipper);
+        for info.members {
+            if it.name == {
+                case "DisplayStart";
+                    assert(it.offset_in_bytes == 0, "ListClipper.DisplayStart has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ListClipper.DisplayStart has unexpected size % instead of 4", it.type.runtime_size);
+                case "DisplayEnd";
+                    assert(it.offset_in_bytes == 4, "ListClipper.DisplayEnd has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ListClipper.DisplayEnd has unexpected size % instead of 4", it.type.runtime_size);
+                case "UserIndex";
+                    assert(it.offset_in_bytes == 8, "ListClipper.UserIndex has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ListClipper.UserIndex has unexpected size % instead of 4", it.type.runtime_size);
+                case "ItemsCount";
+                    assert(it.offset_in_bytes == 12, "ListClipper.ItemsCount has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ListClipper.ItemsCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "ItemsHeight";
+                    assert(it.offset_in_bytes == 16, "ListClipper.ItemsHeight has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ListClipper.ItemsHeight has unexpected size % instead of 4", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 20, "ListClipper.Flags has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ListClipper.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "StartPosY";
+                    assert(it.offset_in_bytes == 24, "ListClipper.StartPosY has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ListClipper.StartPosY has unexpected size % instead of 8", it.type.runtime_size);
+                case "StartSeekOffsetY";
+                    assert(it.offset_in_bytes == 32, "ListClipper.StartSeekOffsetY has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ListClipper.StartSeekOffsetY has unexpected size % instead of 8", it.type.runtime_size);
+                case "Ctx";
+                    assert(it.offset_in_bytes == 40, "ListClipper.Ctx has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ListClipper.Ctx has unexpected size % instead of 8", it.type.runtime_size);
+                case "TempData";
+                    assert(it.offset_in_bytes == 48, "ListClipper.TempData has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ListClipper.TempData has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ListClipper) == 56, "ListClipper has size % instead of 56", size_of(ListClipper));
+    }
+
+    {
+        info := type_info(MultiSelectIO);
+        for info.members {
+            if it.name == {
+                case "Requests";
+                    assert(it.offset_in_bytes == 0, "MultiSelectIO.Requests has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "MultiSelectIO.Requests has unexpected size % instead of 16", it.type.runtime_size);
+                case "RangeSrcItem";
+                    assert(it.offset_in_bytes == 16, "MultiSelectIO.RangeSrcItem has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "MultiSelectIO.RangeSrcItem has unexpected size % instead of 8", it.type.runtime_size);
+                case "NavIdItem";
+                    assert(it.offset_in_bytes == 24, "MultiSelectIO.NavIdItem has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "MultiSelectIO.NavIdItem has unexpected size % instead of 8", it.type.runtime_size);
+                case "NavIdSelected";
+                    assert(it.offset_in_bytes == 32, "MultiSelectIO.NavIdSelected has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "MultiSelectIO.NavIdSelected has unexpected size % instead of 1", it.type.runtime_size);
+                case "RangeSrcReset";
+                    assert(it.offset_in_bytes == 33, "MultiSelectIO.RangeSrcReset has unexpected offset % instead of 33", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "MultiSelectIO.RangeSrcReset has unexpected size % instead of 1", it.type.runtime_size);
+                case "ItemsCount";
+                    assert(it.offset_in_bytes == 36, "MultiSelectIO.ItemsCount has unexpected offset % instead of 36", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "MultiSelectIO.ItemsCount has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(MultiSelectIO) == 40, "MultiSelectIO has size % instead of 40", size_of(MultiSelectIO));
+    }
+
+    {
+        info := type_info(SelectionRequest);
+        for info.members {
+            if it.name == {
+                case "Type";
+                    assert(it.offset_in_bytes == 0, "SelectionRequest.Type has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SelectionRequest.Type has unexpected size % instead of 4", it.type.runtime_size);
+                case "Selected";
+                    assert(it.offset_in_bytes == 4, "SelectionRequest.Selected has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SelectionRequest.Selected has unexpected size % instead of 1", it.type.runtime_size);
+                case "RangeDirection";
+                    assert(it.offset_in_bytes == 5, "SelectionRequest.RangeDirection has unexpected offset % instead of 5", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SelectionRequest.RangeDirection has unexpected size % instead of 1", it.type.runtime_size);
+                case "RangeFirstItem";
+                    assert(it.offset_in_bytes == 8, "SelectionRequest.RangeFirstItem has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SelectionRequest.RangeFirstItem has unexpected size % instead of 8", it.type.runtime_size);
+                case "RangeLastItem";
+                    assert(it.offset_in_bytes == 16, "SelectionRequest.RangeLastItem has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SelectionRequest.RangeLastItem has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(SelectionRequest) == 24, "SelectionRequest has size % instead of 24", size_of(SelectionRequest));
+    }
+
+    {
+        info := type_info(SelectionBasicStorage);
+        for info.members {
+            if it.name == {
+                case "Size";
+                    assert(it.offset_in_bytes == 0, "SelectionBasicStorage.Size has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SelectionBasicStorage.Size has unexpected size % instead of 4", it.type.runtime_size);
+                case "PreserveOrder";
+                    assert(it.offset_in_bytes == 4, "SelectionBasicStorage.PreserveOrder has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SelectionBasicStorage.PreserveOrder has unexpected size % instead of 1", it.type.runtime_size);
+                case "UserData";
+                    assert(it.offset_in_bytes == 8, "SelectionBasicStorage.UserData has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SelectionBasicStorage.UserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "AdapterIndexToStorageId";
+                    assert(it.offset_in_bytes == 16, "SelectionBasicStorage.AdapterIndexToStorageId has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SelectionBasicStorage.AdapterIndexToStorageId has unexpected size % instead of 8", it.type.runtime_size);
+                case "_SelectionOrder";
+                    assert(it.offset_in_bytes == 24, "SelectionBasicStorage._SelectionOrder has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SelectionBasicStorage._SelectionOrder has unexpected size % instead of 4", it.type.runtime_size);
+                case "_Storage";
+                    assert(it.offset_in_bytes == 32, "SelectionBasicStorage._Storage has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "SelectionBasicStorage._Storage has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(SelectionBasicStorage) == 48, "SelectionBasicStorage has size % instead of 48", size_of(SelectionBasicStorage));
+    }
+
+    {
+        info := type_info(SelectionExternalStorage);
+        for info.members {
+            if it.name == {
+                case "UserData";
+                    assert(it.offset_in_bytes == 0, "SelectionExternalStorage.UserData has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SelectionExternalStorage.UserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "AdapterSetItemSelected";
+                    assert(it.offset_in_bytes == 8, "SelectionExternalStorage.AdapterSetItemSelected has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SelectionExternalStorage.AdapterSetItemSelected has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(SelectionExternalStorage) == 16, "SelectionExternalStorage has size % instead of 16", size_of(SelectionExternalStorage));
+    }
+
+    {
+        info := type_info(ImDrawCmd);
+        for info.members {
+            if it.name == {
+                case "ClipRect";
+                    assert(it.offset_in_bytes == 0, "ImDrawCmd.ClipRect has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawCmd.ClipRect has unexpected size % instead of 16", it.type.runtime_size);
+                case "TexRef";
+                    assert(it.offset_in_bytes == 16, "ImDrawCmd.TexRef has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawCmd.TexRef has unexpected size % instead of 16", it.type.runtime_size);
+                case "VtxOffset";
+                    assert(it.offset_in_bytes == 32, "ImDrawCmd.VtxOffset has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawCmd.VtxOffset has unexpected size % instead of 4", it.type.runtime_size);
+                case "IdxOffset";
+                    assert(it.offset_in_bytes == 36, "ImDrawCmd.IdxOffset has unexpected offset % instead of 36", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawCmd.IdxOffset has unexpected size % instead of 4", it.type.runtime_size);
+                case "ElemCount";
+                    assert(it.offset_in_bytes == 40, "ImDrawCmd.ElemCount has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawCmd.ElemCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "UserCallback";
+                    assert(it.offset_in_bytes == 48, "ImDrawCmd.UserCallback has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawCmd.UserCallback has unexpected size % instead of 8", it.type.runtime_size);
+                case "UserCallbackData";
+                    assert(it.offset_in_bytes == 56, "ImDrawCmd.UserCallbackData has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawCmd.UserCallbackData has unexpected size % instead of 8", it.type.runtime_size);
+                case "UserCallbackDataSize";
+                    assert(it.offset_in_bytes == 64, "ImDrawCmd.UserCallbackDataSize has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawCmd.UserCallbackDataSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "UserCallbackDataOffset";
+                    assert(it.offset_in_bytes == 68, "ImDrawCmd.UserCallbackDataOffset has unexpected offset % instead of 68", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawCmd.UserCallbackDataOffset has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawCmd) == 72, "ImDrawCmd has size % instead of 72", size_of(ImDrawCmd));
+    }
+
+    {
+        info := type_info(ImDrawVert);
+        for info.members {
+            if it.name == {
+                case "pos";
+                    assert(it.offset_in_bytes == 0, "ImDrawVert.pos has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawVert.pos has unexpected size % instead of 8", it.type.runtime_size);
+                case "uv";
+                    assert(it.offset_in_bytes == 8, "ImDrawVert.uv has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawVert.uv has unexpected size % instead of 8", it.type.runtime_size);
+                case "col";
+                    assert(it.offset_in_bytes == 16, "ImDrawVert.col has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawVert.col has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawVert) == 20, "ImDrawVert has size % instead of 20", size_of(ImDrawVert));
+    }
+
+    {
+        info := type_info(ImDrawCmdHeader);
+        for info.members {
+            if it.name == {
+                case "ClipRect";
+                    assert(it.offset_in_bytes == 0, "ImDrawCmdHeader.ClipRect has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawCmdHeader.ClipRect has unexpected size % instead of 16", it.type.runtime_size);
+                case "TexRef";
+                    assert(it.offset_in_bytes == 16, "ImDrawCmdHeader.TexRef has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawCmdHeader.TexRef has unexpected size % instead of 16", it.type.runtime_size);
+                case "VtxOffset";
+                    assert(it.offset_in_bytes == 32, "ImDrawCmdHeader.VtxOffset has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawCmdHeader.VtxOffset has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawCmdHeader) == 40, "ImDrawCmdHeader has size % instead of 40", size_of(ImDrawCmdHeader));
+    }
+
+    {
+        info := type_info(ImDrawChannel);
+        for info.members {
+            if it.name == {
+                case "_CmdBuffer";
+                    assert(it.offset_in_bytes == 0, "ImDrawChannel._CmdBuffer has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawChannel._CmdBuffer has unexpected size % instead of 16", it.type.runtime_size);
+                case "_IdxBuffer";
+                    assert(it.offset_in_bytes == 16, "ImDrawChannel._IdxBuffer has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawChannel._IdxBuffer has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawChannel) == 32, "ImDrawChannel has size % instead of 32", size_of(ImDrawChannel));
+    }
+
+    {
+        info := type_info(ImDrawListSplitter);
+        for info.members {
+            if it.name == {
+                case "_Current";
+                    assert(it.offset_in_bytes == 0, "ImDrawListSplitter._Current has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawListSplitter._Current has unexpected size % instead of 4", it.type.runtime_size);
+                case "_Count";
+                    assert(it.offset_in_bytes == 4, "ImDrawListSplitter._Count has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawListSplitter._Count has unexpected size % instead of 4", it.type.runtime_size);
+                case "_Channels";
+                    assert(it.offset_in_bytes == 8, "ImDrawListSplitter._Channels has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawListSplitter._Channels has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawListSplitter) == 24, "ImDrawListSplitter has size % instead of 24", size_of(ImDrawListSplitter));
+    }
+
+    {
+        info := type_info(ImDrawList);
+        for info.members {
+            if it.name == {
+                case "CmdBuffer";
+                    assert(it.offset_in_bytes == 0, "ImDrawList.CmdBuffer has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList.CmdBuffer has unexpected size % instead of 16", it.type.runtime_size);
+                case "IdxBuffer";
+                    assert(it.offset_in_bytes == 16, "ImDrawList.IdxBuffer has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList.IdxBuffer has unexpected size % instead of 16", it.type.runtime_size);
+                case "VtxBuffer";
+                    assert(it.offset_in_bytes == 32, "ImDrawList.VtxBuffer has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList.VtxBuffer has unexpected size % instead of 16", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 48, "ImDrawList.Flags has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawList.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "_VtxCurrentIdx";
+                    assert(it.offset_in_bytes == 52, "ImDrawList._VtxCurrentIdx has unexpected offset % instead of 52", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawList._VtxCurrentIdx has unexpected size % instead of 4", it.type.runtime_size);
+                case "_Data";
+                    assert(it.offset_in_bytes == 56, "ImDrawList._Data has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawList._Data has unexpected size % instead of 8", it.type.runtime_size);
+                case "_VtxWritePtr";
+                    assert(it.offset_in_bytes == 64, "ImDrawList._VtxWritePtr has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawList._VtxWritePtr has unexpected size % instead of 8", it.type.runtime_size);
+                case "_IdxWritePtr";
+                    assert(it.offset_in_bytes == 72, "ImDrawList._IdxWritePtr has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawList._IdxWritePtr has unexpected size % instead of 8", it.type.runtime_size);
+                case "_Path";
+                    assert(it.offset_in_bytes == 80, "ImDrawList._Path has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList._Path has unexpected size % instead of 16", it.type.runtime_size);
+                case "_CmdHeader";
+                    assert(it.offset_in_bytes == 96, "ImDrawList._CmdHeader has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 40, "ImDrawList._CmdHeader has unexpected size % instead of 40", it.type.runtime_size);
+                case "_Splitter";
+                    assert(it.offset_in_bytes == 136, "ImDrawList._Splitter has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 24, "ImDrawList._Splitter has unexpected size % instead of 24", it.type.runtime_size);
+                case "_ClipRectStack";
+                    assert(it.offset_in_bytes == 160, "ImDrawList._ClipRectStack has unexpected offset % instead of 160", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList._ClipRectStack has unexpected size % instead of 16", it.type.runtime_size);
+                case "_TextureStack";
+                    assert(it.offset_in_bytes == 176, "ImDrawList._TextureStack has unexpected offset % instead of 176", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList._TextureStack has unexpected size % instead of 16", it.type.runtime_size);
+                case "_CallbacksDataBuf";
+                    assert(it.offset_in_bytes == 192, "ImDrawList._CallbacksDataBuf has unexpected offset % instead of 192", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawList._CallbacksDataBuf has unexpected size % instead of 16", it.type.runtime_size);
+                case "_FringeScale";
+                    assert(it.offset_in_bytes == 208, "ImDrawList._FringeScale has unexpected offset % instead of 208", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawList._FringeScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "_OwnerName";
+                    assert(it.offset_in_bytes == 216, "ImDrawList._OwnerName has unexpected offset % instead of 216", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawList._OwnerName has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawList) == 224, "ImDrawList has size % instead of 224", size_of(ImDrawList));
+    }
+
+    {
+        info := type_info(ImDrawData);
+        for info.members {
+            if it.name == {
+                case "Valid";
+                    assert(it.offset_in_bytes == 0, "ImDrawData.Valid has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImDrawData.Valid has unexpected size % instead of 1", it.type.runtime_size);
+                case "CmdListsCount";
+                    assert(it.offset_in_bytes == 4, "ImDrawData.CmdListsCount has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawData.CmdListsCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "TotalIdxCount";
+                    assert(it.offset_in_bytes == 8, "ImDrawData.TotalIdxCount has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawData.TotalIdxCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "TotalVtxCount";
+                    assert(it.offset_in_bytes == 12, "ImDrawData.TotalVtxCount has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImDrawData.TotalVtxCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "CmdLists";
+                    assert(it.offset_in_bytes == 16, "ImDrawData.CmdLists has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImDrawData.CmdLists has unexpected size % instead of 16", it.type.runtime_size);
+                case "DisplayPos";
+                    assert(it.offset_in_bytes == 32, "ImDrawData.DisplayPos has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawData.DisplayPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "DisplaySize";
+                    assert(it.offset_in_bytes == 40, "ImDrawData.DisplaySize has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawData.DisplaySize has unexpected size % instead of 8", it.type.runtime_size);
+                case "FramebufferScale";
+                    assert(it.offset_in_bytes == 48, "ImDrawData.FramebufferScale has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawData.FramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
+                case "OwnerViewport";
+                    assert(it.offset_in_bytes == 56, "ImDrawData.OwnerViewport has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawData.OwnerViewport has unexpected size % instead of 8", it.type.runtime_size);
+                case "Textures";
+                    assert(it.offset_in_bytes == 64, "ImDrawData.Textures has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImDrawData.Textures has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImDrawData) == 72, "ImDrawData has size % instead of 72", size_of(ImDrawData));
+    }
+
+    {
+        info := type_info(ImTextureRect);
+        for info.members {
+            if it.name == {
+                case "x";
+                    assert(it.offset_in_bytes == 0, "ImTextureRect.x has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImTextureRect.x has unexpected size % instead of 2", it.type.runtime_size);
+                case "y";
+                    assert(it.offset_in_bytes == 2, "ImTextureRect.y has unexpected offset % instead of 2", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImTextureRect.y has unexpected size % instead of 2", it.type.runtime_size);
+                case "w";
+                    assert(it.offset_in_bytes == 4, "ImTextureRect.w has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImTextureRect.w has unexpected size % instead of 2", it.type.runtime_size);
+                case "h";
+                    assert(it.offset_in_bytes == 6, "ImTextureRect.h has unexpected offset % instead of 6", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImTextureRect.h has unexpected size % instead of 2", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImTextureRect) == 8, "ImTextureRect has size % instead of 8", size_of(ImTextureRect));
+    }
+
+    {
+        info := type_info(ImTextureData);
+        for info.members {
+            if it.name == {
+                case "UniqueID";
+                    assert(it.offset_in_bytes == 0, "ImTextureData.UniqueID has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.UniqueID has unexpected size % instead of 4", it.type.runtime_size);
+                case "Status";
+                    assert(it.offset_in_bytes == 4, "ImTextureData.Status has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.Status has unexpected size % instead of 4", it.type.runtime_size);
+                case "BackendUserData";
+                    assert(it.offset_in_bytes == 8, "ImTextureData.BackendUserData has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureData.BackendUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "TexID";
+                    assert(it.offset_in_bytes == 16, "ImTextureData.TexID has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureData.TexID has unexpected size % instead of 8", it.type.runtime_size);
+                case "Format";
+                    assert(it.offset_in_bytes == 24, "ImTextureData.Format has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.Format has unexpected size % instead of 4", it.type.runtime_size);
+                case "Width";
+                    assert(it.offset_in_bytes == 28, "ImTextureData.Width has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.Width has unexpected size % instead of 4", it.type.runtime_size);
+                case "Height";
+                    assert(it.offset_in_bytes == 32, "ImTextureData.Height has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.Height has unexpected size % instead of 4", it.type.runtime_size);
+                case "BytesPerPixel";
+                    assert(it.offset_in_bytes == 36, "ImTextureData.BytesPerPixel has unexpected offset % instead of 36", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.BytesPerPixel has unexpected size % instead of 4", it.type.runtime_size);
+                case "Pixels";
+                    assert(it.offset_in_bytes == 40, "ImTextureData.Pixels has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureData.Pixels has unexpected size % instead of 8", it.type.runtime_size);
+                case "UsedRect";
+                    assert(it.offset_in_bytes == 48, "ImTextureData.UsedRect has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureData.UsedRect has unexpected size % instead of 8", it.type.runtime_size);
+                case "UpdateRect";
+                    assert(it.offset_in_bytes == 56, "ImTextureData.UpdateRect has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImTextureData.UpdateRect has unexpected size % instead of 8", it.type.runtime_size);
+                case "Updates";
+                    assert(it.offset_in_bytes == 64, "ImTextureData.Updates has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImTextureData.Updates has unexpected size % instead of 16", it.type.runtime_size);
+                case "UnusedFrames";
+                    assert(it.offset_in_bytes == 80, "ImTextureData.UnusedFrames has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImTextureData.UnusedFrames has unexpected size % instead of 4", it.type.runtime_size);
+                case "RefCount";
+                    assert(it.offset_in_bytes == 84, "ImTextureData.RefCount has unexpected offset % instead of 84", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImTextureData.RefCount has unexpected size % instead of 2", it.type.runtime_size);
+                case "UseColors";
+                    assert(it.offset_in_bytes == 86, "ImTextureData.UseColors has unexpected offset % instead of 86", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImTextureData.UseColors has unexpected size % instead of 1", it.type.runtime_size);
+                case "WantDestroyNextFrame";
+                    assert(it.offset_in_bytes == 87, "ImTextureData.WantDestroyNextFrame has unexpected offset % instead of 87", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImTextureData.WantDestroyNextFrame has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImTextureData) == 88, "ImTextureData has size % instead of 88", size_of(ImTextureData));
+    }
+
+    {
+        info := type_info(ImFontConfig);
+        for info.members {
+            if it.name == {
+                case "Name";
+                    assert(it.offset_in_bytes == 0, "ImFontConfig.Name has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 40, "ImFontConfig.Name has unexpected size % instead of 40", it.type.runtime_size);
+                case "FontData";
+                    assert(it.offset_in_bytes == 40, "ImFontConfig.FontData has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.FontData has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontDataSize";
+                    assert(it.offset_in_bytes == 48, "ImFontConfig.FontDataSize has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.FontDataSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontDataOwnedByAtlas";
+                    assert(it.offset_in_bytes == 52, "ImFontConfig.FontDataOwnedByAtlas has unexpected offset % instead of 52", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontConfig.FontDataOwnedByAtlas has unexpected size % instead of 1", it.type.runtime_size);
+                case "MergeMode";
+                    assert(it.offset_in_bytes == 53, "ImFontConfig.MergeMode has unexpected offset % instead of 53", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontConfig.MergeMode has unexpected size % instead of 1", it.type.runtime_size);
+                case "PixelSnapH";
+                    assert(it.offset_in_bytes == 54, "ImFontConfig.PixelSnapH has unexpected offset % instead of 54", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontConfig.PixelSnapH has unexpected size % instead of 1", it.type.runtime_size);
+                case "OversampleH";
+                    assert(it.offset_in_bytes == 55, "ImFontConfig.OversampleH has unexpected offset % instead of 55", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontConfig.OversampleH has unexpected size % instead of 1", it.type.runtime_size);
+                case "OversampleV";
+                    assert(it.offset_in_bytes == 56, "ImFontConfig.OversampleV has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontConfig.OversampleV has unexpected size % instead of 1", it.type.runtime_size);
+                case "EllipsisChar";
+                    assert(it.offset_in_bytes == 58, "ImFontConfig.EllipsisChar has unexpected offset % instead of 58", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFontConfig.EllipsisChar has unexpected size % instead of 2", it.type.runtime_size);
+                case "SizePixels";
+                    assert(it.offset_in_bytes == 60, "ImFontConfig.SizePixels has unexpected offset % instead of 60", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.SizePixels has unexpected size % instead of 4", it.type.runtime_size);
+                case "GlyphRanges";
+                    assert(it.offset_in_bytes == 64, "ImFontConfig.GlyphRanges has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.GlyphRanges has unexpected size % instead of 8", it.type.runtime_size);
+                case "GlyphExcludeRanges";
+                    assert(it.offset_in_bytes == 72, "ImFontConfig.GlyphExcludeRanges has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.GlyphExcludeRanges has unexpected size % instead of 8", it.type.runtime_size);
+                case "GlyphOffset";
+                    assert(it.offset_in_bytes == 80, "ImFontConfig.GlyphOffset has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.GlyphOffset has unexpected size % instead of 8", it.type.runtime_size);
+                case "GlyphMinAdvanceX";
+                    assert(it.offset_in_bytes == 88, "ImFontConfig.GlyphMinAdvanceX has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.GlyphMinAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
+                case "GlyphMaxAdvanceX";
+                    assert(it.offset_in_bytes == 92, "ImFontConfig.GlyphMaxAdvanceX has unexpected offset % instead of 92", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.GlyphMaxAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
+                case "GlyphExtraAdvanceX";
+                    assert(it.offset_in_bytes == 96, "ImFontConfig.GlyphExtraAdvanceX has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.GlyphExtraAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontNo";
+                    assert(it.offset_in_bytes == 100, "ImFontConfig.FontNo has unexpected offset % instead of 100", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.FontNo has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontLoaderFlags";
+                    assert(it.offset_in_bytes == 104, "ImFontConfig.FontLoaderFlags has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.FontLoaderFlags has unexpected size % instead of 4", it.type.runtime_size);
+                case "RasterizerMultiply";
+                    assert(it.offset_in_bytes == 108, "ImFontConfig.RasterizerMultiply has unexpected offset % instead of 108", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.RasterizerMultiply has unexpected size % instead of 4", it.type.runtime_size);
+                case "RasterizerDensity";
+                    assert(it.offset_in_bytes == 112, "ImFontConfig.RasterizerDensity has unexpected offset % instead of 112", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.RasterizerDensity has unexpected size % instead of 4", it.type.runtime_size);
+                case "ExtraSizeScale";
+                    assert(it.offset_in_bytes == 116, "ImFontConfig.ExtraSizeScale has unexpected offset % instead of 116", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.ExtraSizeScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 120, "ImFontConfig.Flags has unexpected offset % instead of 120", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontConfig.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "DstFont";
+                    assert(it.offset_in_bytes == 128, "ImFontConfig.DstFont has unexpected offset % instead of 128", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.DstFont has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoader";
+                    assert(it.offset_in_bytes == 136, "ImFontConfig.FontLoader has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.FontLoader has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoaderData";
+                    assert(it.offset_in_bytes == 144, "ImFontConfig.FontLoaderData has unexpected offset % instead of 144", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontConfig.FontLoaderData has unexpected size % instead of 8", it.type.runtime_size);
+                case "PixelSnapV";
+                    assert(it.offset_in_bytes == 152, "ImFontConfig.PixelSnapV has unexpected offset % instead of 152", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontConfig.PixelSnapV has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFontConfig) == 160, "ImFontConfig has size % instead of 160", size_of(ImFontConfig));
+    }
+
+    {
+        info := type_info(ImFontGlyph);
+        for info.members {
+            if it.name == {
+                case "__bitfield";
+                    assert(it.offset_in_bytes == 0, "ImFontGlyph.__bitfield has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.__bitfield has unexpected size % instead of 4", it.type.runtime_size);
+                case "AdvanceX";
+                    assert(it.offset_in_bytes == 4, "ImFontGlyph.AdvanceX has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.AdvanceX has unexpected size % instead of 4", it.type.runtime_size);
+                case "X0";
+                    assert(it.offset_in_bytes == 8, "ImFontGlyph.X0 has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.X0 has unexpected size % instead of 4", it.type.runtime_size);
+                case "Y0";
+                    assert(it.offset_in_bytes == 12, "ImFontGlyph.Y0 has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.Y0 has unexpected size % instead of 4", it.type.runtime_size);
+                case "X1";
+                    assert(it.offset_in_bytes == 16, "ImFontGlyph.X1 has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.X1 has unexpected size % instead of 4", it.type.runtime_size);
+                case "Y1";
+                    assert(it.offset_in_bytes == 20, "ImFontGlyph.Y1 has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.Y1 has unexpected size % instead of 4", it.type.runtime_size);
+                case "U0";
+                    assert(it.offset_in_bytes == 24, "ImFontGlyph.U0 has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.U0 has unexpected size % instead of 4", it.type.runtime_size);
+                case "V0";
+                    assert(it.offset_in_bytes == 28, "ImFontGlyph.V0 has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.V0 has unexpected size % instead of 4", it.type.runtime_size);
+                case "U1";
+                    assert(it.offset_in_bytes == 32, "ImFontGlyph.U1 has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.U1 has unexpected size % instead of 4", it.type.runtime_size);
+                case "V1";
+                    assert(it.offset_in_bytes == 36, "ImFontGlyph.V1 has unexpected offset % instead of 36", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.V1 has unexpected size % instead of 4", it.type.runtime_size);
+                case "PackId";
+                    assert(it.offset_in_bytes == 40, "ImFontGlyph.PackId has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontGlyph.PackId has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFontGlyph) == 44, "ImFontGlyph has size % instead of 44", size_of(ImFontGlyph));
+    }
+
+    {
+        info := type_info(ImFontGlyphRangesBuilder);
+        for info.members {
+            if it.name == {
+                case "UsedChars";
+                    assert(it.offset_in_bytes == 0, "ImFontGlyphRangesBuilder.UsedChars has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontGlyphRangesBuilder.UsedChars has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFontGlyphRangesBuilder) == 16, "ImFontGlyphRangesBuilder has size % instead of 16", size_of(ImFontGlyphRangesBuilder));
+    }
+
+    {
+        info := type_info(ImFontAtlasRect);
+        for info.members {
+            if it.name == {
+                case "x";
+                    assert(it.offset_in_bytes == 0, "ImFontAtlasRect.x has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.x has unexpected size % instead of 2", it.type.runtime_size);
+                case "y";
+                    assert(it.offset_in_bytes == 2, "ImFontAtlasRect.y has unexpected offset % instead of 2", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.y has unexpected size % instead of 2", it.type.runtime_size);
+                case "w";
+                    assert(it.offset_in_bytes == 4, "ImFontAtlasRect.w has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.w has unexpected size % instead of 2", it.type.runtime_size);
+                case "h";
+                    assert(it.offset_in_bytes == 6, "ImFontAtlasRect.h has unexpected offset % instead of 6", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.h has unexpected size % instead of 2", it.type.runtime_size);
+                case "uv0";
+                    assert(it.offset_in_bytes == 8, "ImFontAtlasRect.uv0 has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlasRect.uv0 has unexpected size % instead of 8", it.type.runtime_size);
+                case "uv1";
+                    assert(it.offset_in_bytes == 16, "ImFontAtlasRect.uv1 has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlasRect.uv1 has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFontAtlasRect) == 24, "ImFontAtlasRect has size % instead of 24", size_of(ImFontAtlasRect));
+    }
+
+    {
+        info := type_info(ImFontAtlas);
+        for info.members {
+            if it.name == {
+                case "Flags";
+                    assert(it.offset_in_bytes == 0, "ImFontAtlas.Flags has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "TexDesiredFormat";
+                    assert(it.offset_in_bytes == 4, "ImFontAtlas.TexDesiredFormat has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexDesiredFormat has unexpected size % instead of 4", it.type.runtime_size);
+                case "TexGlyphPadding";
+                    assert(it.offset_in_bytes == 8, "ImFontAtlas.TexGlyphPadding has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexGlyphPadding has unexpected size % instead of 4", it.type.runtime_size);
+                case "TexMinWidth";
+                    assert(it.offset_in_bytes == 12, "ImFontAtlas.TexMinWidth has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMinWidth has unexpected size % instead of 4", it.type.runtime_size);
+                case "TexMinHeight";
+                    assert(it.offset_in_bytes == 16, "ImFontAtlas.TexMinHeight has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMinHeight has unexpected size % instead of 4", it.type.runtime_size);
+                case "TexMaxWidth";
+                    assert(it.offset_in_bytes == 20, "ImFontAtlas.TexMaxWidth has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMaxWidth has unexpected size % instead of 4", it.type.runtime_size);
+                case "TexMaxHeight";
+                    assert(it.offset_in_bytes == 24, "ImFontAtlas.TexMaxHeight has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMaxHeight has unexpected size % instead of 4", it.type.runtime_size);
+                case "UserData";
+                    assert(it.offset_in_bytes == 32, "ImFontAtlas.UserData has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.UserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "TexData";
+                    assert(it.offset_in_bytes == 56, "ImFontAtlas.TexData has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.TexData has unexpected size % instead of 8", it.type.runtime_size);
+                case "TexList";
+                    assert(it.offset_in_bytes == 64, "ImFontAtlas.TexList has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontAtlas.TexList has unexpected size % instead of 16", it.type.runtime_size);
+                case "Locked";
+                    assert(it.offset_in_bytes == 80, "ImFontAtlas.Locked has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontAtlas.Locked has unexpected size % instead of 1", it.type.runtime_size);
+                case "RendererHasTextures";
+                    assert(it.offset_in_bytes == 81, "ImFontAtlas.RendererHasTextures has unexpected offset % instead of 81", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontAtlas.RendererHasTextures has unexpected size % instead of 1", it.type.runtime_size);
+                case "TexIsBuilt";
+                    assert(it.offset_in_bytes == 82, "ImFontAtlas.TexIsBuilt has unexpected offset % instead of 82", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontAtlas.TexIsBuilt has unexpected size % instead of 1", it.type.runtime_size);
+                case "TexPixelsUseColors";
+                    assert(it.offset_in_bytes == 83, "ImFontAtlas.TexPixelsUseColors has unexpected offset % instead of 83", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFontAtlas.TexPixelsUseColors has unexpected size % instead of 1", it.type.runtime_size);
+                case "TexUvScale";
+                    assert(it.offset_in_bytes == 84, "ImFontAtlas.TexUvScale has unexpected offset % instead of 84", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.TexUvScale has unexpected size % instead of 8", it.type.runtime_size);
+                case "TexUvWhitePixel";
+                    assert(it.offset_in_bytes == 92, "ImFontAtlas.TexUvWhitePixel has unexpected offset % instead of 92", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.TexUvWhitePixel has unexpected size % instead of 8", it.type.runtime_size);
+                case "Fonts";
+                    assert(it.offset_in_bytes == 104, "ImFontAtlas.Fonts has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontAtlas.Fonts has unexpected size % instead of 16", it.type.runtime_size);
+                case "Sources";
+                    assert(it.offset_in_bytes == 120, "ImFontAtlas.Sources has unexpected offset % instead of 120", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontAtlas.Sources has unexpected size % instead of 16", it.type.runtime_size);
+                case "TexUvLines";
+                    assert(it.offset_in_bytes == 136, "ImFontAtlas.TexUvLines has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 528, "ImFontAtlas.TexUvLines has unexpected size % instead of 528", it.type.runtime_size);
+                case "TexNextUniqueID";
+                    assert(it.offset_in_bytes == 664, "ImFontAtlas.TexNextUniqueID has unexpected offset % instead of 664", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexNextUniqueID has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontNextUniqueID";
+                    assert(it.offset_in_bytes == 668, "ImFontAtlas.FontNextUniqueID has unexpected offset % instead of 668", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.FontNextUniqueID has unexpected size % instead of 4", it.type.runtime_size);
+                case "DrawListSharedDatas";
+                    assert(it.offset_in_bytes == 672, "ImFontAtlas.DrawListSharedDatas has unexpected offset % instead of 672", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontAtlas.DrawListSharedDatas has unexpected size % instead of 16", it.type.runtime_size);
+                case "Builder";
+                    assert(it.offset_in_bytes == 688, "ImFontAtlas.Builder has unexpected offset % instead of 688", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.Builder has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoader";
+                    assert(it.offset_in_bytes == 696, "ImFontAtlas.FontLoader has unexpected offset % instead of 696", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.FontLoader has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoaderName";
+                    assert(it.offset_in_bytes == 704, "ImFontAtlas.FontLoaderName has unexpected offset % instead of 704", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.FontLoaderName has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoaderData";
+                    assert(it.offset_in_bytes == 712, "ImFontAtlas.FontLoaderData has unexpected offset % instead of 712", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.FontLoaderData has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoaderFlags";
+                    assert(it.offset_in_bytes == 720, "ImFontAtlas.FontLoaderFlags has unexpected offset % instead of 720", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.FontLoaderFlags has unexpected size % instead of 4", it.type.runtime_size);
+                case "RefCount";
+                    assert(it.offset_in_bytes == 724, "ImFontAtlas.RefCount has unexpected offset % instead of 724", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontAtlas.RefCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "OwnerContext";
+                    assert(it.offset_in_bytes == 728, "ImFontAtlas.OwnerContext has unexpected offset % instead of 728", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontAtlas.OwnerContext has unexpected size % instead of 8", it.type.runtime_size);
+                case "TempRect";
+                    assert(it.offset_in_bytes == 736, "ImFontAtlas.TempRect has unexpected offset % instead of 736", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 24, "ImFontAtlas.TempRect has unexpected size % instead of 24", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFontAtlas) == 760, "ImFontAtlas has size % instead of 760", size_of(ImFontAtlas));
+    }
+
+    {
+        info := type_info(ImFontBaked);
+        for info.members {
+            if it.name == {
+                case "IndexAdvanceX";
+                    assert(it.offset_in_bytes == 0, "ImFontBaked.IndexAdvanceX has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontBaked.IndexAdvanceX has unexpected size % instead of 16", it.type.runtime_size);
+                case "FallbackAdvanceX";
+                    assert(it.offset_in_bytes == 16, "ImFontBaked.FallbackAdvanceX has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.FallbackAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
+                case "Size";
+                    assert(it.offset_in_bytes == 20, "ImFontBaked.Size has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.Size has unexpected size % instead of 4", it.type.runtime_size);
+                case "RasterizerDensity";
+                    assert(it.offset_in_bytes == 24, "ImFontBaked.RasterizerDensity has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.RasterizerDensity has unexpected size % instead of 4", it.type.runtime_size);
+                case "IndexLookup";
+                    assert(it.offset_in_bytes == 32, "ImFontBaked.IndexLookup has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontBaked.IndexLookup has unexpected size % instead of 16", it.type.runtime_size);
+                case "Glyphs";
+                    assert(it.offset_in_bytes == 48, "ImFontBaked.Glyphs has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFontBaked.Glyphs has unexpected size % instead of 16", it.type.runtime_size);
+                case "FallbackGlyphIndex";
+                    assert(it.offset_in_bytes == 64, "ImFontBaked.FallbackGlyphIndex has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.FallbackGlyphIndex has unexpected size % instead of 4", it.type.runtime_size);
+                case "Ascent";
+                    assert(it.offset_in_bytes == 68, "ImFontBaked.Ascent has unexpected offset % instead of 68", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.Ascent has unexpected size % instead of 4", it.type.runtime_size);
+                case "Descent";
+                    assert(it.offset_in_bytes == 72, "ImFontBaked.Descent has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.Descent has unexpected size % instead of 4", it.type.runtime_size);
+                case "__bitfield";
+                    assert(it.offset_in_bytes == 76, "ImFontBaked.__bitfield has unexpected offset % instead of 76", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.__bitfield has unexpected size % instead of 4", it.type.runtime_size);
+                case "LastUsedFrame";
+                    assert(it.offset_in_bytes == 80, "ImFontBaked.LastUsedFrame has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.LastUsedFrame has unexpected size % instead of 4", it.type.runtime_size);
+                case "BakedId";
+                    assert(it.offset_in_bytes == 84, "ImFontBaked.BakedId has unexpected offset % instead of 84", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFontBaked.BakedId has unexpected size % instead of 4", it.type.runtime_size);
+                case "OwnerFont";
+                    assert(it.offset_in_bytes == 88, "ImFontBaked.OwnerFont has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontBaked.OwnerFont has unexpected size % instead of 8", it.type.runtime_size);
+                case "FontLoaderDatas";
+                    assert(it.offset_in_bytes == 96, "ImFontBaked.FontLoaderDatas has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFontBaked.FontLoaderDatas has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFontBaked) == 104, "ImFontBaked has size % instead of 104", size_of(ImFontBaked));
+    }
+
+    {
+        info := type_info(ImFont);
+        for info.members {
+            if it.name == {
+                case "LastBaked";
+                    assert(it.offset_in_bytes == 0, "ImFont.LastBaked has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFont.LastBaked has unexpected size % instead of 8", it.type.runtime_size);
+                case "OwnerAtlas";
+                    assert(it.offset_in_bytes == 8, "ImFont.OwnerAtlas has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImFont.OwnerAtlas has unexpected size % instead of 8", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 16, "ImFont.Flags has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFont.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "CurrentRasterizerDensity";
+                    assert(it.offset_in_bytes == 20, "ImFont.CurrentRasterizerDensity has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFont.CurrentRasterizerDensity has unexpected size % instead of 4", it.type.runtime_size);
+                case "FontId";
+                    assert(it.offset_in_bytes == 24, "ImFont.FontId has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFont.FontId has unexpected size % instead of 4", it.type.runtime_size);
+                case "LegacySize";
+                    assert(it.offset_in_bytes == 28, "ImFont.LegacySize has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFont.LegacySize has unexpected size % instead of 4", it.type.runtime_size);
+                case "Sources";
+                    assert(it.offset_in_bytes == 32, "ImFont.Sources has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFont.Sources has unexpected size % instead of 16", it.type.runtime_size);
+                case "EllipsisChar";
+                    assert(it.offset_in_bytes == 48, "ImFont.EllipsisChar has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFont.EllipsisChar has unexpected size % instead of 2", it.type.runtime_size);
+                case "FallbackChar";
+                    assert(it.offset_in_bytes == 50, "ImFont.FallbackChar has unexpected offset % instead of 50", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "ImFont.FallbackChar has unexpected size % instead of 2", it.type.runtime_size);
+                case "Used8kPagesMap";
+                    assert(it.offset_in_bytes == 52, "ImFont.Used8kPagesMap has unexpected offset % instead of 52", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFont.Used8kPagesMap has unexpected size % instead of 1", it.type.runtime_size);
+                case "EllipsisAutoBake";
+                    assert(it.offset_in_bytes == 53, "ImFont.EllipsisAutoBake has unexpected offset % instead of 53", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImFont.EllipsisAutoBake has unexpected size % instead of 1", it.type.runtime_size);
+                case "RemapPairs";
+                    assert(it.offset_in_bytes == 56, "ImFont.RemapPairs has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImFont.RemapPairs has unexpected size % instead of 16", it.type.runtime_size);
+                case "Scale";
+                    assert(it.offset_in_bytes == 72, "ImFont.Scale has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImFont.Scale has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImFont) == 80, "ImFont has size % instead of 80", size_of(ImFont));
+    }
+
+    {
+        info := type_info(Viewport);
+        for info.members {
+            if it.name == {
+                case "ID_";
+                    assert(it.offset_in_bytes == 0, "Viewport.ID_ has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Viewport.ID_ has unexpected size % instead of 4", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 4, "Viewport.Flags has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Viewport.Flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "Pos";
+                    assert(it.offset_in_bytes == 8, "Viewport.Pos has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.Pos has unexpected size % instead of 8", it.type.runtime_size);
+                case "Size";
+                    assert(it.offset_in_bytes == 16, "Viewport.Size has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.Size has unexpected size % instead of 8", it.type.runtime_size);
+                case "FramebufferScale";
+                    assert(it.offset_in_bytes == 24, "Viewport.FramebufferScale has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.FramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
+                case "WorkPos";
+                    assert(it.offset_in_bytes == 32, "Viewport.WorkPos has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.WorkPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "WorkSize";
+                    assert(it.offset_in_bytes == 40, "Viewport.WorkSize has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.WorkSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "DpiScale";
+                    assert(it.offset_in_bytes == 48, "Viewport.DpiScale has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Viewport.DpiScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "ParentViewportId";
+                    assert(it.offset_in_bytes == 52, "Viewport.ParentViewportId has unexpected offset % instead of 52", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "Viewport.ParentViewportId has unexpected size % instead of 4", it.type.runtime_size);
+                case "ParentViewport";
+                    assert(it.offset_in_bytes == 56, "Viewport.ParentViewport has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.ParentViewport has unexpected size % instead of 8", it.type.runtime_size);
+                case "DrawData";
+                    assert(it.offset_in_bytes == 64, "Viewport.DrawData has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.DrawData has unexpected size % instead of 8", it.type.runtime_size);
+                case "RendererUserData";
+                    assert(it.offset_in_bytes == 72, "Viewport.RendererUserData has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.RendererUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlatformUserData";
+                    assert(it.offset_in_bytes == 80, "Viewport.PlatformUserData has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.PlatformUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlatformIconData";
+                    assert(it.offset_in_bytes == 88, "Viewport.PlatformIconData has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.PlatformIconData has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlatformHandle";
+                    assert(it.offset_in_bytes == 96, "Viewport.PlatformHandle has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.PlatformHandle has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlatformHandleRaw";
+                    assert(it.offset_in_bytes == 104, "Viewport.PlatformHandleRaw has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "Viewport.PlatformHandleRaw has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlatformWindowCreated";
+                    assert(it.offset_in_bytes == 112, "Viewport.PlatformWindowCreated has unexpected offset % instead of 112", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Viewport.PlatformWindowCreated has unexpected size % instead of 1", it.type.runtime_size);
+                case "PlatformRequestMove";
+                    assert(it.offset_in_bytes == 113, "Viewport.PlatformRequestMove has unexpected offset % instead of 113", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Viewport.PlatformRequestMove has unexpected size % instead of 1", it.type.runtime_size);
+                case "PlatformRequestResize";
+                    assert(it.offset_in_bytes == 114, "Viewport.PlatformRequestResize has unexpected offset % instead of 114", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Viewport.PlatformRequestResize has unexpected size % instead of 1", it.type.runtime_size);
+                case "PlatformRequestClose";
+                    assert(it.offset_in_bytes == 115, "Viewport.PlatformRequestClose has unexpected offset % instead of 115", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "Viewport.PlatformRequestClose has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(Viewport) == 120, "Viewport has size % instead of 120", size_of(Viewport));
+    }
+
+    {
+        info := type_info(PlatformIO);
+        for info.members {
+            if it.name == {
+                case "Platform_GetClipboardTextFn";
+                    assert(it.offset_in_bytes == 0, "PlatformIO.Platform_GetClipboardTextFn has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetClipboardTextFn";
+                    assert(it.offset_in_bytes == 8, "PlatformIO.Platform_SetClipboardTextFn has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_ClipboardUserData";
+                    assert(it.offset_in_bytes == 16, "PlatformIO.Platform_ClipboardUserData has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_ClipboardUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_OpenInShellFn";
+                    assert(it.offset_in_bytes == 24, "PlatformIO.Platform_OpenInShellFn has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_OpenInShellFn has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_OpenInShellUserData";
+                    assert(it.offset_in_bytes == 32, "PlatformIO.Platform_OpenInShellUserData has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_OpenInShellUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetImeDataFn";
+                    assert(it.offset_in_bytes == 40, "PlatformIO.Platform_SetImeDataFn has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetImeDataFn has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_ImeUserData";
+                    assert(it.offset_in_bytes == 48, "PlatformIO.Platform_ImeUserData has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_ImeUserData has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_LocaleDecimalPoint";
+                    assert(it.offset_in_bytes == 56, "PlatformIO.Platform_LocaleDecimalPoint has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "PlatformIO.Platform_LocaleDecimalPoint has unexpected size % instead of 2", it.type.runtime_size);
+                case "Renderer_TextureMaxWidth";
+                    assert(it.offset_in_bytes == 60, "PlatformIO.Renderer_TextureMaxWidth has unexpected offset % instead of 60", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "PlatformIO.Renderer_TextureMaxWidth has unexpected size % instead of 4", it.type.runtime_size);
+                case "Renderer_TextureMaxHeight";
+                    assert(it.offset_in_bytes == 64, "PlatformIO.Renderer_TextureMaxHeight has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "PlatformIO.Renderer_TextureMaxHeight has unexpected size % instead of 4", it.type.runtime_size);
+                case "Renderer_RenderState";
+                    assert(it.offset_in_bytes == 72, "PlatformIO.Renderer_RenderState has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_RenderState has unexpected size % instead of 8", it.type.runtime_size);
+                case "DrawCallback_ResetRenderState";
+                    assert(it.offset_in_bytes == 80, "PlatformIO.DrawCallback_ResetRenderState has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.DrawCallback_ResetRenderState has unexpected size % instead of 8", it.type.runtime_size);
+                case "DrawCallback_SetSamplerLinear";
+                    assert(it.offset_in_bytes == 88, "PlatformIO.DrawCallback_SetSamplerLinear has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.DrawCallback_SetSamplerLinear has unexpected size % instead of 8", it.type.runtime_size);
+                case "DrawCallback_SetSamplerNearest";
+                    assert(it.offset_in_bytes == 96, "PlatformIO.DrawCallback_SetSamplerNearest has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.DrawCallback_SetSamplerNearest has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_CreateWindow";
+                    assert(it.offset_in_bytes == 104, "PlatformIO.Platform_CreateWindow has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_CreateWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_DestroyWindow";
+                    assert(it.offset_in_bytes == 112, "PlatformIO.Platform_DestroyWindow has unexpected offset % instead of 112", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_DestroyWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_ShowWindow";
+                    assert(it.offset_in_bytes == 120, "PlatformIO.Platform_ShowWindow has unexpected offset % instead of 120", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_ShowWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetWindowPos";
+                    assert(it.offset_in_bytes == 128, "PlatformIO.Platform_SetWindowPos has unexpected offset % instead of 128", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowPos";
+                    assert(it.offset_in_bytes == 136, "PlatformIO.Platform_GetWindowPos has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetWindowSize";
+                    assert(it.offset_in_bytes == 144, "PlatformIO.Platform_SetWindowSize has unexpected offset % instead of 144", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowSize";
+                    assert(it.offset_in_bytes == 152, "PlatformIO.Platform_GetWindowSize has unexpected offset % instead of 152", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowFramebufferScale";
+                    assert(it.offset_in_bytes == 160, "PlatformIO.Platform_GetWindowFramebufferScale has unexpected offset % instead of 160", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowFramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetWindowFocus";
+                    assert(it.offset_in_bytes == 168, "PlatformIO.Platform_SetWindowFocus has unexpected offset % instead of 168", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowFocus has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowFocus";
+                    assert(it.offset_in_bytes == 176, "PlatformIO.Platform_GetWindowFocus has unexpected offset % instead of 176", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowFocus has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowMinimized";
+                    assert(it.offset_in_bytes == 184, "PlatformIO.Platform_GetWindowMinimized has unexpected offset % instead of 184", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowMinimized has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetWindowTitle";
+                    assert(it.offset_in_bytes == 192, "PlatformIO.Platform_SetWindowTitle has unexpected offset % instead of 192", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowTitle has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SetWindowAlpha";
+                    assert(it.offset_in_bytes == 200, "PlatformIO.Platform_SetWindowAlpha has unexpected offset % instead of 200", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowAlpha has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_UpdateWindow";
+                    assert(it.offset_in_bytes == 208, "PlatformIO.Platform_UpdateWindow has unexpected offset % instead of 208", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_UpdateWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_RenderWindow";
+                    assert(it.offset_in_bytes == 216, "PlatformIO.Platform_RenderWindow has unexpected offset % instead of 216", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_RenderWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_SwapBuffers";
+                    assert(it.offset_in_bytes == 224, "PlatformIO.Platform_SwapBuffers has unexpected offset % instead of 224", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SwapBuffers has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowDpiScale";
+                    assert(it.offset_in_bytes == 232, "PlatformIO.Platform_GetWindowDpiScale has unexpected offset % instead of 232", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowDpiScale has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_OnChangedViewport";
+                    assert(it.offset_in_bytes == 240, "PlatformIO.Platform_OnChangedViewport has unexpected offset % instead of 240", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_OnChangedViewport has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_GetWindowWorkAreaInsets";
+                    assert(it.offset_in_bytes == 248, "PlatformIO.Platform_GetWindowWorkAreaInsets has unexpected offset % instead of 248", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowWorkAreaInsets has unexpected size % instead of 8", it.type.runtime_size);
+                case "Platform_CreateVkSurface";
+                    assert(it.offset_in_bytes == 256, "PlatformIO.Platform_CreateVkSurface has unexpected offset % instead of 256", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_CreateVkSurface has unexpected size % instead of 8", it.type.runtime_size);
+                case "Renderer_CreateWindow";
+                    assert(it.offset_in_bytes == 264, "PlatformIO.Renderer_CreateWindow has unexpected offset % instead of 264", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_CreateWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Renderer_DestroyWindow";
+                    assert(it.offset_in_bytes == 272, "PlatformIO.Renderer_DestroyWindow has unexpected offset % instead of 272", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_DestroyWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Renderer_SetWindowSize";
+                    assert(it.offset_in_bytes == 280, "PlatformIO.Renderer_SetWindowSize has unexpected offset % instead of 280", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_SetWindowSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "Renderer_RenderWindow";
+                    assert(it.offset_in_bytes == 288, "PlatformIO.Renderer_RenderWindow has unexpected offset % instead of 288", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_RenderWindow has unexpected size % instead of 8", it.type.runtime_size);
+                case "Renderer_SwapBuffers";
+                    assert(it.offset_in_bytes == 296, "PlatformIO.Renderer_SwapBuffers has unexpected offset % instead of 296", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_SwapBuffers has unexpected size % instead of 8", it.type.runtime_size);
+                case "Monitors";
+                    assert(it.offset_in_bytes == 304, "PlatformIO.Monitors has unexpected offset % instead of 304", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "PlatformIO.Monitors has unexpected size % instead of 16", it.type.runtime_size);
+                case "Textures";
+                    assert(it.offset_in_bytes == 320, "PlatformIO.Textures has unexpected offset % instead of 320", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "PlatformIO.Textures has unexpected size % instead of 16", it.type.runtime_size);
+                case "Viewports";
+                    assert(it.offset_in_bytes == 336, "PlatformIO.Viewports has unexpected offset % instead of 336", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "PlatformIO.Viewports has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(PlatformIO) == 352, "PlatformIO has size % instead of 352", size_of(PlatformIO));
+    }
+
+    {
+        info := type_info(PlatformMonitor);
+        for info.members {
+            if it.name == {
+                case "MainPos";
+                    assert(it.offset_in_bytes == 0, "PlatformMonitor.MainPos has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformMonitor.MainPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "MainSize";
+                    assert(it.offset_in_bytes == 8, "PlatformMonitor.MainSize has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformMonitor.MainSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "WorkPos";
+                    assert(it.offset_in_bytes == 16, "PlatformMonitor.WorkPos has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformMonitor.WorkPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "WorkSize";
+                    assert(it.offset_in_bytes == 24, "PlatformMonitor.WorkSize has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformMonitor.WorkSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "DpiScale";
+                    assert(it.offset_in_bytes == 32, "PlatformMonitor.DpiScale has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "PlatformMonitor.DpiScale has unexpected size % instead of 4", it.type.runtime_size);
+                case "PlatformHandle";
+                    assert(it.offset_in_bytes == 40, "PlatformMonitor.PlatformHandle has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformMonitor.PlatformHandle has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(PlatformMonitor) == 48, "PlatformMonitor has size % instead of 48", size_of(PlatformMonitor));
+    }
+
+    {
+        info := type_info(PlatformImeData);
+        for info.members {
+            if it.name == {
+                case "WantVisible";
+                    assert(it.offset_in_bytes == 0, "PlatformImeData.WantVisible has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "PlatformImeData.WantVisible has unexpected size % instead of 1", it.type.runtime_size);
+                case "WantTextInput";
+                    assert(it.offset_in_bytes == 1, "PlatformImeData.WantTextInput has unexpected offset % instead of 1", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "PlatformImeData.WantTextInput has unexpected size % instead of 1", it.type.runtime_size);
+                case "InputPos";
+                    assert(it.offset_in_bytes == 4, "PlatformImeData.InputPos has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PlatformImeData.InputPos has unexpected size % instead of 8", it.type.runtime_size);
+                case "InputLineHeight";
+                    assert(it.offset_in_bytes == 12, "PlatformImeData.InputLineHeight has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "PlatformImeData.InputLineHeight has unexpected size % instead of 4", it.type.runtime_size);
+                case "ViewportId";
+                    assert(it.offset_in_bytes == 16, "PlatformImeData.ViewportId has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "PlatformImeData.ViewportId has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(PlatformImeData) == 20, "PlatformImeData has size % instead of 20", size_of(PlatformImeData));
+    }
+
+    {
+        info := type_info(ImPlotSpec);
+        for info.members {
+            if it.name == {
+                case "LineColor";
+                    assert(it.offset_in_bytes == 0, "ImPlotSpec.LineColor has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImPlotSpec.LineColor has unexpected size % instead of 16", it.type.runtime_size);
+                case "LineColors";
+                    assert(it.offset_in_bytes == 16, "ImPlotSpec.LineColors has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotSpec.LineColors has unexpected size % instead of 8", it.type.runtime_size);
+                case "LineWeight";
+                    assert(it.offset_in_bytes == 24, "ImPlotSpec.LineWeight has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.LineWeight has unexpected size % instead of 4", it.type.runtime_size);
+                case "FillColor";
+                    assert(it.offset_in_bytes == 28, "ImPlotSpec.FillColor has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImPlotSpec.FillColor has unexpected size % instead of 16", it.type.runtime_size);
+                case "FillColors";
+                    assert(it.offset_in_bytes == 48, "ImPlotSpec.FillColors has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotSpec.FillColors has unexpected size % instead of 8", it.type.runtime_size);
+                case "FillAlpha";
+                    assert(it.offset_in_bytes == 56, "ImPlotSpec.FillAlpha has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.FillAlpha has unexpected size % instead of 4", it.type.runtime_size);
+                case "Marker";
+                    assert(it.offset_in_bytes == 60, "ImPlotSpec.Marker has unexpected offset % instead of 60", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.Marker has unexpected size % instead of 4", it.type.runtime_size);
+                case "MarkerSize";
+                    assert(it.offset_in_bytes == 64, "ImPlotSpec.MarkerSize has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.MarkerSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "MarkerSizes";
+                    assert(it.offset_in_bytes == 72, "ImPlotSpec.MarkerSizes has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotSpec.MarkerSizes has unexpected size % instead of 8", it.type.runtime_size);
+                case "MarkerLineColor";
+                    assert(it.offset_in_bytes == 80, "ImPlotSpec.MarkerLineColor has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImPlotSpec.MarkerLineColor has unexpected size % instead of 16", it.type.runtime_size);
+                case "MarkerLineColors";
+                    assert(it.offset_in_bytes == 96, "ImPlotSpec.MarkerLineColors has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotSpec.MarkerLineColors has unexpected size % instead of 8", it.type.runtime_size);
+                case "MarkerFillColor";
+                    assert(it.offset_in_bytes == 104, "ImPlotSpec.MarkerFillColor has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImPlotSpec.MarkerFillColor has unexpected size % instead of 16", it.type.runtime_size);
+                case "MarkerFillColors";
+                    assert(it.offset_in_bytes == 120, "ImPlotSpec.MarkerFillColors has unexpected offset % instead of 120", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotSpec.MarkerFillColors has unexpected size % instead of 8", it.type.runtime_size);
+                case "Size";
+                    assert(it.offset_in_bytes == 128, "ImPlotSpec.Size has unexpected offset % instead of 128", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.Size has unexpected size % instead of 4", it.type.runtime_size);
+                case "Offset";
+                    assert(it.offset_in_bytes == 132, "ImPlotSpec.Offset has unexpected offset % instead of 132", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.Offset has unexpected size % instead of 4", it.type.runtime_size);
+                case "Stride";
+                    assert(it.offset_in_bytes == 136, "ImPlotSpec.Stride has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.Stride has unexpected size % instead of 4", it.type.runtime_size);
+                case "Flags";
+                    assert(it.offset_in_bytes == 140, "ImPlotSpec.Flags has unexpected offset % instead of 140", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotSpec.Flags has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImPlotSpec) == 144, "ImPlotSpec has size % instead of 144", size_of(ImPlotSpec));
+    }
+
+    {
+        info := type_info(ImPlotPoint);
+        for info.members {
+            if it.name == {
+                case "x";
+                    assert(it.offset_in_bytes == 0, "ImPlotPoint.x has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotPoint.x has unexpected size % instead of 8", it.type.runtime_size);
+                case "y";
+                    assert(it.offset_in_bytes == 8, "ImPlotPoint.y has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotPoint.y has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImPlotPoint) == 16, "ImPlotPoint has size % instead of 16", size_of(ImPlotPoint));
+    }
+
+    {
+        info := type_info(ImPlotRange);
+        for info.members {
+            if it.name == {
+                case "Min";
+                    assert(it.offset_in_bytes == 0, "ImPlotRange.Min has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotRange.Min has unexpected size % instead of 8", it.type.runtime_size);
+                case "Max";
+                    assert(it.offset_in_bytes == 8, "ImPlotRange.Max has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotRange.Max has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImPlotRange) == 16, "ImPlotRange has size % instead of 16", size_of(ImPlotRange));
+    }
+
+    {
+        info := type_info(ImPlotRect);
+        for info.members {
+            if it.name == {
+                case "X";
+                    assert(it.offset_in_bytes == 0, "ImPlotRect.X has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImPlotRect.X has unexpected size % instead of 16", it.type.runtime_size);
+                case "Y";
+                    assert(it.offset_in_bytes == 16, "ImPlotRect.Y has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 16, "ImPlotRect.Y has unexpected size % instead of 16", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImPlotRect) == 32, "ImPlotRect has size % instead of 32", size_of(ImPlotRect));
+    }
+
+    {
+        info := type_info(ImPlotStyle);
+        for info.members {
+            if it.name == {
+                case "PlotDefaultSize";
+                    assert(it.offset_in_bytes == 0, "ImPlotStyle.PlotDefaultSize has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.PlotDefaultSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlotMinSize";
+                    assert(it.offset_in_bytes == 8, "ImPlotStyle.PlotMinSize has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.PlotMinSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlotBorderSize";
+                    assert(it.offset_in_bytes == 16, "ImPlotStyle.PlotBorderSize has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotStyle.PlotBorderSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "MinorAlpha";
+                    assert(it.offset_in_bytes == 20, "ImPlotStyle.MinorAlpha has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotStyle.MinorAlpha has unexpected size % instead of 4", it.type.runtime_size);
+                case "MajorTickLen";
+                    assert(it.offset_in_bytes == 24, "ImPlotStyle.MajorTickLen has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MajorTickLen has unexpected size % instead of 8", it.type.runtime_size);
+                case "MinorTickLen";
+                    assert(it.offset_in_bytes == 32, "ImPlotStyle.MinorTickLen has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MinorTickLen has unexpected size % instead of 8", it.type.runtime_size);
+                case "MajorTickSize";
+                    assert(it.offset_in_bytes == 40, "ImPlotStyle.MajorTickSize has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MajorTickSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "MinorTickSize";
+                    assert(it.offset_in_bytes == 48, "ImPlotStyle.MinorTickSize has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MinorTickSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "MajorGridSize";
+                    assert(it.offset_in_bytes == 56, "ImPlotStyle.MajorGridSize has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MajorGridSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "MinorGridSize";
+                    assert(it.offset_in_bytes == 64, "ImPlotStyle.MinorGridSize has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MinorGridSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "PlotPadding";
+                    assert(it.offset_in_bytes == 72, "ImPlotStyle.PlotPadding has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.PlotPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "LabelPadding";
+                    assert(it.offset_in_bytes == 80, "ImPlotStyle.LabelPadding has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.LabelPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "LegendPadding";
+                    assert(it.offset_in_bytes == 88, "ImPlotStyle.LegendPadding has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.LegendPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "LegendInnerPadding";
+                    assert(it.offset_in_bytes == 96, "ImPlotStyle.LegendInnerPadding has unexpected offset % instead of 96", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.LegendInnerPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "LegendSpacing";
+                    assert(it.offset_in_bytes == 104, "ImPlotStyle.LegendSpacing has unexpected offset % instead of 104", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.LegendSpacing has unexpected size % instead of 8", it.type.runtime_size);
+                case "MousePosPadding";
+                    assert(it.offset_in_bytes == 112, "ImPlotStyle.MousePosPadding has unexpected offset % instead of 112", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.MousePosPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "AnnotationPadding";
+                    assert(it.offset_in_bytes == 120, "ImPlotStyle.AnnotationPadding has unexpected offset % instead of 120", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.AnnotationPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "FitPadding";
+                    assert(it.offset_in_bytes == 128, "ImPlotStyle.FitPadding has unexpected offset % instead of 128", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ImPlotStyle.FitPadding has unexpected size % instead of 8", it.type.runtime_size);
+                case "DigitalPadding";
+                    assert(it.offset_in_bytes == 136, "ImPlotStyle.DigitalPadding has unexpected offset % instead of 136", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotStyle.DigitalPadding has unexpected size % instead of 4", it.type.runtime_size);
+                case "DigitalSpacing";
+                    assert(it.offset_in_bytes == 140, "ImPlotStyle.DigitalSpacing has unexpected offset % instead of 140", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotStyle.DigitalSpacing has unexpected size % instead of 4", it.type.runtime_size);
+                case "Colors";
+                    assert(it.offset_in_bytes == 144, "ImPlotStyle.Colors has unexpected offset % instead of 144", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 256, "ImPlotStyle.Colors has unexpected size % instead of 256", it.type.runtime_size);
+                case "Colormap";
+                    assert(it.offset_in_bytes == 400, "ImPlotStyle.Colormap has unexpected offset % instead of 400", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotStyle.Colormap has unexpected size % instead of 4", it.type.runtime_size);
+                case "UseLocalTime";
+                    assert(it.offset_in_bytes == 404, "ImPlotStyle.UseLocalTime has unexpected offset % instead of 404", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImPlotStyle.UseLocalTime has unexpected size % instead of 1", it.type.runtime_size);
+                case "UseISO8601";
+                    assert(it.offset_in_bytes == 405, "ImPlotStyle.UseISO8601 has unexpected offset % instead of 405", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImPlotStyle.UseISO8601 has unexpected size % instead of 1", it.type.runtime_size);
+                case "Use24HourClock";
+                    assert(it.offset_in_bytes == 406, "ImPlotStyle.Use24HourClock has unexpected offset % instead of 406", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "ImPlotStyle.Use24HourClock has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImPlotStyle) == 408, "ImPlotStyle has size % instead of 408", size_of(ImPlotStyle));
+    }
+
+    {
+        info := type_info(ImPlotInputMap);
+        for info.members {
+            if it.name == {
+                case "Pan";
+                    assert(it.offset_in_bytes == 0, "ImPlotInputMap.Pan has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Pan has unexpected size % instead of 4", it.type.runtime_size);
+                case "PanMod";
+                    assert(it.offset_in_bytes == 4, "ImPlotInputMap.PanMod has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.PanMod has unexpected size % instead of 4", it.type.runtime_size);
+                case "Fit";
+                    assert(it.offset_in_bytes == 8, "ImPlotInputMap.Fit has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Fit has unexpected size % instead of 4", it.type.runtime_size);
+                case "Select";
+                    assert(it.offset_in_bytes == 12, "ImPlotInputMap.Select has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Select has unexpected size % instead of 4", it.type.runtime_size);
+                case "SelectCancel";
+                    assert(it.offset_in_bytes == 16, "ImPlotInputMap.SelectCancel has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectCancel has unexpected size % instead of 4", it.type.runtime_size);
+                case "SelectMod";
+                    assert(it.offset_in_bytes == 20, "ImPlotInputMap.SelectMod has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectMod has unexpected size % instead of 4", it.type.runtime_size);
+                case "SelectHorzMod";
+                    assert(it.offset_in_bytes == 24, "ImPlotInputMap.SelectHorzMod has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectHorzMod has unexpected size % instead of 4", it.type.runtime_size);
+                case "SelectVertMod";
+                    assert(it.offset_in_bytes == 28, "ImPlotInputMap.SelectVertMod has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectVertMod has unexpected size % instead of 4", it.type.runtime_size);
+                case "Menu";
+                    assert(it.offset_in_bytes == 32, "ImPlotInputMap.Menu has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Menu has unexpected size % instead of 4", it.type.runtime_size);
+                case "OverrideMod";
+                    assert(it.offset_in_bytes == 36, "ImPlotInputMap.OverrideMod has unexpected offset % instead of 36", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.OverrideMod has unexpected size % instead of 4", it.type.runtime_size);
+                case "ZoomMod";
+                    assert(it.offset_in_bytes == 40, "ImPlotInputMap.ZoomMod has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.ZoomMod has unexpected size % instead of 4", it.type.runtime_size);
+                case "ZoomRate";
+                    assert(it.offset_in_bytes == 44, "ImPlotInputMap.ZoomRate has unexpected offset % instead of 44", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ImPlotInputMap.ZoomRate has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ImPlotInputMap) == 48, "ImPlotInputMap has size % instead of 48", size_of(ImPlotInputMap));
+    }
+}
 
 
 #if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
