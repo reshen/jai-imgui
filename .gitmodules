@@ -11,3 +11,6 @@
 [submodule "src/imgui_club"]
 	path = src/imgui_club
 	url = git@github.com:ocornut/imgui_club.git
+[submodule "src/imguizmo"]
+	path = src/imguizmo
+	url = git@github.com:CedricGuillemet/ImGuizmo.git

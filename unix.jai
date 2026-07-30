@@ -3015,7 +3015,7 @@ KeyData :: struct {
     AnalogValue:      float; // 0.0f..1.0f for gamepad values
 }
 
-IO :: struct {
+IO :: struct #type_info_none {
     ConfigFlags_:                                  ConfigFlags; // = 0              // See ImGuiConfigFlags_ enum. Set by user/application. Keyboard/Gamepad navigation options, etc.
     BackendFlags_:                                 BackendFlags; // = 0              // See ImGuiBackendFlags_ enum. Set by backend (imgui_impl_xxx files or custom backend) to communicate features supported by the backend.
     DisplaySize:                                   ImVec2; // <unset>          // Main display size, in pixels (== GetMainViewport()->Size). May change every frame.

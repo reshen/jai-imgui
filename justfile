@@ -23,6 +23,8 @@ common-build:
     {{jai}} generate.jai - -compile
     {{jai}} generate.jai - -backend_sdl3_only_platform
     sed -i 's/0xffffffff8000000f/0x8000000f/' **/*.jai
+    sed -i 's/^IO :: struct {/IO :: struct #type_info_none {/' **/*.jai
+    # sed -i 's/zmo :: struct {/Guizmo :: struct {/' **/*.jai
     cp ./module.jai ../../forge/modules/imgui/
 
 [windows]
@@ -44,6 +46,9 @@ build: common-build
 
 update-imgui:
     git submodule update --init --recursive --remote
+    cp src/include/implot/implot*.cpp src/imgui/
+    cp src/include/implot/implot*.h src/imgui/
+    cp src/imgui_club/imgui_threaded_rendering/imgui_threaded_rendering.h src/imgui/
     @echo "\n\n------------------------\n"
     @echo "1. Make sure your src/imgui submodule is looking at the correct commit, e.g., git -C src/imgui co v1.92.7-docking\n"
     @echo "2. Run just build\n\n"
