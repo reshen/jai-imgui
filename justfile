@@ -24,7 +24,9 @@ common-build:
     {{jai}} generate.jai - -backend_sdl3_only_platform
     sed -i 's/0xffffffff8000000f/0x8000000f/' **/*.jai
     sed -i 's/^IO :: struct {/IO :: struct #type_info_none {/' **/*.jai
-    # sed -i 's/zmo :: struct {/Guizmo :: struct {/' **/*.jai
+    sed -i 's/^ImGuiContext :: struct {/ImGuiContext :: struct #type_info_none {/' **/*.jai
+    sed -i 's/ImStableVector(ImFontBaked, 32) = 32/ImStableVector(ImFontBaked, 32)/' **/*.jai
+    sed -i 's/-xx Key.NamedKey_BEGIN/-Key.NamedKey_BEGIN.(s32)/' **/*.jai
     cp ./module.jai ../../forge/modules/imgui/
 
 [windows]

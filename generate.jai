@@ -18,8 +18,9 @@ DECLARATIONS_TO_OMIT :: string.[
     "ImDrawCallback",
     "GImGui",
 
-    // Jai has its own, better "String_Builder"
-    "ImGuiTextBuffer",
+    // Jai has its own, better "String_Builder", imgui_threaded_rendering uses this so
+    // leaving it in for now
+    // "ImGuiTextBuffer",
 
     "ImDrawCallback_ResetRenderState", // casting an integer to a function pointer is not supported in Jai.
 ];
@@ -62,8 +63,8 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         array_add(*imgui_src_files, tprint("%/implot_demo.cpp", IMGUI_PATH));
         array_add(*imgui_src_files, tprint("%/ImGuizmo.cpp", IMGUI_PATH));
 
-        // For multi-thread, multi-contexted, added content to imconfig.h and the follwoing:
-        // array_add(*imgui_src_files, tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH));
+        // For multi-threaded context:
+        array_add(*imgui_src_files, tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH));
 
         if !no_demo
             array_add(*imgui_src_files, tprint("%/imgui_demo.cpp", IMGUI_PATH));
@@ -183,14 +184,14 @@ EOF
             tprint("%/imgui.h", IMGUI_PATH),  
             tprint("%/implot.h", IMGUI_PATH),
             tprint("%/ImGuizmo.h", IMGUI_PATH),
-            // tprint("%/imgui_threaded_rendering.h", IMGUI_PATH),  
+            tprint("%/imgui_threaded_rendering.h", IMGUI_PATH),  
         );
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
         array_add(*strip_prefixes, "ImGui");
         auto_detect_enum_prefixes = false;
-        log_stripped_declarations = true;
-        generate_compile_time_struct_checks = true;
+        log_stripped_declarations = false;
+        generate_compile_time_struct_checks = false;
         strip_flags |= .INLINED_FUNCTIONS; // "inline" functions are not present in the static library.
 
         // For some reason generation on macos doesn't find
