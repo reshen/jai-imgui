@@ -16,7 +16,7 @@ ImDrawCallback :: #type (parent_list: *ImDrawList, cmd: *ImDrawCmd) #c_call;
 
 #import "Basic";
 #import "Math";
-#import "sdl3";
+#import "SDL3";
 
 #if OS == .WINDOWS {
     #if DEBUG {

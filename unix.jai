@@ -6,8 +6,8 @@
 
 
 
-IMGUI_VERSION :: "1.92.9b";
-IMGUI_VERSION_NUM :: 19291;
+IMGUI_VERSION :: "1.93.0";
+IMGUI_VERSION_NUM :: 19300;
 
 ImTextureID_Invalid :: cast(ImTextureID) 0;
 
@@ -24,15 +24,74 @@ IM_COL32_B_SHIFT :: 16;
 IM_COL32_A_SHIFT :: 24;
 IM_COL32_A_MASK :: 0xFF000000;
 
-IM_DRAWLIST_TEX_LINES_WIDTH_MAX :: 32;
-
 ImFontAtlasRectId_Invalid :: -1;
 
-IMPLOT_VERSION :: "1.1 WIP";
+IMPLOT_VERSION :: "1.2 WIP";
 
-IMPLOT_VERSION_NUM :: 10100;
+IMPLOT_VERSION_NUM :: 10200;
 
 IMGUIZMO_NAMESPACE :: zmo;
+
+IMGUI_PAYLOAD_TYPE_WINDOW :: "_IMWINDOW";
+
+IM_PI :: 3.14159265358979323846;
+
+IM_NEWLINE :: "\n";
+
+IM_TABSIZE :: 4;
+
+IM_PRId64 :: "lld";
+IM_PRIu64 :: "llu";
+IM_PRIX64 :: "llX";
+
+IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_MIN :: 4;
+IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_MAX :: 512;
+
+IM_DRAWLIST_ARCFAST_TABLE_SIZE :: 48;
+
+IM_DRAWLIST_ARCFAST_SAMPLE_MAX :: IM_DRAWLIST_ARCFAST_TABLE_SIZE;
+
+IM_DRAWLIST_TEX_LINES_WIDTH_MAX :: 32;
+
+IM_DRAWLIST_TEX_LINES_DETAILED_WIDTH :: 4;
+
+IM_DRAWLIST_TEX_LINES_SAMPLE_COUNT :: 4;
+
+IM_DRAWLIST_TEX_CORNERS_ROUNDING_MAX :: 16;
+
+IM_DRAWLIST_TEX_CORNERS_THICKNESS_MAX :: 4;
+
+IM_DRAWLIST_TEX_LINES_DETAILED_WIDTH_COUNT :: (IM_DRAWLIST_TEX_LINES_DETAILED_WIDTH - 1) * IM_DRAWLIST_TEX_LINES_SAMPLE_COUNT + 1;
+
+IMSTB_TEXTEDIT_STRING :: InputTextState;
+
+IMSTB_TEXTEDIT_GETWIDTH_NEWLINE :: -1.0;
+IMSTB_TEXTEDIT_UNDOSTATECOUNT :: 99;
+IMSTB_TEXTEDIT_UNDOCHARCOUNT :: 999;
+
+Key_LegacyNativeKey_BEGIN :: 0;
+Key_LegacyNativeKey_END :: 512;
+
+KeyOwner_Any :: cast(ID) 0;
+KeyOwner_NoOwner :: cast,trunc(ID) -1;
+
+SelectionUserData_Invalid :: cast,trunc(SelectionUserData) -1;
+
+DOCKING_HOST_DRAW_CHANNEL_BG :: 0;
+DOCKING_HOST_DRAW_CHANNEL_FG :: 1;
+
+IMGUI_WINDOW_HARD_MIN_SIZE :: 4.0;
+
+IMGUI_TABLE_MAX_COLUMNS :: 512;
+
+IMGUI_FONT_SIZE_MAX :: 512.0;
+IMGUI_FONT_SIZE_THRESHOLD_FOR_LOADADVANCEXONLYMODE :: 128.0;
+
+ImFontAtlasRectId_IndexMask_ :: 0x0007FFFF;
+ImFontAtlasRectId_GenerationMask_ :: 0x3FF00000;
+ImFontAtlasRectId_GenerationShift_ :: 20;
+
+MyImGuiTLS: *ImGuiContext #elsewhere imgui;
 
 // Scalar data types
 ID :: u32;
@@ -44,15 +103,6 @@ ImS32 :: s32;
 ImU32 :: u32;
 ImS64 :: s64;
 ImU64 :: u64;
-
-ImDrawListSharedData :: struct {}
-
-ImFontAtlasBuilder :: struct {}
-
-ImFontLoader :: struct {}
-
-// Forward declarations: ImGui layer
-ImGuiContext :: struct #type_info_none {}
 
 // Enumerations
 // - We don't use strongly typed enums much because they add constraints (can't extend in private code, can't store typed in bit fields, extra casting on iteration)
@@ -255,9 +305,6 @@ Key :: enum s32 {
     Mod_Super           :: 32768;
     Mod_Mask_           :: 61440;
 
-    COUNT               :: 667;
-    Mod_Shortcut        :: 4096;
-
     ImGuiKey_None                :: None;
     ImGuiKey_NamedKey_BEGIN      :: NamedKey_BEGIN;
 
@@ -429,9 +476,6 @@ Key :: enum s32 {
     ImGuiMod_Alt                 :: Mod_Alt;
     ImGuiMod_Super               :: Mod_Super;
     ImGuiMod_Mask_               :: Mod_Mask_;
-
-    ImGuiKey_COUNT               :: COUNT;
-    ImGuiMod_Shortcut            :: Mod_Shortcut;
 }
 
 // Enumeration for AddMouseSourceEvent() actual source of Mouse Input data.
@@ -460,8 +504,6 @@ SortDirection :: enum ImU8 {
     ImGuiSortDirection_Ascending  :: Ascending;
     ImGuiSortDirection_Descending :: Descending;
 }
-
-ImDrawTextFlags :: s32;
 
 KeyChord :: s32;
 
@@ -1340,7 +1382,7 @@ AcceptDragDropPayload :: (type: *u8, flags: DragDropFlags = .None) -> *Payload #
 EndDragDropTarget :: () -> void #foreign imgui "_ZN5ImGui17EndDragDropTargetEv";
 GetDragDropPayload :: () -> *Payload #foreign imgui "_ZN5ImGui18GetDragDropPayloadEv";
 
-// Disabling [BETA API]
+// Disabling
 // - Disable all user interactions and dim items visuals (applying style.DisabledAlpha over current colors)
 // - Those can be nested but it cannot be used to enable an already disabled section (a single BeginDisabled(true) in the stack is enough to keep everything disabled)
 // - Tooltips windows are automatically opted out of disabling. Note that IsItemHovered() by default returns false on disabled items, unless using ImGuiHoveredFlags_AllowWhenDisabled.
@@ -1550,21 +1592,826 @@ DestroyPlatformWindows :: () -> void #foreign imgui "_ZN5ImGui22DestroyPlatformW
 FindViewportByID :: (viewport_id: ID) -> *Viewport #foreign imgui "_ZN5ImGui16FindViewportByIDEj";
 FindViewportByPlatformHandle :: (platform_handle: *void) -> *Viewport #foreign imgui "_ZN5ImGui28FindViewportByPlatformHandleEPv";
 
-// OBSOLETED in 1.92.9 (from July 2026)
-SetColorEditOptions :: (flags: ColorEditFlags) -> void #foreign imgui "_ZN5ImGui19SetColorEditOptionsEi";
+// Tables: Candidates for public API
+TableOpenContextMenu :: (column_n: s32 = -1) -> void #foreign imgui "_ZN5ImGui20TableOpenContextMenuEi";
+TableSetColumnWidth :: (column_n: s32, width: float) -> void #foreign imgui "_ZN5ImGui19TableSetColumnWidthEif";
+TableSetColumnSortDirection :: (column_n: s32, sort_direction: SortDirection, append_to_sort_specs: bool) -> void #foreign imgui "_ZN5ImGui27TableSetColumnSortDirectionEi18ImGuiSortDirectionb";
+TableGetHoveredRow :: () -> s32 #foreign imgui "_ZN5ImGui18TableGetHoveredRowEv";
+TableGetHeaderRowHeight :: () -> float #foreign imgui "_ZN5ImGui23TableGetHeaderRowHeightEv";
+TableGetHeaderAngledMaxLabelWidth :: () -> float #foreign imgui "_ZN5ImGui33TableGetHeaderAngledMaxLabelWidthEv";
+TablePushBackgroundChannel :: () -> void #foreign imgui "_ZN5ImGui26TablePushBackgroundChannelEv";
+TablePopBackgroundChannel :: () -> void #foreign imgui "_ZN5ImGui25TablePopBackgroundChannelEv";
+TablePushColumnChannel :: (column_n: s32) -> void #foreign imgui "_ZN5ImGui22TablePushColumnChannelEi";
+TablePopColumnChannel :: () -> void #foreign imgui "_ZN5ImGui21TablePopColumnChannelEv";
+TableAngledHeadersRowEx :: (row_id: ID, angle: float, max_label_width: float, data: *TableHeaderData, data_count: s32) -> void #foreign imgui "_ZN5ImGui23TableAngledHeadersRowExEjffPK20ImGuiTableHeaderDatai";
 
-SetWindowFontScale :: (scale: float) -> void #foreign imgui "_ZN5ImGui18SetWindowFontScaleEf";
+TableFindByID :: (id: ID) -> *Table #foreign imgui "_ZN5ImGui13TableFindByIDEj";
+BeginTableEx :: (name: *u8, id: ID, columns_count: s32, flags: TableFlags = .None, outer_size: *ImVec2, inner_width: float = 0.0) -> bool #foreign imgui "_ZN5ImGui12BeginTableExEPKcjiiRK6ImVec2f";
+BeginTableEx :: (name: *u8, id: ID, columns_count: s32, flags: TableFlags = .None, outer_size: ImVec2 = ImVec2.{0, 0}, inner_width: float = 0.0) -> bool #no_context {
+    return BeginTableEx(name, id, columns_count, flags, *outer_size, inner_width);
+}
+TableBeginInitMemory :: (table: *Table, columns_count: s32) -> void #foreign imgui "_ZN5ImGui20TableBeginInitMemoryEP10ImGuiTablei";
+TableApplyQueuedRequests :: (table: *Table) -> void #foreign imgui "_ZN5ImGui24TableApplyQueuedRequestsEP10ImGuiTable";
+TableSetupDrawChannels :: (table: *Table) -> void #foreign imgui "_ZN5ImGui22TableSetupDrawChannelsEP10ImGuiTable";
+TableReconcileColumns :: (table: *Table) -> void #foreign imgui "_ZN5ImGui21TableReconcileColumnsEP10ImGuiTable";
+TableUpdateLayout :: (table: *Table) -> void #foreign imgui "_ZN5ImGui17TableUpdateLayoutEP10ImGuiTable";
+TableUpdateBorders :: (table: *Table) -> void #foreign imgui "_ZN5ImGui18TableUpdateBordersEP10ImGuiTable";
+TableUpdateColumnsWeightFromWidth :: (table: *Table) -> void #foreign imgui "_ZN5ImGui33TableUpdateColumnsWeightFromWidthEP10ImGuiTable";
+TableApplyExternalUnclipRect :: (table: *Table, rect: *ImRect) -> void #foreign imgui "_ZN5ImGui28TableApplyExternalUnclipRectEP10ImGuiTableR6ImRect";
+TableDrawBorders :: (table: *Table) -> void #foreign imgui "_ZN5ImGui16TableDrawBordersEP10ImGuiTable";
+TableDrawDefaultContextMenu :: (table: *Table, flags_for_section_to_display: TableFlags) -> void #foreign imgui "_ZN5ImGui27TableDrawDefaultContextMenuEP10ImGuiTablei";
+TableBeginContextMenuPopup :: (table: *Table) -> bool #foreign imgui "_ZN5ImGui26TableBeginContextMenuPopupEP10ImGuiTable";
+TableMergeDrawChannels :: (table: *Table) -> void #foreign imgui "_ZN5ImGui22TableMergeDrawChannelsEP10ImGuiTable";
 
-// OBSOLETED in 1.91.9 (from February 2025)
-Image :: (tex_ref: ImTextureRef, image_size: *ImVec2, uv0: *ImVec2, uv1: *ImVec2, tint_col: *ImVec4, border_col: *ImVec4) -> void #foreign imgui "_ZN5ImGui5ImageE12ImTextureRefRK6ImVec2S3_S3_RK6ImVec4S6_";
-Image :: (tex_ref: ImTextureRef, image_size: ImVec2, uv0: ImVec2, uv1: ImVec2, tint_col: ImVec4, border_col: ImVec4) #no_context {
-    Image(tex_ref, *image_size, *uv0, *uv1, *tint_col, *border_col);
+TableFixDisplayOrder :: (table: *Table) -> void #foreign imgui "_ZN5ImGui20TableFixDisplayOrderEP10ImGuiTable";
+TableSortSpecsSanitize :: (table: *Table) -> void #foreign imgui "_ZN5ImGui22TableSortSpecsSanitizeEP10ImGuiTable";
+TableSortSpecsBuild :: (table: *Table) -> void #foreign imgui "_ZN5ImGui19TableSortSpecsBuildEP10ImGuiTable";
+TableInitColumnDefaults :: (table: *Table, column: *TableColumn, init_mask: TableColumnFlags) -> void #foreign imgui "_ZN5ImGui23TableInitColumnDefaultsEP10ImGuiTableP16ImGuiTableColumni";
+TableGetColumnNextSortDirection :: (column: *TableColumn) -> SortDirection #foreign imgui "_ZN5ImGui31TableGetColumnNextSortDirectionEP16ImGuiTableColumn";
+TableFixColumnSortDirection :: (table: *Table, column: *TableColumn) -> void #foreign imgui "_ZN5ImGui27TableFixColumnSortDirectionEP10ImGuiTableP16ImGuiTableColumn";
+TableGetColumnWidthAuto :: (table: *Table, column: *TableColumn) -> float #foreign imgui "_ZN5ImGui23TableGetColumnWidthAutoEP10ImGuiTableP16ImGuiTableColumn";
+TableBeginRow :: (table: *Table) -> void #foreign imgui "_ZN5ImGui13TableBeginRowEP10ImGuiTable";
+TableEndRow :: (table: *Table) -> void #foreign imgui "_ZN5ImGui11TableEndRowEP10ImGuiTable";
+TableBeginCell :: (table: *Table, column_n: s32) -> void #foreign imgui "_ZN5ImGui14TableBeginCellEP10ImGuiTablei";
+TableEndCell :: (table: *Table) -> void #foreign imgui "_ZN5ImGui12TableEndCellEP10ImGuiTable";
+TableGetCellBgRect :: (table: *Table, column_n: s32) -> ImRect #foreign imgui "_ZN5ImGui18TableGetCellBgRectEPK10ImGuiTablei";
+TableGetColumnName :: (table: *Table, column_n: s32) -> *u8 #foreign imgui "_ZN5ImGui18TableGetColumnNameEPK10ImGuiTablei";
+TableGetColumnResizeID :: (table: *Table, column_n: s32, instance_no: s32 = 0) -> ID #foreign imgui "_ZN5ImGui22TableGetColumnResizeIDEP10ImGuiTableii";
+TableCalcMaxColumnWidth :: (table: *Table, column_n: s32) -> float #foreign imgui "_ZN5ImGui23TableCalcMaxColumnWidthEPK10ImGuiTablei";
+TableSetColumnWidthAutoSingle :: (table: *Table, column_n: s32) -> void #foreign imgui "_ZN5ImGui29TableSetColumnWidthAutoSingleEP10ImGuiTablei";
+TableSetColumnWidthAutoAll :: (table: *Table) -> void #foreign imgui "_ZN5ImGui26TableSetColumnWidthAutoAllEP10ImGuiTable";
+TableSetColumnDisplayOrder :: (table: *Table, column_n: s32, dst_order: s32) -> void #foreign imgui "_ZN5ImGui26TableSetColumnDisplayOrderEP10ImGuiTableii";
+TableQueueSetColumnDisplayOrder :: (table: *Table, column_n: s32, dst_order: s32) -> void #foreign imgui "_ZN5ImGui31TableQueueSetColumnDisplayOrderEP10ImGuiTableii";
+TableRemove :: (table: *Table) -> void #foreign imgui "_ZN5ImGui11TableRemoveEP10ImGuiTable";
+TableGcCompactTransientBuffers :: (table: *Table) -> void #foreign imgui "_ZN5ImGui30TableGcCompactTransientBuffersEP10ImGuiTable";
+TableGcCompactTransientBuffers :: (table: *TableTempData) -> void #foreign imgui "_ZN5ImGui30TableGcCompactTransientBuffersEP18ImGuiTableTempData";
+TableGcCompactSettings :: () -> void #foreign imgui "_ZN5ImGui22TableGcCompactSettingsEv";
+
+// Tables: Settings
+TableLoadSettings :: (table: *Table) -> void #foreign imgui "_ZN5ImGui17TableLoadSettingsEP10ImGuiTable";
+TableLoadSettingsForColumns :: (table: *Table) -> void #foreign imgui "_ZN5ImGui27TableLoadSettingsForColumnsEP10ImGuiTable";
+TableLoadSettingsForColumn :: (column: *TableColumn, column_settings: *TableColumnSettings, load_flags: TableFlags) -> void #foreign imgui "_ZN5ImGui26TableLoadSettingsForColumnEP16ImGuiTableColumnP24ImGuiTableColumnSettingsi";
+TableSaveSettings :: (table: *Table) -> void #foreign imgui "_ZN5ImGui17TableSaveSettingsEP10ImGuiTable";
+TableResetSettings :: (table: *Table) -> void #foreign imgui "_ZN5ImGui18TableResetSettingsEP10ImGuiTable";
+TableGetBoundSettings :: (table: *Table) -> *TableSettings #foreign imgui "_ZN5ImGui21TableGetBoundSettingsEP10ImGuiTable";
+TableSettingsAddSettingsHandler :: () -> void #foreign imgui "_ZN5ImGui31TableSettingsAddSettingsHandlerEv";
+TableSettingsCreate :: (id: ID, columns_count: s32) -> *TableSettings #foreign imgui "_ZN5ImGui19TableSettingsCreateEji";
+TableSettingsFindByID :: (id: ID) -> *TableSettings #foreign imgui "_ZN5ImGui21TableSettingsFindByIDEj";
+
+// Legacy Columns API (this is not exposed because we will encourage transitioning to the Tables API)
+SetWindowClipRectBeforeSetChannel :: (window: *Window, clip_rect: *ImRect) -> void #foreign imgui "_ZN5ImGui33SetWindowClipRectBeforeSetChannelEP11ImGuiWindowRK6ImRect";
+SetWindowClipRectBeforeSetChannel :: (window: *Window, clip_rect: ImRect) #no_context {
+    SetWindowClipRectBeforeSetChannel(window, *clip_rect);
+}
+BeginColumns :: (str_id: *u8, count: s32, flags: OldColumnFlags = 0) -> void #foreign imgui "_ZN5ImGui12BeginColumnsEPKcii";
+EndColumns :: () -> void #foreign imgui "_ZN5ImGui10EndColumnsEv";
+PushColumnClipRect :: (column_index: s32) -> void #foreign imgui "_ZN5ImGui18PushColumnClipRectEi";
+PushColumnsBackground :: () -> void #foreign imgui "_ZN5ImGui21PushColumnsBackgroundEv";
+PopColumnsBackground :: () -> void #foreign imgui "_ZN5ImGui20PopColumnsBackgroundEv";
+GetColumnsID :: (str_id: *u8, count: s32) -> ID #foreign imgui "_ZN5ImGui12GetColumnsIDEPKci";
+FindOrCreateColumns :: (window: *Window, id: ID) -> *OldColumns #foreign imgui "_ZN5ImGui19FindOrCreateColumnsEP11ImGuiWindowj";
+GetColumnOffsetFromNorm :: (columns: *OldColumns, offset_norm: float) -> float #foreign imgui "_ZN5ImGui23GetColumnOffsetFromNormEPK15ImGuiOldColumnsf";
+GetColumnNormFromOffset :: (columns: *OldColumns, offset: float) -> float #foreign imgui "_ZN5ImGui23GetColumnNormFromOffsetEPK15ImGuiOldColumnsf";
+
+// Windows
+// We should always have a CurrentWindow in the stack (there is an implicit "Debug" window)
+// If this ever crashes because g.CurrentWindow is NULL, it means that either:
+// - ImGui::NewFrame() has never been called, which is illegal.
+// - You are calling ImGui functions after ImGui::EndFrame()/ImGui::Render() and before the next ImGui::NewFrame(), which is also illegal.
+GetIO :: (ctx: *ImGuiContext) -> *IO #foreign imgui "_ZN5ImGui5GetIOEP12ImGuiContext";
+GetPlatformIO :: (ctx: *ImGuiContext) -> *PlatformIO #foreign imgui "_ZN5ImGui13GetPlatformIOEP12ImGuiContext";
+
+FindWindowByID :: (id: ID) -> *Window #foreign imgui "_ZN5ImGui14FindWindowByIDEj";
+FindWindowByName :: (name: *u8) -> *Window #foreign imgui "_ZN5ImGui16FindWindowByNameEPKc";
+UpdateWindowParentAndRootLinks :: (window: *Window, flags: WindowFlags, parent_window: *Window) -> void #foreign imgui "_ZN5ImGui30UpdateWindowParentAndRootLinksEP11ImGuiWindowiS1_";
+UpdateWindowSkipRefresh :: (window: *Window) -> void #foreign imgui "_ZN5ImGui23UpdateWindowSkipRefreshEP11ImGuiWindow";
+CalcWindowNextAutoFitSize :: (window: *Window) -> ImVec2 #foreign imgui "_ZN5ImGui25CalcWindowNextAutoFitSizeEP11ImGuiWindow";
+IsWindowChildOf :: (window: *Window, potential_parent: *Window, popup_hierarchy: bool, dock_hierarchy: bool) -> bool #foreign imgui "_ZN5ImGui15IsWindowChildOfEP11ImGuiWindowS1_bb";
+IsWindowInBeginStack :: (window: *Window) -> bool #foreign imgui "_ZN5ImGui20IsWindowInBeginStackEP11ImGuiWindow";
+IsWindowWithinBeginStackOf :: (window: *Window, potential_parent: *Window) -> bool #foreign imgui "_ZN5ImGui26IsWindowWithinBeginStackOfEP11ImGuiWindowS1_";
+IsWindowAbove :: (potential_above: *Window, potential_below: *Window) -> bool #foreign imgui "_ZN5ImGui13IsWindowAboveEP11ImGuiWindowS1_";
+IsWindowNavFocusable :: (window: *Window) -> bool #foreign imgui "_ZN5ImGui20IsWindowNavFocusableEP11ImGuiWindow";
+SetWindowPos :: (window: *Window, pos: *ImVec2, cond: Cond = .None) -> void #foreign imgui "_ZN5ImGui12SetWindowPosEP11ImGuiWindowRK6ImVec2i";
+SetWindowPos :: (window: *Window, pos: ImVec2, cond: Cond = .None) #no_context {
+    SetWindowPos(window, *pos, cond);
+}
+SetWindowSize :: (window: *Window, size: *ImVec2, cond: Cond = .None) -> void #foreign imgui "_ZN5ImGui13SetWindowSizeEP11ImGuiWindowRK6ImVec2i";
+SetWindowSize :: (window: *Window, size: ImVec2, cond: Cond = .None) #no_context {
+    SetWindowSize(window, *size, cond);
+}
+SetWindowCollapsed :: (window: *Window, collapsed: bool, cond: Cond = .None) -> void #foreign imgui "_ZN5ImGui18SetWindowCollapsedEP11ImGuiWindowbi";
+SetWindowHitTestHole :: (window: *Window, pos: *ImVec2, size: *ImVec2) -> void #foreign imgui "_ZN5ImGui20SetWindowHitTestHoleEP11ImGuiWindowRK6ImVec2S4_";
+SetWindowHitTestHole :: (window: *Window, pos: ImVec2, size: ImVec2) #no_context {
+    SetWindowHitTestHole(window, *pos, *size);
+}
+SetWindowHiddenAndSkipItemsForCurrentFrame :: (window: *Window) -> void #foreign imgui "_ZN5ImGui42SetWindowHiddenAndSkipItemsForCurrentFrameEP11ImGuiWindow";
+
+SetNextWindowFlags :: (flags: WindowFlags, enabled: bool) -> void #foreign imgui "_ZN5ImGui18SetNextWindowFlagsEib";
+SetNextWindowChildFlags :: (flags: ChildFlags, enabled: bool) -> void #foreign imgui "_ZN5ImGui23SetNextWindowChildFlagsEib";
+
+// Windows: Display Order and Focus Order
+FocusWindow :: (window: *Window, flags: FocusRequestFlags = 0) -> void #foreign imgui "_ZN5ImGui11FocusWindowEP11ImGuiWindowi";
+FocusTopMostWindowUnderOne :: (under_this_window: *Window, ignore_window: *Window, filter_viewport: *Viewport, flags: FocusRequestFlags) -> void #foreign imgui "_ZN5ImGui26FocusTopMostWindowUnderOneEP11ImGuiWindowS1_P13ImGuiViewporti";
+BringWindowToFocusFront :: (window: *Window) -> void #foreign imgui "_ZN5ImGui23BringWindowToFocusFrontEP11ImGuiWindow";
+BringWindowToDisplayFront :: (window: *Window) -> void #foreign imgui "_ZN5ImGui25BringWindowToDisplayFrontEP11ImGuiWindow";
+BringWindowToDisplayBack :: (window: *Window) -> void #foreign imgui "_ZN5ImGui24BringWindowToDisplayBackEP11ImGuiWindow";
+BringWindowToDisplayBehind :: (window: *Window, above_window: *Window) -> void #foreign imgui "_ZN5ImGui26BringWindowToDisplayBehindEP11ImGuiWindowS1_";
+FindWindowDisplayIndex :: (window: *Window) -> s32 #foreign imgui "_ZN5ImGui22FindWindowDisplayIndexEP11ImGuiWindow";
+FindBottomMostVisibleWindowWithinBeginStack :: (window: *Window) -> *Window #foreign imgui "_ZN5ImGui43FindBottomMostVisibleWindowWithinBeginStackEP11ImGuiWindow";
+
+// Windows: Idle, Refresh Policies [EXPERIMENTAL]
+SetNextWindowRefreshPolicy :: (flags: WindowRefreshFlags) -> void #foreign imgui "_ZN5ImGui26SetNextWindowRefreshPolicyEi";
+
+// Fonts, drawing
+RegisterUserTexture :: (tex: *ImTextureData) -> void #foreign imgui "_ZN5ImGui19RegisterUserTextureEP13ImTextureData";
+UnregisterUserTexture :: (tex: *ImTextureData) -> void #foreign imgui "_ZN5ImGui21UnregisterUserTextureEP13ImTextureData";
+RegisterFontAtlas :: (atlas: *ImFontAtlas) -> void #foreign imgui "_ZN5ImGui17RegisterFontAtlasEP11ImFontAtlas";
+UnregisterFontAtlas :: (atlas: *ImFontAtlas) -> void #foreign imgui "_ZN5ImGui19UnregisterFontAtlasEP11ImFontAtlas";
+SetCurrentFont :: (font: *ImFont, font_size_before_scaling: float, font_size_after_scaling: float) -> void #foreign imgui "_ZN5ImGui14SetCurrentFontEP6ImFontff";
+UpdateCurrentFontSize :: (restore_font_size_after_scaling: float) -> void #foreign imgui "_ZN5ImGui21UpdateCurrentFontSizeEf";
+SetPixelDensity :: (pixel_density: float) -> void #foreign imgui "_ZN5ImGui15SetPixelDensityEf";
+
+GetDefaultFont :: () -> *ImFont #foreign imgui "_ZN5ImGui14GetDefaultFontEv";
+PushPasswordFont :: () -> void #foreign imgui "_ZN5ImGui16PushPasswordFontEv";
+PopPasswordFont :: () -> void #foreign imgui "_ZN5ImGui15PopPasswordFontEv";
+
+AddDrawListToDrawDataEx :: (draw_data: *ImDrawData, out_list: *ImVector(*ImDrawList), draw_list: *ImDrawList) -> void #foreign imgui "_ZN5ImGui23AddDrawListToDrawDataExEP10ImDrawDataP8ImVectorIP10ImDrawListES4_";
+
+// Init
+Initialize :: () -> void #foreign imgui "_ZN5ImGui10InitializeEv";
+Shutdown :: () -> void #foreign imgui "_ZN5ImGui8ShutdownEv";
+
+// Context name & generic context hooks
+SetContextName :: (ctx: *ImGuiContext, name: *u8) -> void #foreign imgui "_ZN5ImGui14SetContextNameEP12ImGuiContextPKc";
+AddContextHook :: (ctx: *ImGuiContext, hook: *ContextHook) -> ID #foreign imgui "_ZN5ImGui14AddContextHookEP12ImGuiContextPK16ImGuiContextHook";
+RemoveContextHook :: (ctx: *ImGuiContext, hook_to_remove: ID) -> void #foreign imgui "_ZN5ImGui17RemoveContextHookEP12ImGuiContextj";
+CallContextHooks :: (ctx: *ImGuiContext, type: ContextHookType) -> void #foreign imgui "_ZN5ImGui16CallContextHooksEP12ImGuiContext20ImGuiContextHookType";
+
+// NewFrame
+UpdateInputEvents :: (trickle_fast_inputs: bool) -> void #foreign imgui "_ZN5ImGui17UpdateInputEventsEb";
+UpdateHoveredWindowAndCaptureFlags :: (mouse_pos: *ImVec2) -> void #foreign imgui "_ZN5ImGui34UpdateHoveredWindowAndCaptureFlagsERK6ImVec2";
+UpdateHoveredWindowAndCaptureFlags :: (mouse_pos: ImVec2) #no_context {
+    UpdateHoveredWindowAndCaptureFlags(*mouse_pos);
+}
+FindHoveredWindowEx :: (pos: *ImVec2, find_first_and_in_any_viewport: bool, out_hovered_window: **Window, out_hovered_window_under_moving_window: **Window) -> void #foreign imgui "_ZN5ImGui19FindHoveredWindowExERK6ImVec2bPP11ImGuiWindowS5_";
+FindHoveredWindowEx :: (pos: ImVec2, find_first_and_in_any_viewport: bool, out_hovered_window: **Window, out_hovered_window_under_moving_window: **Window) #no_context {
+    FindHoveredWindowEx(*pos, find_first_and_in_any_viewport, out_hovered_window, out_hovered_window_under_moving_window);
+}
+StartMouseMovingWindow :: (window: *Window) -> void #foreign imgui "_ZN5ImGui22StartMouseMovingWindowEP11ImGuiWindow";
+StartMouseMovingWindowOrNode :: (window: *Window, node: *DockNode, undock: bool) -> void #foreign imgui "_ZN5ImGui28StartMouseMovingWindowOrNodeEP11ImGuiWindowP13ImGuiDockNodeb";
+StopMouseMovingWindow :: () -> void #foreign imgui "_ZN5ImGui21StopMouseMovingWindowEv";
+UpdateMouseMovingWindowNewFrame :: () -> void #foreign imgui "_ZN5ImGui31UpdateMouseMovingWindowNewFrameEv";
+UpdateMouseMovingWindowEndFrame :: () -> void #foreign imgui "_ZN5ImGui31UpdateMouseMovingWindowEndFrameEv";
+
+// Viewports
+TranslateWindowsInViewport :: (viewport: *ViewportP, old_pos: *ImVec2, new_pos: *ImVec2, old_size: *ImVec2, new_size: *ImVec2) -> void #foreign imgui "_ZN5ImGui26TranslateWindowsInViewportEP14ImGuiViewportPRK6ImVec2S4_S4_S4_";
+TranslateWindowsInViewport :: (viewport: *ViewportP, old_pos: ImVec2, new_pos: ImVec2, old_size: ImVec2, new_size: ImVec2) #no_context {
+    TranslateWindowsInViewport(viewport, *old_pos, *new_pos, *old_size, *new_size);
+}
+ScaleWindowsInViewport :: (viewport: *ViewportP, scale: float) -> void #foreign imgui "_ZN5ImGui22ScaleWindowsInViewportEP14ImGuiViewportPf";
+DestroyPlatformWindow :: (viewport: *ViewportP) -> void #foreign imgui "_ZN5ImGui21DestroyPlatformWindowEP14ImGuiViewportP";
+SetWindowViewport :: (window: *Window, viewport: *ViewportP) -> void #foreign imgui "_ZN5ImGui17SetWindowViewportEP11ImGuiWindowP14ImGuiViewportP";
+SetCurrentViewport :: (window: *Window, viewport: *ViewportP) -> void #foreign imgui "_ZN5ImGui18SetCurrentViewportEP11ImGuiWindowP14ImGuiViewportP";
+GetViewportPlatformMonitor :: (viewport: *Viewport) -> *PlatformMonitor #foreign imgui "_ZN5ImGui26GetViewportPlatformMonitorEP13ImGuiViewport";
+FindHoveredViewportFromPlatformWindowStack :: (mouse_platform_pos: *ImVec2) -> *ViewportP #foreign imgui "_ZN5ImGui42FindHoveredViewportFromPlatformWindowStackERK6ImVec2";
+FindHoveredViewportFromPlatformWindowStack :: (mouse_platform_pos: ImVec2) -> *ViewportP #no_context {
+    return FindHoveredViewportFromPlatformWindowStack(*mouse_platform_pos);
 }
 
-// You do not need those functions! See #7838 on GitHub for more info.
-GetContentRegionMax :: () -> ImVec2 #foreign imgui "_ZN5ImGui19GetContentRegionMaxEv";
-GetWindowContentRegionMin :: () -> ImVec2 #foreign imgui "_ZN5ImGui25GetWindowContentRegionMinEv";
-GetWindowContentRegionMax :: () -> ImVec2 #foreign imgui "_ZN5ImGui25GetWindowContentRegionMaxEv";
+// Settings
+MarkIniSettingsDirty :: () -> void #foreign imgui "_ZN5ImGui20MarkIniSettingsDirtyEv";
+MarkIniSettingsDirty :: (window: *Window) -> void #foreign imgui "_ZN5ImGui20MarkIniSettingsDirtyEP11ImGuiWindow";
+ClearIniSettings :: () -> void #foreign imgui "_ZN5ImGui16ClearIniSettingsEv";
+CleanupIniSettings :: (args: *SettingsCleanupArgs) -> void #foreign imgui "_ZN5ImGui18CleanupIniSettingsEP24ImGuiSettingsCleanupArgs";
+AddSettingsHandler :: (handler: *SettingsHandler) -> void #foreign imgui "_ZN5ImGui18AddSettingsHandlerEPK20ImGuiSettingsHandler";
+RemoveSettingsHandler :: (type_name: *u8) -> void #foreign imgui "_ZN5ImGui21RemoveSettingsHandlerEPKc";
+FindSettingsHandler :: (type_name: *u8) -> *SettingsHandler #foreign imgui "_ZN5ImGui19FindSettingsHandlerEPKc";
+
+// Settings - Windows
+CreateNewWindowSettings :: (name: *u8) -> *WindowSettings #foreign imgui "_ZN5ImGui23CreateNewWindowSettingsEPKc";
+FindWindowSettingsByID :: (id: ID) -> *WindowSettings #foreign imgui "_ZN5ImGui22FindWindowSettingsByIDEj";
+FindWindowSettingsByWindow :: (window: *Window) -> *WindowSettings #foreign imgui "_ZN5ImGui26FindWindowSettingsByWindowEP11ImGuiWindow";
+ClearWindowSettings :: (name: *u8) -> void #foreign imgui "_ZN5ImGui19ClearWindowSettingsEPKc";
+
+// Localization
+LocalizeRegisterEntries :: (entries: *LocEntry, count: s32) -> void #foreign imgui "_ZN5ImGui23LocalizeRegisterEntriesEPK13ImGuiLocEntryi";
+
+// Scrolling
+SetScrollX :: (window: *Window, scroll_x: float) -> void #foreign imgui "_ZN5ImGui10SetScrollXEP11ImGuiWindowf";
+SetScrollY :: (window: *Window, scroll_y: float) -> void #foreign imgui "_ZN5ImGui10SetScrollYEP11ImGuiWindowf";
+SetScrollFromPosX :: (window: *Window, local_x: float, center_x_ratio: float) -> void #foreign imgui "_ZN5ImGui17SetScrollFromPosXEP11ImGuiWindowff";
+SetScrollFromPosY :: (window: *Window, local_y: float, center_y_ratio: float) -> void #foreign imgui "_ZN5ImGui17SetScrollFromPosYEP11ImGuiWindowff";
+
+// Early work-in-progress API (ScrollToItem() will become public)
+ScrollToItem :: (flags: ScrollFlags = 0) -> void #foreign imgui "_ZN5ImGui12ScrollToItemEi";
+ScrollToRect :: (window: *Window, rect: *ImRect, flags: ScrollFlags = 0) -> void #foreign imgui "_ZN5ImGui12ScrollToRectEP11ImGuiWindowRK6ImRecti";
+ScrollToRect :: (window: *Window, rect: ImRect, flags: ScrollFlags = 0) #no_context {
+    ScrollToRect(window, *rect, flags);
+}
+ScrollToRectEx :: (window: *Window, rect: *ImRect, flags: ScrollFlags = 0) -> ImVec2 #foreign imgui "_ZN5ImGui14ScrollToRectExEP11ImGuiWindowRK6ImRecti";
+ScrollToRectEx :: (window: *Window, rect: ImRect, flags: ScrollFlags = 0) -> ImVec2 #no_context {
+    return ScrollToRectEx(window, *rect, flags);
+}
+
+SetActiveID :: (id: ID, window: *Window) -> void #foreign imgui "_ZN5ImGui11SetActiveIDEjP11ImGuiWindow";
+SetFocusID :: (id: ID, window: *Window) -> void #foreign imgui "_ZN5ImGui10SetFocusIDEjP11ImGuiWindow";
+ClearActiveID :: () -> void #foreign imgui "_ZN5ImGui13ClearActiveIDEv";
+GetHoveredID :: () -> ID #foreign imgui "_ZN5ImGui12GetHoveredIDEv";
+SetHoveredID :: (id: ID) -> void #foreign imgui "_ZN5ImGui12SetHoveredIDEj";
+KeepAliveID :: (id: ID) -> void #foreign imgui "_ZN5ImGui11KeepAliveIDEj";
+MarkItemEdited :: (id: ID) -> void #foreign imgui "_ZN5ImGui14MarkItemEditedEj";
+PushOverrideID :: (id: ID) -> void #foreign imgui "_ZN5ImGui14PushOverrideIDEj";
+GetIDWithSeed :: (str_id_begin: *u8, str_id_end: *u8, seed: ID) -> ID #foreign imgui "_ZN5ImGui13GetIDWithSeedEPKcS1_j";
+GetIDWithSeed :: (str_id: string, seed: ID) -> ID #no_context {
+    return GetIDWithSeed(str_id.data, str_id.data + str_id.count, seed);
+}
+GetIDWithSeed :: (n: s32, seed: ID) -> ID #foreign imgui "_ZN5ImGui13GetIDWithSeedEij";
+
+// Basic Helpers for widget code
+ItemSize :: (size: *ImVec2, text_baseline_y: float = -1.0) -> void #foreign imgui "_ZN5ImGui8ItemSizeERK6ImVec2f";
+ItemSize :: (size: ImVec2, text_baseline_y: float = -1.0) #no_context {
+    ItemSize(*size, text_baseline_y);
+}
+
+ItemAdd :: (bb: *ImRect, id: ID, nav_bb: *ImRect = null, extra_flags: ItemFlags = .None) -> bool #foreign imgui "_ZN5ImGui7ItemAddERK6ImRectjPS1_i";
+ItemAdd :: (bb: ImRect, id: ID, nav_bb: *ImRect = null, extra_flags: ItemFlags = .None) -> bool #no_context {
+    return ItemAdd(*bb, id, nav_bb, extra_flags);
+}
+ItemHoverable :: (bb: *ImRect, id: ID, item_flags: ItemFlags) -> bool #foreign imgui "_ZN5ImGui13ItemHoverableERK6ImRectji";
+ItemHoverable :: (bb: ImRect, id: ID, item_flags: ItemFlags) -> bool #no_context {
+    return ItemHoverable(*bb, id, item_flags);
+}
+IsWindowContentHoverable :: (window: *Window, flags: HoveredFlags = .None) -> bool #foreign imgui "_ZN5ImGui24IsWindowContentHoverableEP11ImGuiWindowi";
+IsClippedEx :: (bb: *ImRect, id: ID) -> bool #foreign imgui "_ZN5ImGui11IsClippedExERK6ImRectj";
+IsClippedEx :: (bb: ImRect, id: ID) -> bool #no_context {
+    return IsClippedEx(*bb, id);
+}
+SetLastItemData :: (item_id: ID, item_flags: ItemFlags, status_flags: ItemStatusFlags, item_rect: *ImRect) -> void #foreign imgui "_ZN5ImGui15SetLastItemDataEjiiRK6ImRect";
+SetLastItemData :: (item_id: ID, item_flags: ItemFlags, status_flags: ItemStatusFlags, item_rect: ImRect) #no_context {
+    SetLastItemData(item_id, item_flags, status_flags, *item_rect);
+}
+CalcItemSize :: (size: ImVec2, default_w: float, default_h: float) -> ImVec2 #foreign imgui "_ZN5ImGui12CalcItemSizeE6ImVec2ff";
+CalcWrapWidthForPos :: (pos: *ImVec2, wrap_pos_x: float) -> float #foreign imgui "_ZN5ImGui19CalcWrapWidthForPosERK6ImVec2f";
+CalcWrapWidthForPos :: (pos: ImVec2, wrap_pos_x: float) -> float #no_context {
+    return CalcWrapWidthForPos(*pos, wrap_pos_x);
+}
+PushMultiItemsWidths :: (components: s32, width_full: float) -> void #foreign imgui "_ZN5ImGui20PushMultiItemsWidthsEif";
+ShrinkWidths :: (items: *ShrinkWidthItem, count: s32, width_excess: float, width_min: float) -> void #foreign imgui "_ZN5ImGui12ShrinkWidthsEP20ImGuiShrinkWidthItemiff";
+CalcClipRectVisibleItemsY :: (clip_rect: *ImRect, pos: *ImVec2, items_height: float, out_visible_start: *s32, out_visible_end: *s32) -> void #foreign imgui "_ZN5ImGui25CalcClipRectVisibleItemsYERK6ImRectRK6ImVec2fPiS6_";
+CalcClipRectVisibleItemsY :: (clip_rect: ImRect, pos: ImVec2, items_height: float, out_visible_start: *s32, out_visible_end: *s32) #no_context {
+    CalcClipRectVisibleItemsY(*clip_rect, *pos, items_height, out_visible_start, out_visible_end);
+}
+
+// Parameter stacks (shared)
+GetStyleVarInfo :: (idx: StyleVar) -> *StyleVarInfo #foreign imgui "_ZN5ImGui15GetStyleVarInfoEi";
+BeginDisabledOverrideReenable :: () -> void #foreign imgui "_ZN5ImGui29BeginDisabledOverrideReenableEv";
+EndDisabledOverrideReenable :: () -> void #foreign imgui "_ZN5ImGui27EndDisabledOverrideReenableEv";
+
+// Logging/Capture
+LogBegin :: (flags: LogFlags, auto_open_depth: s32) -> void #foreign imgui "_ZN5ImGui8LogBeginEii";
+LogToBuffer :: (auto_open_depth: s32 = -1) -> void #foreign imgui "_ZN5ImGui11LogToBufferEi";
+LogRenderedText :: (ref_pos: *ImVec2, text: *u8, text_end: *u8 = null) -> void #foreign imgui "_ZN5ImGui15LogRenderedTextEPK6ImVec2PKcS4_";
+LogRenderedText :: (ref_pos: *ImVec2, text: string) #no_context {
+    LogRenderedText(ref_pos, text.data, text.data + text.count);
+}
+LogSetNextTextDecoration :: (prefix: *u8, suffix: *u8) -> void #foreign imgui "_ZN5ImGui24LogSetNextTextDecorationEPKcS1_";
+
+// Childs
+BeginChildEx :: (name: *u8, id: ID, size_arg: *ImVec2, child_flags: ChildFlags, window_flags: WindowFlags) -> bool #foreign imgui "_ZN5ImGui12BeginChildExEPKcjRK6ImVec2ii";
+BeginChildEx :: (name: *u8, id: ID, size_arg: ImVec2, child_flags: ChildFlags, window_flags: WindowFlags) -> bool #no_context {
+    return BeginChildEx(name, id, *size_arg, child_flags, window_flags);
+}
+FindFrontMostVisibleChildWindow :: (window: *Window) -> *Window #foreign imgui "_ZN5ImGui31FindFrontMostVisibleChildWindowEP11ImGuiWindow";
+
+// Popups, Modals
+BeginPopupEx :: (id: ID, extra_window_flags: WindowFlags) -> bool #foreign imgui "_ZN5ImGui12BeginPopupExEji";
+BeginPopupMenuEx :: (id: ID, label: *u8, extra_window_flags: WindowFlags) -> bool #foreign imgui "_ZN5ImGui16BeginPopupMenuExEjPKci";
+OpenPopupEx :: (id: ID, popup_flags: PopupFlags = cast(PopupFlags).None) -> bool #foreign imgui "_ZN5ImGui11OpenPopupExEji";
+ClosePopupToLevel :: (remaining: s32, restore_focus_to_window_under_popup: bool) -> void #foreign imgui "_ZN5ImGui17ClosePopupToLevelEib";
+ClosePopupsOverWindow :: (ref_window: *Window, restore_focus_to_window_under_popup: bool) -> void #foreign imgui "_ZN5ImGui21ClosePopupsOverWindowEP11ImGuiWindowb";
+ClosePopupsExceptModals :: () -> void #foreign imgui "_ZN5ImGui23ClosePopupsExceptModalsEv";
+IsPopupOpen :: (id: ID, popup_flags: PopupFlags) -> bool #foreign imgui "_ZN5ImGui11IsPopupOpenEji";
+GetPopupAllowedExtentRect :: (window: *Window) -> ImRect #foreign imgui "_ZN5ImGui25GetPopupAllowedExtentRectEP11ImGuiWindow";
+GetTopMostPopupModal :: () -> *Window #foreign imgui "_ZN5ImGui20GetTopMostPopupModalEv";
+GetTopMostAndVisiblePopupModal :: () -> *Window #foreign imgui "_ZN5ImGui30GetTopMostAndVisiblePopupModalEv";
+FindBlockingModal :: (window: *Window) -> *Window #foreign imgui "_ZN5ImGui17FindBlockingModalEP11ImGuiWindow";
+FindBestWindowPosForPopup :: (window: *Window) -> ImVec2 #foreign imgui "_ZN5ImGui25FindBestWindowPosForPopupEP11ImGuiWindow";
+FindBestWindowPosForPopupEx :: (ref_pos: *ImVec2, size: *ImVec2, last_dir: *Dir, r_outer: *ImRect, r_avoid: *ImRect, policy: PopupPositionPolicy) -> ImVec2 #foreign imgui "_ZN5ImGui27FindBestWindowPosForPopupExERK6ImVec2S2_P8ImGuiDirRK6ImRectS7_24ImGuiPopupPositionPolicy";
+FindBestWindowPosForPopupEx :: (ref_pos: ImVec2, size: ImVec2, last_dir: *Dir, r_outer: ImRect, r_avoid: ImRect, policy: PopupPositionPolicy) -> ImVec2 #no_context {
+    return FindBestWindowPosForPopupEx(*ref_pos, *size, last_dir, *r_outer, *r_avoid, policy);
+}
+GetMouseButtonFromPopupFlags :: (flags: PopupFlags) -> MouseButton #foreign imgui "_ZN5ImGui28GetMouseButtonFromPopupFlagsEi";
+IsPopupOpenRequestForItem :: (flags: PopupFlags, id: ID) -> bool #foreign imgui "_ZN5ImGui25IsPopupOpenRequestForItemEij";
+IsPopupOpenRequestForWindow :: (flags: PopupFlags) -> bool #foreign imgui "_ZN5ImGui27IsPopupOpenRequestForWindowEi";
+
+// Tooltips
+BeginTooltipEx :: (tooltip_flags: TooltipFlags, extra_window_flags: WindowFlags) -> bool #foreign imgui "_ZN5ImGui14BeginTooltipExEii";
+BeginTooltipHidden :: () -> bool #foreign imgui "_ZN5ImGui18BeginTooltipHiddenEv";
+
+// Menus
+BeginViewportSideBar :: (name: *u8, viewport: *Viewport, dir: Dir, size: float, window_flags: WindowFlags) -> bool #foreign imgui "_ZN5ImGui20BeginViewportSideBarEPKcP13ImGuiViewport8ImGuiDirfi";
+BeginMenuEx :: (label: *u8, icon: *u8, enabled := true) -> bool #foreign imgui "_ZN5ImGui11BeginMenuExEPKcS1_b";
+MenuItemEx :: (label: *u8, icon: *u8, shortcut: *u8 = null, selected := false, enabled := true) -> bool #foreign imgui "_ZN5ImGui10MenuItemExEPKcS1_S1_bb";
+
+// Combos
+BeginComboPopup :: (popup_id: ID, bb: *ImRect, flags: ComboFlags) -> bool #foreign imgui "_ZN5ImGui15BeginComboPopupEjRK6ImRecti";
+BeginComboPopup :: (popup_id: ID, bb: ImRect, flags: ComboFlags) -> bool #no_context {
+    return BeginComboPopup(popup_id, *bb, flags);
+}
+BeginComboPreview :: () -> bool #foreign imgui "_ZN5ImGui17BeginComboPreviewEv";
+EndComboPreview :: () -> void #foreign imgui "_ZN5ImGui15EndComboPreviewEv";
+
+// Keyboard/Gamepad Navigation
+NavInitWindow :: (window: *Window, force_reinit: bool) -> void #foreign imgui "_ZN5ImGui13NavInitWindowEP11ImGuiWindowb";
+NavInitRequestApplyResult :: () -> void #foreign imgui "_ZN5ImGui25NavInitRequestApplyResultEv";
+NavMoveRequestButNoResultYet :: () -> bool #foreign imgui "_ZN5ImGui28NavMoveRequestButNoResultYetEv";
+NavMoveRequestSubmit :: (move_dir: Dir, clip_dir: Dir, move_flags: NavMoveFlags, scroll_flags: ScrollFlags) -> void #foreign imgui "_ZN5ImGui20NavMoveRequestSubmitE8ImGuiDirS0_ii";
+NavMoveRequestForward :: (move_dir: Dir, clip_dir: Dir, move_flags: NavMoveFlags, scroll_flags: ScrollFlags) -> void #foreign imgui "_ZN5ImGui21NavMoveRequestForwardE8ImGuiDirS0_ii";
+NavMoveRequestResolveWithLastItem :: (result: *NavItemData) -> void #foreign imgui "_ZN5ImGui33NavMoveRequestResolveWithLastItemEP16ImGuiNavItemData";
+NavMoveRequestResolveWithPastTreeNode :: (result: *NavItemData, tree_node_data: *TreeNodeStackData) -> void #foreign imgui "_ZN5ImGui37NavMoveRequestResolveWithPastTreeNodeEP16ImGuiNavItemDataPK22ImGuiTreeNodeStackData";
+NavMoveRequestCancel :: () -> void #foreign imgui "_ZN5ImGui20NavMoveRequestCancelEv";
+NavMoveRequestApplyResult :: () -> void #foreign imgui "_ZN5ImGui25NavMoveRequestApplyResultEv";
+NavMoveRequestTryWrapping :: (window: *Window, move_flags: NavMoveFlags) -> void #foreign imgui "_ZN5ImGui25NavMoveRequestTryWrappingEP11ImGuiWindowi";
+NavHighlightActivated :: (id: ID) -> void #foreign imgui "_ZN5ImGui21NavHighlightActivatedEj";
+NavClearPreferredPosForAxis :: (axis: Axis) -> void #foreign imgui "_ZN5ImGui27NavClearPreferredPosForAxisE9ImGuiAxis";
+SetNavCursorVisibleAfterMove :: () -> void #foreign imgui "_ZN5ImGui28SetNavCursorVisibleAfterMoveEv";
+NavUpdateCurrentWindowIsScrollPushableX :: () -> void #foreign imgui "_ZN5ImGui39NavUpdateCurrentWindowIsScrollPushableXEv";
+SetNavWindow :: (window: *Window) -> void #foreign imgui "_ZN5ImGui12SetNavWindowEP11ImGuiWindow";
+SetNavID :: (id: ID, nav_layer: NavLayer, focus_scope_id: ID, rect_rel: *ImRect) -> void #foreign imgui "_ZN5ImGui8SetNavIDEj13ImGuiNavLayerjRK6ImRect";
+SetNavID :: (id: ID, nav_layer: NavLayer, focus_scope_id: ID, rect_rel: ImRect) #no_context {
+    SetNavID(id, nav_layer, focus_scope_id, *rect_rel);
+}
+SetNavFocusScope :: (focus_scope_id: ID) -> void #foreign imgui "_ZN5ImGui16SetNavFocusScopeEj";
+
+// Focus/Activation
+// This should be part of a larger set of API: FocusItem(offset = -1), FocusItemByID(id), ActivateItem(offset = -1), ActivateItemByID(id) etc. which are
+// much harder to design and implement than expected. I have a couple of private branches on this matter but it's not simple. For now implementing the easy ones.
+FocusItem :: () -> void #foreign imgui "_ZN5ImGui9FocusItemEv";
+ActivateItemByID :: (id: ID) -> void #foreign imgui "_ZN5ImGui16ActivateItemByIDEj";
+
+FixupKeyChord :: (key_chord: KeyChord) -> KeyChord #foreign imgui "_ZN5ImGui13FixupKeyChordEi";
+
+GetKeyData :: (ctx: *ImGuiContext, key: Key) -> *KeyData #foreign imgui "_ZN5ImGui10GetKeyDataEP12ImGuiContext8ImGuiKey";
+
+GetKeyChordName :: (key_chord: KeyChord) -> *u8 #foreign imgui "_ZN5ImGui15GetKeyChordNameEi";
+
+IsMouseDragPastThreshold :: (button: MouseButton, lock_threshold: float = -1.0) -> bool #foreign imgui "_ZN5ImGui24IsMouseDragPastThresholdEif";
+GetKeyMagnitude2d :: (key_left: Key, key_right: Key, key_up: Key, key_down: Key) -> ImVec2 #foreign imgui "_ZN5ImGui17GetKeyMagnitude2dE8ImGuiKeyS0_S0_S0_";
+GetNavTweakPressedAmount :: (axis: Axis) -> float #foreign imgui "_ZN5ImGui24GetNavTweakPressedAmountE9ImGuiAxis";
+CalcTypematicRepeatAmount :: (t0: float, t1: float, repeat_delay: float, repeat_rate: float) -> s32 #foreign imgui "_ZN5ImGui25CalcTypematicRepeatAmountEffff";
+GetTypematicRepeatRate :: (flags: InputFlags, repeat_delay: *float, repeat_rate: *float) -> void #foreign imgui "_ZN5ImGui22GetTypematicRepeatRateEiPfS0_";
+TeleportMousePos :: (pos: *ImVec2) -> void #foreign imgui "_ZN5ImGui16TeleportMousePosERK6ImVec2";
+TeleportMousePos :: (pos: ImVec2) #no_context {
+    TeleportMousePos(*pos);
+}
+SetActiveIdUsingAllKeyboardKeys :: () -> void #foreign imgui "_ZN5ImGui31SetActiveIdUsingAllKeyboardKeysEv";
+
+// [EXPERIMENTAL] Low-Level: Key/Input Ownership
+// - The idea is that instead of "eating" a given input, we can link to an owner id.
+// - Ownership is most often claimed as a result of reacting to a press/down event (but occasionally may be claimed ahead).
+// - Input queries can then read input by specifying ImGuiKeyOwner_Any (== 0), ImGuiKeyOwner_NoOwner (== -1) or a custom ID.
+// - Legacy input queries (without specifying an owner or _Any or _None) are equivalent to using ImGuiKeyOwner_Any (== 0).
+// - Input ownership is automatically released on the frame after a key is released. Therefore:
+//   - for ownership registration happening as a result of a down/press event, the SetKeyOwner() call may be done once (common case).
+//   - for ownership registration happening ahead of a down/press event, the SetKeyOwner() call needs to be made every frame (happens if e.g. claiming ownership on hover).
+// - SetItemKeyOwner() is a shortcut for common simple case. A custom widget will probably want to call SetKeyOwner() multiple times directly based on its interaction state.
+// - This is marked experimental because not all widgets are fully honoring the Set/Test idioms. We will need to move forward step by step.
+//   Please open a GitHub Issue to submit your usage scenario or if there's a use case you need solved.
+GetKeyOwner :: (key: Key) -> ID #foreign imgui "_ZN5ImGui11GetKeyOwnerE8ImGuiKey";
+SetKeyOwner :: (key: Key, owner_id: ID, flags: InputFlags = .None) -> void #foreign imgui "_ZN5ImGui11SetKeyOwnerE8ImGuiKeyji";
+SetKeyOwnersForKeyChord :: (key: KeyChord, owner_id: ID, flags: InputFlags = .None) -> void #foreign imgui "_ZN5ImGui23SetKeyOwnersForKeyChordEiji";
+SetItemKeyOwner :: (key: Key, flags: InputFlags) -> bool #foreign imgui "_ZN5ImGui15SetItemKeyOwnerE8ImGuiKeyi";
+TestKeyOwner :: (key: Key, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui12TestKeyOwnerE8ImGuiKeyj";
+
+// [EXPERIMENTAL] High-Level: Input Access functions w/ support for Key/Input Ownership
+// - Important: legacy IsKeyPressed(ImGuiKey, bool repeat=true) _DEFAULTS_ to repeat, new IsKeyPressed() requires _EXPLICIT_ ImGuiInputFlags_Repeat flag.
+// - Expected to be later promoted to public API, the prototypes are designed to replace existing ones (since owner_id can default to Any == 0)
+// - Specifying a value for 'ImGuiID owner' will test that EITHER the key is NOT owned (UNLESS locked), EITHER the key is owned by 'owner'.
+//   Legacy functions use ImGuiKeyOwner_Any meaning that they typically ignore ownership, unless a call to SetKeyOwner() explicitly used ImGuiInputFlags_LockThisFrame or ImGuiInputFlags_LockUntilRelease.
+// - Binding generators may want to ignore those for now, or suffix them with Ex() until we decide if this gets moved into public API.
+IsKeyDown :: (key: Key, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui9IsKeyDownE8ImGuiKeyj";
+IsKeyPressed :: (key: Key, flags: InputFlags, owner_id: ID = 0) -> bool #foreign imgui "_ZN5ImGui12IsKeyPressedE8ImGuiKeyij";
+IsKeyReleased :: (key: Key, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui13IsKeyReleasedE8ImGuiKeyj";
+IsKeyChordPressed :: (key_chord: KeyChord, flags: InputFlags, owner_id: ID = 0) -> bool #foreign imgui "_ZN5ImGui17IsKeyChordPressedEiij";
+IsMouseDown :: (button: MouseButton, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui11IsMouseDownEij";
+IsMouseClicked :: (button: MouseButton, flags: InputFlags, owner_id: ID = 0) -> bool #foreign imgui "_ZN5ImGui14IsMouseClickedEiij";
+IsMouseReleased :: (button: MouseButton, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui15IsMouseReleasedEij";
+IsMouseDoubleClicked :: (button: MouseButton, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui20IsMouseDoubleClickedEij";
+
+// Shortcut Testing & Routing
+// - Set Shortcut() and SetNextItemShortcut() in imgui.h
+// - When a policy (except for ImGuiInputFlags_RouteAlways *) is set, Shortcut() will register itself with SetShortcutRouting(),
+//   allowing the system to decide where to route the input among other route-aware calls.
+//   (* using ImGuiInputFlags_RouteAlways is roughly equivalent to calling IsKeyChordPressed(key) and bypassing route registration and check)
+// - When using one of the routing option:
+//   - The default route is ImGuiInputFlags_RouteFocused (accept inputs if window is in focus stack. Deep-most focused window takes inputs. ActiveId takes inputs over deep-most focused window.)
+//   - Routes are requested given a chord (key + modifiers) and a routing policy.
+//   - Routes are resolved during NewFrame(): if keyboard modifiers are matching current ones: SetKeyOwner() is called + route is granted for the frame.
+//   - Each route may be granted to a single owner. When multiple requests are made we have policies to select the winning route (e.g. deep most window).
+//   - Multiple read sites may use the same owner id can all access the granted route.
+//   - When owner_id is 0 we use the current Focus Scope ID as a owner ID in order to identify our location.
+// - You can chain two unrelated windows in the focus stack using SetWindowParentWindowForFocusRoute()
+//   e.g. if you have a tool window associated to a document, and you want document shortcuts to run when the tool is focused.
+Shortcut :: (key_chord: KeyChord, flags: InputFlags, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui8ShortcutEiij";
+SetShortcutRouting :: (key_chord: KeyChord, flags: InputFlags, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui18SetShortcutRoutingEiij";
+TestShortcutRouting :: (key_chord: KeyChord, owner_id: ID) -> bool #foreign imgui "_ZN5ImGui19TestShortcutRoutingEij";
+GetShortcutRoutingData :: (key_chord: KeyChord) -> *KeyRoutingData #foreign imgui "_ZN5ImGui22GetShortcutRoutingDataEi";
+
+// Docking
+// (some functions are only declared in imgui.cpp, see Docking section)
+DockContextInitialize :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN5ImGui21DockContextInitializeEP12ImGuiContext";
+DockContextShutdown :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN5ImGui19DockContextShutdownEP12ImGuiContext";
+DockContextClearNodes :: (ctx: *ImGuiContext, root_id: ID, clear_settings_refs: bool) -> void #foreign imgui "_ZN5ImGui21DockContextClearNodesEP12ImGuiContextjb";
+DockContextRebuildNodes :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN5ImGui23DockContextRebuildNodesEP12ImGuiContext";
+DockContextNewFrameUpdateUndocking :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN5ImGui34DockContextNewFrameUpdateUndockingEP12ImGuiContext";
+DockContextNewFrameUpdateDocking :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN5ImGui32DockContextNewFrameUpdateDockingEP12ImGuiContext";
+DockContextEndFrame :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN5ImGui19DockContextEndFrameEP12ImGuiContext";
+DockContextGenNodeID :: (ctx: *ImGuiContext) -> ID #foreign imgui "_ZN5ImGui20DockContextGenNodeIDEP12ImGuiContext";
+DockContextQueueDock :: (ctx: *ImGuiContext, target: *Window, target_node: *DockNode, payload: *Window, split_dir: Dir, split_ratio: float, split_outer: bool) -> void #foreign imgui "_ZN5ImGui20DockContextQueueDockEP12ImGuiContextP11ImGuiWindowP13ImGuiDockNodeS3_8ImGuiDirfb";
+DockContextQueueUndockWindow :: (ctx: *ImGuiContext, window: *Window) -> void #foreign imgui "_ZN5ImGui28DockContextQueueUndockWindowEP12ImGuiContextP11ImGuiWindow";
+DockContextQueueUndockNode :: (ctx: *ImGuiContext, node: *DockNode) -> void #foreign imgui "_ZN5ImGui26DockContextQueueUndockNodeEP12ImGuiContextP13ImGuiDockNode";
+DockContextProcessUndockWindow :: (ctx: *ImGuiContext, window: *Window, clear_persistent_docking_ref := true) -> void #foreign imgui "_ZN5ImGui30DockContextProcessUndockWindowEP12ImGuiContextP11ImGuiWindowb";
+DockContextProcessUndockNode :: (ctx: *ImGuiContext, node: *DockNode) -> void #foreign imgui "_ZN5ImGui28DockContextProcessUndockNodeEP12ImGuiContextP13ImGuiDockNode";
+DockContextCalcDropPosForDocking :: (target: *Window, target_node: *DockNode, payload_window: *Window, payload_node: *DockNode, split_dir: Dir, split_outer: bool, out_pos: *ImVec2) -> bool #foreign imgui "_ZN5ImGui32DockContextCalcDropPosForDockingEP11ImGuiWindowP13ImGuiDockNodeS1_S3_8ImGuiDirbP6ImVec2";
+DockContextFindNodeByID :: (ctx: *ImGuiContext, id: ID) -> *DockNode #foreign imgui "_ZN5ImGui23DockContextFindNodeByIDEP12ImGuiContextj";
+DockNodeWindowMenuHandler_Default :: (ctx: *ImGuiContext, node: *DockNode, tab_bar: *TabBar) -> void #foreign imgui "_ZN5ImGui33DockNodeWindowMenuHandler_DefaultEP12ImGuiContextP13ImGuiDockNodeP11ImGuiTabBar";
+DockNodeBeginAmendTabBar :: (node: *DockNode) -> bool #foreign imgui "_ZN5ImGui24DockNodeBeginAmendTabBarEP13ImGuiDockNode";
+DockNodeEndAmendTabBar :: () -> void #foreign imgui "_ZN5ImGui22DockNodeEndAmendTabBarEv";
+
+GetWindowAlwaysWantOwnTabBar :: (window: *Window) -> bool #foreign imgui "_ZN5ImGui28GetWindowAlwaysWantOwnTabBarEP11ImGuiWindow";
+BeginDocked :: (window: *Window, p_open: *bool) -> void #foreign imgui "_ZN5ImGui11BeginDockedEP11ImGuiWindowPb";
+BeginDockableDragDropSource :: (window: *Window) -> void #foreign imgui "_ZN5ImGui27BeginDockableDragDropSourceEP11ImGuiWindow";
+BeginDockableDragDropTarget :: (window: *Window) -> void #foreign imgui "_ZN5ImGui27BeginDockableDragDropTargetEP11ImGuiWindow";
+SetWindowDock :: (window: *Window, dock_id: ID, cond: Cond) -> void #foreign imgui "_ZN5ImGui13SetWindowDockEP11ImGuiWindowji";
+
+// Docking - Builder function needs to be generally called before the node is used/submitted.
+// - The DockBuilderXXX functions are designed to _eventually_ become a public API, but it is too early to expose it and guarantee stability.
+// - Do not hold on ImGuiDockNode* pointers! They may be invalidated by any split/merge/remove operation and every frame.
+// - To create a DockSpace() node, make sure to set the ImGuiDockNodeFlags_DockSpace flag when calling DockBuilderAddNode().
+//   You can create dockspace nodes (attached to a window) _or_ floating nodes (carry its own window) with this API.
+// - DockBuilderSplitNode() create 2 child nodes within 1 node. The initial node becomes a parent node.
+// - If you intend to split the node immediately after creation using DockBuilderSplitNode(), make sure
+//   to call DockBuilderSetNodeSize() beforehand. If you don't, the resulting split sizes may not be reliable.
+// - Call DockBuilderFinish() after you are done.
+DockBuilderDockWindow :: (window_name: *u8, node_id: ID) -> void #foreign imgui "_ZN5ImGui21DockBuilderDockWindowEPKcj";
+DockBuilderGetNode :: (node_id: ID) -> *DockNode #foreign imgui "_ZN5ImGui18DockBuilderGetNodeEj";
+
+DockBuilderAddNode :: (node_id: ID = 0, flags: DockNodeFlags = .None) -> ID #foreign imgui "_ZN5ImGui18DockBuilderAddNodeEji";
+DockBuilderRemoveNode :: (node_id: ID) -> void #foreign imgui "_ZN5ImGui21DockBuilderRemoveNodeEj";
+DockBuilderRemoveNodeDockedWindows :: (node_id: ID, clear_settings_refs := true) -> void #foreign imgui "_ZN5ImGui34DockBuilderRemoveNodeDockedWindowsEjb";
+DockBuilderRemoveNodeChildNodes :: (node_id: ID) -> void #foreign imgui "_ZN5ImGui31DockBuilderRemoveNodeChildNodesEj";
+DockBuilderSetNodePos :: (node_id: ID, pos: ImVec2) -> void #foreign imgui "_ZN5ImGui21DockBuilderSetNodePosEj6ImVec2";
+DockBuilderSetNodeSize :: (node_id: ID, size: ImVec2) -> void #foreign imgui "_ZN5ImGui22DockBuilderSetNodeSizeEj6ImVec2";
+DockBuilderSplitNode :: (node_id: ID, split_dir: Dir, size_ratio_for_node_at_dir: float, out_id_at_dir: *ID, out_id_at_opposite_dir: *ID) -> ID #foreign imgui "_ZN5ImGui20DockBuilderSplitNodeEj8ImGuiDirfPjS1_";
+DockBuilderCopyDockSpace :: (src_dockspace_id: ID, dst_dockspace_id: ID, in_window_remap_pairs: *ImVector(*u8)) -> void #foreign imgui "_ZN5ImGui24DockBuilderCopyDockSpaceEjjP8ImVectorIPKcE";
+DockBuilderCopyNode :: (src_node_id: ID, dst_node_id: ID, out_node_remap_pairs: *ImVector(ID)) -> void #foreign imgui "_ZN5ImGui19DockBuilderCopyNodeEjjP8ImVectorIjE";
+DockBuilderCopyWindowSettings :: (src_name: *u8, dst_name: *u8) -> void #foreign imgui "_ZN5ImGui29DockBuilderCopyWindowSettingsEPKcS1_";
+DockBuilderFinish :: (node_id: ID) -> void #foreign imgui "_ZN5ImGui17DockBuilderFinishEj";
+
+// [EXPERIMENTAL] Focus Scope
+// This is generally used to identify a unique input location (for e.g. a selection set)
+// There is one per window (automatically set in Begin), but:
+// - Selection patterns generally need to react (e.g. clear a selection) when landing on one item of the set.
+//   So in order to identify a set multiple lists in same window may each need a focus scope.
+//   If you imagine an hypothetical BeginSelectionGroup()/EndSelectionGroup() api, it would likely call PushFocusScope()/EndFocusScope()
+// - Shortcut routing also use focus scope as a default location identifier if an owner is not provided.
+// We don't use the ID Stack for this as it is common to want them separate.
+PushFocusScope :: (id: ID) -> void #foreign imgui "_ZN5ImGui14PushFocusScopeEj";
+PopFocusScope :: () -> void #foreign imgui "_ZN5ImGui13PopFocusScopeEv";
+IsInNavFocusRoute :: (focus_scope_id: ID) -> bool #foreign imgui "_ZN5ImGui17IsInNavFocusRouteEj";
+
+// Drag and Drop
+IsDragDropActive :: () -> bool #foreign imgui "_ZN5ImGui16IsDragDropActiveEv";
+BeginDragDropTargetCustom :: (bb: *ImRect, id: ID) -> bool #foreign imgui "_ZN5ImGui25BeginDragDropTargetCustomERK6ImRectj";
+BeginDragDropTargetCustom :: (bb: ImRect, id: ID) -> bool #no_context {
+    return BeginDragDropTargetCustom(*bb, id);
+}
+BeginDragDropTargetViewport :: (viewport: *Viewport, p_bb: *ImRect = null) -> bool #foreign imgui "_ZN5ImGui27BeginDragDropTargetViewportEP13ImGuiViewportPK6ImRect";
+ClearDragDrop :: () -> void #foreign imgui "_ZN5ImGui13ClearDragDropEv";
+IsDragDropPayloadBeingAccepted :: () -> bool #foreign imgui "_ZN5ImGui30IsDragDropPayloadBeingAcceptedEv";
+RenderDragDropTargetRectForItem :: (bb: *ImRect) -> void #foreign imgui "_ZN5ImGui31RenderDragDropTargetRectForItemERK6ImRect";
+RenderDragDropTargetRectForItem :: (bb: ImRect) #no_context {
+    RenderDragDropTargetRectForItem(*bb);
+}
+RenderDragDropTargetRectForViewport :: (viewport_id: ID, bb: *ImRect) -> void #foreign imgui "_ZN5ImGui35RenderDragDropTargetRectForViewportEjRK6ImRect";
+RenderDragDropTargetRectForViewport :: (viewport_id: ID, bb: ImRect) #no_context {
+    RenderDragDropTargetRectForViewport(viewport_id, *bb);
+}
+RenderDragDropTargetRectEx :: (draw_list: *ImDrawList, bb: *ImRect, rounding: float) -> void #foreign imgui "_ZN5ImGui26RenderDragDropTargetRectExEP10ImDrawListRK6ImRectf";
+RenderDragDropTargetRectEx :: (draw_list: *ImDrawList, bb: ImRect, rounding: float) #no_context {
+    RenderDragDropTargetRectEx(draw_list, *bb, rounding);
+}
+
+// Typing-Select API
+// (provide Windows Explorer style "select items by typing partial name" + "cycle through items by typing same letter" feature)
+// (this is currently not documented nor used by main library, but should work. See "widgets_typingselect" in imgui_test_suite for usage code. Please let us know if you use this!)
+GetTypingSelectRequest :: (flags: TypingSelectFlags = xx TypingSelectFlags.None) -> *TypingSelectRequest #foreign imgui "_ZN5ImGui22GetTypingSelectRequestEi";
+TypingSelectFindMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void, nav_item_idx: s32) -> s32 #foreign imgui "_ZN5ImGui21TypingSelectFindMatchEP24ImGuiTypingSelectRequestiPFPKcPviES4_i";
+TypingSelectFindNextSingleCharMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void, nav_item_idx: s32) -> s32 #foreign imgui "_ZN5ImGui35TypingSelectFindNextSingleCharMatchEP24ImGuiTypingSelectRequestiPFPKcPviES4_i";
+TypingSelectFindBestLeadingMatch :: (req: *TypingSelectRequest, items_count: s32, get_item_name_func: #type (unknown0: *void, unknown1: s32) -> *u8 #c_call, user_data: *void) -> s32 #foreign imgui "_ZN5ImGui32TypingSelectFindBestLeadingMatchEP24ImGuiTypingSelectRequestiPFPKcPviES4_";
+
+// Box-Select API
+BeginBoxSelect :: (scope_rect: *ImRect, window: *Window, box_select_id: ID, ms_flags: MultiSelectFlags) -> bool #foreign imgui "_ZN5ImGui14BeginBoxSelectERK6ImRectP11ImGuiWindowji";
+BeginBoxSelect :: (scope_rect: ImRect, window: *Window, box_select_id: ID, ms_flags: MultiSelectFlags) -> bool #no_context {
+    return BeginBoxSelect(*scope_rect, window, box_select_id, ms_flags);
+}
+EndBoxSelect :: (scope_rect: *ImRect, ms_flags: MultiSelectFlags) -> void #foreign imgui "_ZN5ImGui12EndBoxSelectERK6ImRecti";
+EndBoxSelect :: (scope_rect: ImRect, ms_flags: MultiSelectFlags) #no_context {
+    EndBoxSelect(*scope_rect, ms_flags);
+}
+
+// Multi-Select API
+MultiSelectItemHeader :: (id: ID, p_selected: *bool, p_button_flags: *ButtonFlags) -> void #foreign imgui "_ZN5ImGui21MultiSelectItemHeaderEjPbPi";
+MultiSelectItemFooter :: (id: ID, p_selected: *bool, p_pressed: *bool, extra_flags: MultiSelectFlags = .None) -> void #foreign imgui "_ZN5ImGui21MultiSelectItemFooterEjPbS0_i";
+MultiSelectAddSetAll :: (ms: *MultiSelectTempData, selected: bool) -> void #foreign imgui "_ZN5ImGui20MultiSelectAddSetAllEP24ImGuiMultiSelectTempDatab";
+MultiSelectAddSetRange :: (ms: *MultiSelectTempData, selected: bool, range_dir: s32, first_item: SelectionUserData, last_item: SelectionUserData) -> void #foreign imgui "_ZN5ImGui22MultiSelectAddSetRangeEP24ImGuiMultiSelectTempDatabixx";
+
+TabBarFindByID :: (id: ID) -> *TabBar #foreign imgui "_ZN5ImGui14TabBarFindByIDEj";
+TabBarRemove :: (tab_bar: *TabBar) -> void #foreign imgui "_ZN5ImGui12TabBarRemoveEP11ImGuiTabBar";
+BeginTabBarEx :: (tab_bar: *TabBar, bb: *ImRect, flags: TabBarFlags) -> bool #foreign imgui "_ZN5ImGui13BeginTabBarExEP11ImGuiTabBarRK6ImRecti";
+BeginTabBarEx :: (tab_bar: *TabBar, bb: ImRect, flags: TabBarFlags) -> bool #no_context {
+    return BeginTabBarEx(tab_bar, *bb, flags);
+}
+TabBarFindTabByID :: (tab_bar: *TabBar, tab_id: ID) -> *TabItem #foreign imgui "_ZN5ImGui17TabBarFindTabByIDEP11ImGuiTabBarj";
+TabBarFindTabByOrder :: (tab_bar: *TabBar, order: s32) -> *TabItem #foreign imgui "_ZN5ImGui20TabBarFindTabByOrderEP11ImGuiTabBari";
+TabBarFindMostRecentlySelectedTabForActiveWindow :: (tab_bar: *TabBar) -> *TabItem #foreign imgui "_ZN5ImGui48TabBarFindMostRecentlySelectedTabForActiveWindowEP11ImGuiTabBar";
+TabBarGetCurrentTab :: (tab_bar: *TabBar) -> *TabItem #foreign imgui "_ZN5ImGui19TabBarGetCurrentTabEP11ImGuiTabBar";
+
+TabBarGetTabName :: (tab_bar: *TabBar, tab: *TabItem) -> *u8 #foreign imgui "_ZN5ImGui16TabBarGetTabNameEP11ImGuiTabBarP12ImGuiTabItem";
+TabBarGetTabPos :: (tab_bar: *TabBar, tab: *TabItem) -> ImVec2 #foreign imgui "_ZN5ImGui15TabBarGetTabPosEP11ImGuiTabBarP12ImGuiTabItem";
+TabBarAddTab :: (tab_bar: *TabBar, tab_flags: TabItemFlags, window: *Window) -> void #foreign imgui "_ZN5ImGui12TabBarAddTabEP11ImGuiTabBariP11ImGuiWindow";
+TabBarRemoveTab :: (tab_bar: *TabBar, tab_id: ID) -> void #foreign imgui "_ZN5ImGui15TabBarRemoveTabEP11ImGuiTabBarj";
+TabBarCloseTab :: (tab_bar: *TabBar, tab: *TabItem) -> void #foreign imgui "_ZN5ImGui14TabBarCloseTabEP11ImGuiTabBarP12ImGuiTabItem";
+TabBarQueueFocus :: (tab_bar: *TabBar, tab: *TabItem) -> void #foreign imgui "_ZN5ImGui16TabBarQueueFocusEP11ImGuiTabBarP12ImGuiTabItem";
+TabBarQueueFocus :: (tab_bar: *TabBar, tab_name: *u8) -> void #foreign imgui "_ZN5ImGui16TabBarQueueFocusEP11ImGuiTabBarPKc";
+TabBarQueueReorder :: (tab_bar: *TabBar, tab: *TabItem, offset: s32) -> void #foreign imgui "_ZN5ImGui18TabBarQueueReorderEP11ImGuiTabBarP12ImGuiTabItemi";
+TabBarQueueReorderFromMousePos :: (tab_bar: *TabBar, tab: *TabItem, mouse_pos: ImVec2) -> void #foreign imgui "_ZN5ImGui30TabBarQueueReorderFromMousePosEP11ImGuiTabBarP12ImGuiTabItem6ImVec2";
+TabBarProcessReorder :: (tab_bar: *TabBar) -> bool #foreign imgui "_ZN5ImGui20TabBarProcessReorderEP11ImGuiTabBar";
+TabItemEx :: (tab_bar: *TabBar, label: *u8, p_open: *bool, flags: TabItemFlags, docked_window: *Window) -> bool #foreign imgui "_ZN5ImGui9TabItemExEP11ImGuiTabBarPKcPbiP11ImGuiWindow";
+TabItemSpacing :: (str_id: *u8, flags: TabItemFlags, width: float) -> void #foreign imgui "_ZN5ImGui14TabItemSpacingEPKcif";
+TabItemCalcSize :: (label: *u8, has_close_button_or_unsaved_marker: bool) -> ImVec2 #foreign imgui "_ZN5ImGui15TabItemCalcSizeEPKcb";
+TabItemCalcSize :: (window: *Window) -> ImVec2 #foreign imgui "_ZN5ImGui15TabItemCalcSizeEP11ImGuiWindow";
+TabItemBackground :: (draw_list: *ImDrawList, bb: *ImRect, flags: TabItemFlags, col: ImU32) -> void #foreign imgui "_ZN5ImGui17TabItemBackgroundEP10ImDrawListRK6ImRectij";
+TabItemBackground :: (draw_list: *ImDrawList, bb: ImRect, flags: TabItemFlags, col: ImU32) #no_context {
+    TabItemBackground(draw_list, *bb, flags, col);
+}
+TabItemLabelAndCloseButton :: (draw_list: *ImDrawList, bb: *ImRect, flags: TabItemFlags, frame_padding: ImVec2, label: *u8, tab_id: ID, close_button_id: ID, is_contents_visible: bool, out_just_closed: *bool, out_text_clipped: *bool) -> void #foreign imgui "_ZN5ImGui26TabItemLabelAndCloseButtonEP10ImDrawListRK6ImRecti6ImVec2PKcjjbPbS8_";
+TabItemLabelAndCloseButton :: (draw_list: *ImDrawList, bb: ImRect, flags: TabItemFlags, frame_padding: ImVec2, label: *u8, tab_id: ID, close_button_id: ID, is_contents_visible: bool, out_just_closed: *bool, out_text_clipped: *bool) #no_context {
+    TabItemLabelAndCloseButton(draw_list, *bb, flags, frame_padding, label, tab_id, close_button_id, is_contents_visible, out_just_closed, out_text_clipped);
+}
+
+// Render helpers
+// AVOID USING OUTSIDE OF IMGUI.CPP! NOT FOR PUBLIC CONSUMPTION. THOSE FUNCTIONS ARE A MESS. THEIR SIGNATURE AND BEHAVIOR WILL CHANGE, THEY NEED TO BE REFACTORED INTO SOMETHING DECENT.
+// NB: All position are in absolute pixels coordinates (we are never using window coordinates internally)
+RenderText :: (pos: ImVec2, text: *u8, text_end: *u8 = null, hide_text_after_hash := true) -> void #foreign imgui "_ZN5ImGui10RenderTextE6ImVec2PKcS2_b";
+RenderText :: (pos: ImVec2, text: string, hide_text_after_hash := true) #no_context {
+    RenderText(pos, text.data, text.data + text.count, hide_text_after_hash);
+}
+RenderTextWrapped :: (pos: ImVec2, text: *u8, text_end: *u8, wrap_width: float) -> void #foreign imgui "_ZN5ImGui17RenderTextWrappedE6ImVec2PKcS2_f";
+RenderTextWrapped :: (pos: ImVec2, text: string, wrap_width: float) #no_context {
+    RenderTextWrapped(pos, text.data, text.data + text.count, wrap_width);
+}
+RenderTextClipped :: (pos_min: *ImVec2, pos_max: *ImVec2, text: *u8, text_end: *u8, text_size_if_known: *ImVec2, align: *ImVec2, clip_rect: *ImRect = null) -> void #foreign imgui "_ZN5ImGui17RenderTextClippedERK6ImVec2S2_PKcS4_PS1_S2_PK6ImRect";
+RenderTextClipped :: (pos_min: ImVec2, pos_max: ImVec2, text: string, text_size_if_known: *ImVec2, align: ImVec2 = ImVec2.{0, 0}, clip_rect: *ImRect = null) #no_context {
+    RenderTextClipped(*pos_min, *pos_max, text.data, text.data + text.count, text_size_if_known, *align, clip_rect);
+}
+RenderTextClippedEx :: (draw_list: *ImDrawList, pos_min: *ImVec2, pos_max: *ImVec2, text: *u8, text_end: *u8, text_size_if_known: *ImVec2, align: *ImVec2, clip_rect: *ImRect = null) -> void #foreign imgui "_ZN5ImGui19RenderTextClippedExEP10ImDrawListRK6ImVec2S4_PKcS6_PS3_S4_PK6ImRect";
+RenderTextClippedEx :: (draw_list: *ImDrawList, pos_min: ImVec2, pos_max: ImVec2, text: string, text_size_if_known: *ImVec2, align: ImVec2 = ImVec2.{0, 0}, clip_rect: *ImRect = null) #no_context {
+    RenderTextClippedEx(draw_list, *pos_min, *pos_max, text.data, text.data + text.count, text_size_if_known, *align, clip_rect);
+}
+RenderTextEllipsis :: (draw_list: *ImDrawList, pos_min: *ImVec2, pos_max: *ImVec2, ellipsis_max_x: float, text: *u8, text_end: *u8, text_size_if_known: *ImVec2) -> void #foreign imgui "_ZN5ImGui18RenderTextEllipsisEP10ImDrawListRK6ImVec2S4_fPKcS6_PS3_";
+RenderTextEllipsis :: (draw_list: *ImDrawList, pos_min: ImVec2, pos_max: ImVec2, ellipsis_max_x: float, text: string, text_size_if_known: *ImVec2) #no_context {
+    RenderTextEllipsis(draw_list, *pos_min, *pos_max, ellipsis_max_x, text.data, text.data + text.count, text_size_if_known);
+}
+RenderFrame :: (p_min: ImVec2, p_max: ImVec2, fill_col: ImU32, borders := true, rounding: float = 0.0) -> void #foreign imgui "_ZN5ImGui11RenderFrameE6ImVec2S0_jbf";
+RenderFrameBorder :: (p_min: ImVec2, p_max: ImVec2, rounding: float = 0.0) -> void #foreign imgui "_ZN5ImGui17RenderFrameBorderE6ImVec2S0_f";
+RenderColorComponentMarker :: (bb: *ImRect, col: ImU32, rounding: float) -> void #foreign imgui "_ZN5ImGui26RenderColorComponentMarkerERK6ImRectjf";
+RenderColorComponentMarker :: (bb: ImRect, col: ImU32, rounding: float) #no_context {
+    RenderColorComponentMarker(*bb, col, rounding);
+}
+RenderColorRectWithAlphaCheckerboard :: (draw_list: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, alpha: float, grid_step: float, grid_off: ImVec2, rounding: float = 0.0, flags: ImDrawFlags = .None) -> void #foreign imgui "_ZN5ImGui36RenderColorRectWithAlphaCheckerboardEP10ImDrawList6ImVec2S2_jffS2_fi";
+RenderNavCursor :: (bb: *ImRect, id: ID, flags: NavRenderCursorFlags = xx NavRenderCursorFlags.None, rounding: float = -1.0) -> void #foreign imgui "_ZN5ImGui15RenderNavCursorERK6ImRectjif";
+RenderNavCursor :: (bb: ImRect, id: ID, flags: NavRenderCursorFlags = xx NavRenderCursorFlags.None, rounding: float = -1.0) #no_context {
+    RenderNavCursor(*bb, id, flags, rounding);
+}
+
+FindRenderedTextEnd :: (text: *u8, text_end: *u8 = null) -> *u8 #foreign imgui "_ZN5ImGui19FindRenderedTextEndEPKcS1_";
+FindRenderedTextEnd :: (text: string) -> *u8 #no_context {
+    return FindRenderedTextEnd(text.data, text.data + text.count);
+}
+RenderMouseCursor :: (pos: ImVec2, scale: float, mouse_cursor: MouseCursor, col_fill: ImU32, col_border: ImU32, col_shadow: ImU32) -> void #foreign imgui "_ZN5ImGui17RenderMouseCursorE6ImVec2fijjj";
+
+// Render helpers (those functions don't access any ImGui state!)
+RenderArrow :: (draw_list: *ImDrawList, pos: ImVec2, col: ImU32, dir: Dir, scale: float = 1.0) -> void #foreign imgui "_ZN5ImGui11RenderArrowEP10ImDrawList6ImVec2j8ImGuiDirf";
+RenderBullet :: (draw_list: *ImDrawList, pos: ImVec2, col: ImU32) -> void #foreign imgui "_ZN5ImGui12RenderBulletEP10ImDrawList6ImVec2j";
+RenderCheckMark :: (draw_list: *ImDrawList, pos: ImVec2, col: ImU32, sz: float) -> void #foreign imgui "_ZN5ImGui15RenderCheckMarkEP10ImDrawList6ImVec2jf";
+RenderArrowPointingAt :: (draw_list: *ImDrawList, pos: ImVec2, half_sz: ImVec2, direction: Dir, col: ImU32) -> void #foreign imgui "_ZN5ImGui21RenderArrowPointingAtEP10ImDrawList6ImVec2S2_8ImGuiDirj";
+RenderArrowDockMenu :: (draw_list: *ImDrawList, p_min: ImVec2, sz: float, col: ImU32) -> void #foreign imgui "_ZN5ImGui19RenderArrowDockMenuEP10ImDrawList6ImVec2fj";
+RenderRectFilledInRangeH :: (draw_list: *ImDrawList, rect: *ImRect, col: ImU32, fill_x0: float, fill_x1: float, rounding: float) -> void #foreign imgui "_ZN5ImGui24RenderRectFilledInRangeHEP10ImDrawListRK6ImRectjfff";
+RenderRectFilledInRangeH :: (draw_list: *ImDrawList, rect: ImRect, col: ImU32, fill_x0: float, fill_x1: float, rounding: float) #no_context {
+    RenderRectFilledInRangeH(draw_list, *rect, col, fill_x0, fill_x1, rounding);
+}
+RenderRectFilledWithHole :: (draw_list: *ImDrawList, outer: *ImRect, inner: *ImRect, col: ImU32, rounding: float) -> void #foreign imgui "_ZN5ImGui24RenderRectFilledWithHoleEP10ImDrawListRK6ImRectS4_jf";
+RenderRectFilledWithHole :: (draw_list: *ImDrawList, outer: ImRect, inner: ImRect, col: ImU32, rounding: float) #no_context {
+    RenderRectFilledWithHole(draw_list, *outer, *inner, col, rounding);
+}
+CalcRoundingFlagsForRectInRect :: (r_in: *ImRect, r_outer: *ImRect, threshold: float) -> ImDrawFlags #foreign imgui "_ZN5ImGui30CalcRoundingFlagsForRectInRectERK6ImRectS2_f";
+CalcRoundingFlagsForRectInRect :: (r_in: ImRect, r_outer: ImRect, threshold: float) -> ImDrawFlags #no_context {
+    return CalcRoundingFlagsForRectInRect(*r_in, *r_outer, threshold);
+}
+
+// Widgets: Text
+TextEx :: (text: *u8, text_end: *u8 = null, flags: TextFlags = 0) -> void #foreign imgui "_ZN5ImGui6TextExEPKcS1_i";
+TextEx :: (text: string, flags: TextFlags = 0) #no_context {
+    TextEx(text.data, text.data + text.count, flags);
+}
+TextAligned_CFormat :: (align_x: float, width: float, fmt: *u8, __args: ..Any) -> void #foreign imgui "_ZN5ImGui11TextAlignedEffPKcz";
+TextAligned :: (align_x: float, width: float, fmt: string, __args: ..Any) {
+    push_allocator(temp);
+    formatted_text_builder: String_Builder;
+    print_to_builder(*formatted_text_builder, fmt, ..__args);
+    append(*formatted_text_builder, "\0");
+    formatted_text := builder_to_string(*formatted_text_builder);
+    TextAligned_CFormat(align_x, width, "%s", formatted_text.data);
+} @PrintLike
+
+// Widgets
+ButtonEx :: (label: *u8, size_arg: *ImVec2, flags: ButtonFlags = .None) -> bool #foreign imgui "_ZN5ImGui8ButtonExEPKcRK6ImVec2i";
+ButtonEx :: (label: *u8, size_arg: ImVec2 = ImVec2.{0, 0}, flags: ButtonFlags = .None) -> bool #no_context {
+    return ButtonEx(label, *size_arg, flags);
+}
+ArrowButtonEx :: (str_id: *u8, dir: Dir, size_arg: ImVec2, flags: ButtonFlags = .None) -> bool #foreign imgui "_ZN5ImGui13ArrowButtonExEPKc8ImGuiDir6ImVec2i";
+ImageButtonEx :: (id: ID, tex_ref: ImTextureRef, image_size: *ImVec2, uv0: *ImVec2, uv1: *ImVec2, bg_col: *ImVec4, tint_col: *ImVec4, flags: ButtonFlags = .None) -> bool #foreign imgui "_ZN5ImGui13ImageButtonExEj12ImTextureRefRK6ImVec2S3_S3_RK6ImVec4S6_i";
+ImageButtonEx :: (id: ID, tex_ref: ImTextureRef, image_size: ImVec2, uv0: ImVec2, uv1: ImVec2, bg_col: ImVec4, tint_col: ImVec4, flags: ButtonFlags = .None) -> bool #no_context {
+    return ImageButtonEx(id, tex_ref, *image_size, *uv0, *uv1, *bg_col, *tint_col, flags);
+}
+SeparatorEx :: (flags: SeparatorFlags, thickness: float = 1.0) -> void #foreign imgui "_ZN5ImGui11SeparatorExEif";
+SeparatorTextEx :: (id: ID, label: *u8, label_end: *u8, extra_width: float) -> void #foreign imgui "_ZN5ImGui15SeparatorTextExEjPKcS1_f";
+SeparatorTextEx :: (id: ID, label: string, extra_width: float) #no_context {
+    SeparatorTextEx(id, label.data, label.data + label.count, extra_width);
+}
+CheckboxFlags :: (label: *u8, flags: *ImS64, flags_value: ImS64) -> bool #foreign imgui "_ZN5ImGui13CheckboxFlagsEPKcPxx";
+CheckboxFlags :: (label: *u8, flags: *ImU64, flags_value: ImU64) -> bool #foreign imgui "_ZN5ImGui13CheckboxFlagsEPKcPyy";
+
+// Widgets: Window Decorations
+CloseButton :: (id: ID, pos: *ImVec2) -> bool #foreign imgui "_ZN5ImGui11CloseButtonEjRK6ImVec2";
+CloseButton :: (id: ID, pos: ImVec2) -> bool #no_context {
+    return CloseButton(id, *pos);
+}
+CollapseButton :: (id: ID, pos: *ImVec2, dock_node: *DockNode) -> bool #foreign imgui "_ZN5ImGui14CollapseButtonEjRK6ImVec2P13ImGuiDockNode";
+CollapseButton :: (id: ID, pos: ImVec2, dock_node: *DockNode) -> bool #no_context {
+    return CollapseButton(id, *pos, dock_node);
+}
+Scrollbar :: (axis: Axis) -> void #foreign imgui "_ZN5ImGui9ScrollbarE9ImGuiAxis";
+ScrollbarEx :: (bb: *ImRect, id: ID, axis: Axis, p_scroll_v: *ImS64, avail_v: ImS64, contents_v: ImS64, draw_rounding_flags: ImDrawFlags = .None) -> bool #foreign imgui "_ZN5ImGui11ScrollbarExERK6ImRectj9ImGuiAxisPxxxi";
+ScrollbarEx :: (bb: ImRect, id: ID, axis: Axis, p_scroll_v: *ImS64, avail_v: ImS64, contents_v: ImS64, draw_rounding_flags: ImDrawFlags = .None) -> bool #no_context {
+    return ScrollbarEx(*bb, id, axis, p_scroll_v, avail_v, contents_v, draw_rounding_flags);
+}
+GetWindowScrollbarRect :: (window: *Window, axis: Axis) -> ImRect #foreign imgui "_ZN5ImGui22GetWindowScrollbarRectEP11ImGuiWindow9ImGuiAxis";
+GetWindowScrollbarID :: (window: *Window, axis: Axis) -> ID #foreign imgui "_ZN5ImGui20GetWindowScrollbarIDEP11ImGuiWindow9ImGuiAxis";
+GetWindowResizeCornerID :: (window: *Window, n: s32) -> ID #foreign imgui "_ZN5ImGui23GetWindowResizeCornerIDEP11ImGuiWindowi";
+GetWindowResizeBorderID :: (window: *Window, dir: Dir) -> ID #foreign imgui "_ZN5ImGui23GetWindowResizeBorderIDEP11ImGuiWindow8ImGuiDir";
+ExtendHitBoxWhenNearViewportEdge :: (window: *Window, bb: *ImRect, threshold: float, axis: Axis) -> void #foreign imgui "_ZN5ImGui32ExtendHitBoxWhenNearViewportEdgeEP11ImGuiWindowP6ImRectf9ImGuiAxis";
+
+// Widgets low-level behaviors
+ButtonBehavior :: (bb: *ImRect, id: ID, out_hovered: *bool, out_held: *bool, flags: ButtonFlags = .None) -> bool #foreign imgui "_ZN5ImGui14ButtonBehaviorERK6ImRectjPbS3_i";
+ButtonBehavior :: (bb: ImRect, id: ID, out_hovered: *bool, out_held: *bool, flags: ButtonFlags = .None) -> bool #no_context {
+    return ButtonBehavior(*bb, id, out_hovered, out_held, flags);
+}
+DragBehavior :: (id: ID, data_type: DataType, p_v: *void, v_speed: float, p_min: *void, p_max: *void, format: *u8, flags: SliderFlags) -> bool #foreign imgui "_ZN5ImGui12DragBehaviorEjiPvfPKvS2_PKci";
+SliderBehavior :: (bb: *ImRect, id: ID, data_type: DataType, p_v: *void, p_min: *void, p_max: *void, format: *u8, flags: SliderFlags, out_grab_bb: *ImRect) -> bool #foreign imgui "_ZN5ImGui14SliderBehaviorERK6ImRectjiPvPKvS5_PKciPS0_";
+SliderBehavior :: (bb: ImRect, id: ID, data_type: DataType, p_v: *void, p_min: *void, p_max: *void, format: *u8, flags: SliderFlags, out_grab_bb: *ImRect) -> bool #no_context {
+    return SliderBehavior(*bb, id, data_type, p_v, p_min, p_max, format, flags, out_grab_bb);
+}
+SplitterBehavior :: (bb: *ImRect, id: ID, axis: Axis, size1: *float, size2: *float, min_size1: float, min_size2: float, hover_extend: float = 0.0, hover_visibility_delay: float = 0.0, bg_col: ImU32 = 0) -> bool #foreign imgui "_ZN5ImGui16SplitterBehaviorERK6ImRectj9ImGuiAxisPfS4_ffffj";
+SplitterBehavior :: (bb: ImRect, id: ID, axis: Axis, size1: *float, size2: *float, min_size1: float, min_size2: float, hover_extend: float = 0.0, hover_visibility_delay: float = 0.0, bg_col: ImU32 = 0) -> bool #no_context {
+    return SplitterBehavior(*bb, id, axis, size1, size2, min_size1, min_size2, hover_extend, hover_visibility_delay, bg_col);
+}
+
+// Widgets: Tree Nodes
+TreeNodeBehavior :: (id: ID, flags: TreeNodeFlags, label: *u8, label_end: *u8 = null) -> bool #foreign imgui "_ZN5ImGui16TreeNodeBehaviorEjiPKcS1_";
+TreeNodeBehavior :: (id: ID, flags: TreeNodeFlags, label: string) -> bool #no_context {
+    return TreeNodeBehavior(id, flags, label.data, label.data + label.count);
+}
+TreeNodeDrawLineToChildNode :: (target_pos: *ImVec2) -> void #foreign imgui "_ZN5ImGui27TreeNodeDrawLineToChildNodeERK6ImVec2";
+TreeNodeDrawLineToChildNode :: (target_pos: ImVec2) #no_context {
+    TreeNodeDrawLineToChildNode(*target_pos);
+}
+TreeNodeDrawLineToTreePop :: (data: *TreeNodeStackData) -> void #foreign imgui "_ZN5ImGui25TreeNodeDrawLineToTreePopEPK22ImGuiTreeNodeStackData";
+TreePushOverrideID :: (id: ID) -> void #foreign imgui "_ZN5ImGui18TreePushOverrideIDEj";
+TreeNodeSetOpen :: (storage_id: ID, open: bool) -> void #foreign imgui "_ZN5ImGui15TreeNodeSetOpenEjb";
+TreeNodeUpdateNextOpen :: (storage_id: ID, flags: TreeNodeFlags) -> bool #foreign imgui "_ZN5ImGui22TreeNodeUpdateNextOpenEji";
+
+// Data type helpers
+DataTypeGetInfo :: (data_type: DataType) -> *DataTypeInfo #foreign imgui "_ZN5ImGui15DataTypeGetInfoEi";
+DataTypeFormatString :: (buf: *u8, buf_size: s32, data_type: DataType, p_data: *void, format: *u8) -> s32 #foreign imgui "_ZN5ImGui20DataTypeFormatStringEPciiPKvPKc";
+DataTypeApplyOp :: (data_type: DataType, op: s32, output: *void, arg_1: *void, arg_2: *void) -> void #foreign imgui "_ZN5ImGui15DataTypeApplyOpEiiPvPKvS2_";
+DataTypeApplyFromText :: (buf: *u8, data_type: DataType, p_data: *void, format: *u8, p_data_when_empty: *void = null) -> bool #foreign imgui "_ZN5ImGui21DataTypeApplyFromTextEPKciPvS1_S2_";
+DataTypeCompare :: (data_type: DataType, arg_1: *void, arg_2: *void) -> s32 #foreign imgui "_ZN5ImGui15DataTypeCompareEiPKvS1_";
+DataTypeClamp :: (data_type: DataType, p_data: *void, p_min: *void, p_max: *void) -> bool #foreign imgui "_ZN5ImGui13DataTypeClampEiPvPKvS2_";
+DataTypeIsZero :: (data_type: DataType, p_data: *void) -> bool #foreign imgui "_ZN5ImGui14DataTypeIsZeroEiPKv";
+
+// InputText
+InputTextEx :: (label: *u8, hint: *u8, buf: *u8, buf_size: s32, size_arg: *ImVec2, flags: InputTextFlags, callback: InputTextCallback = null, user_data: *void = null) -> bool #foreign imgui "_ZN5ImGui11InputTextExEPKcS1_PciRK6ImVec2iPFiP26ImGuiInputTextCallbackDataEPv";
+InputTextEx :: (label: *u8, hint: *u8, buf: *u8, buf_size: s32, size_arg: ImVec2, flags: InputTextFlags, callback: InputTextCallback = null, user_data: *void = null) -> bool #no_context {
+    return InputTextEx(label, hint, buf, buf_size, *size_arg, flags, callback, user_data);
+}
+InputTextDeactivateHook :: (id: ID) -> void #foreign imgui "_ZN5ImGui23InputTextDeactivateHookEj";
+TempInputText :: (bb: *ImRect, id: ID, label: *u8, buf: *u8, buf_size: u64, flags: InputTextFlags = .None, callback: InputTextCallback = null, user_data: *void = null) -> bool #foreign imgui "_ZN5ImGui13TempInputTextERK6ImRectjPKcPcmiPFiP26ImGuiInputTextCallbackDataEPv";
+TempInputText :: (bb: ImRect, id: ID, label: *u8, buf: *u8, buf_size: u64, flags: InputTextFlags = .None, callback: InputTextCallback = null, user_data: *void = null) -> bool #no_context {
+    return TempInputText(*bb, id, label, buf, buf_size, flags, callback, user_data);
+}
+TempInputScalar :: (bb: *ImRect, id: ID, label: *u8, data_type: DataType, p_data: *void, format: *u8, p_clamp_min: *void = null, p_clamp_max: *void = null) -> bool #foreign imgui "_ZN5ImGui15TempInputScalarERK6ImRectjPKciPvS4_PKvS7_";
+TempInputScalar :: (bb: ImRect, id: ID, label: *u8, data_type: DataType, p_data: *void, format: *u8, p_clamp_min: *void = null, p_clamp_max: *void = null) -> bool #no_context {
+    return TempInputScalar(*bb, id, label, data_type, p_data, format, p_clamp_min, p_clamp_max);
+}
+
+SetNextItemRefVal :: (data_type: DataType, p_data: *void) -> void #foreign imgui "_ZN5ImGui17SetNextItemRefValEiPv";
+
+// Color
+ColorTooltip :: (text: *u8, col: *float, flags: ColorEditFlags) -> void #foreign imgui "_ZN5ImGui12ColorTooltipEPKcPKfi";
+ColorEditOptionsPopup :: (col: *float, flags: ColorEditFlags) -> void #foreign imgui "_ZN5ImGui21ColorEditOptionsPopupEPKfi";
+ColorPickerOptionsPopup :: (ref_col: *float, flags: ColorEditFlags) -> void #foreign imgui "_ZN5ImGui23ColorPickerOptionsPopupEPKfi";
+
+// Plot
+PlotEx :: (plot_type: PlotType, label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32, overlay_text: *u8, scale_min: float, scale_max: float, size_arg: *ImVec2) -> s32 #foreign imgui "_ZN5ImGui6PlotExE13ImGuiPlotTypePKcPFfPviES3_iiS2_ffRK6ImVec2";
+PlotEx :: (plot_type: PlotType, label: *u8, values_getter: #type (data: *void, idx: s32) -> float #c_call, data: *void, values_count: s32, values_offset: s32, overlay_text: *u8, scale_min: float, scale_max: float, size_arg: ImVec2) -> s32 #no_context {
+    return PlotEx(plot_type, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, *size_arg);
+}
+
+// Shade functions (write over already created vertices)
+ShadeVertsLinearColorGradientKeepAlpha :: (draw_list: *ImDrawList, vert_start_idx: s32, vert_end_idx: s32, gradient_p0: ImVec2, gradient_p1: ImVec2, col0: ImU32, col1: ImU32) -> void #foreign imgui "_ZN5ImGui38ShadeVertsLinearColorGradientKeepAlphaEP10ImDrawListii6ImVec2S2_jj";
+ShadeVertsLinearUV :: (draw_list: *ImDrawList, vert_start_idx: s32, vert_end_idx: s32, a: *ImVec2, b: *ImVec2, uv_a: *ImVec2, uv_b: *ImVec2, clamp: bool) -> void #foreign imgui "_ZN5ImGui18ShadeVertsLinearUVEP10ImDrawListiiRK6ImVec2S4_S4_S4_b";
+ShadeVertsLinearUV :: (draw_list: *ImDrawList, vert_start_idx: s32, vert_end_idx: s32, a: ImVec2, b: ImVec2, uv_a: ImVec2, uv_b: ImVec2, clamp: bool) #no_context {
+    ShadeVertsLinearUV(draw_list, vert_start_idx, vert_end_idx, *a, *b, *uv_a, *uv_b, clamp);
+}
+ShadeVertsTransformPos :: (draw_list: *ImDrawList, vert_start_idx: s32, vert_end_idx: s32, pivot_in: *ImVec2, cos_a: float, sin_a: float, pivot_out: *ImVec2) -> void #foreign imgui "_ZN5ImGui22ShadeVertsTransformPosEP10ImDrawListiiRK6ImVec2ffS4_";
+ShadeVertsTransformPos :: (draw_list: *ImDrawList, vert_start_idx: s32, vert_end_idx: s32, pivot_in: ImVec2, cos_a: float, sin_a: float, pivot_out: ImVec2) #no_context {
+    ShadeVertsTransformPos(draw_list, vert_start_idx, vert_end_idx, *pivot_in, cos_a, sin_a, *pivot_out);
+}
+
+// Garbage collection
+GcCompactTransientMiscBuffers :: () -> void #foreign imgui "_ZN5ImGui29GcCompactTransientMiscBuffersEv";
+GcCompactTransientWindowBuffers :: (window: *Window) -> void #foreign imgui "_ZN5ImGui31GcCompactTransientWindowBuffersEP11ImGuiWindow";
+GcAwakeTransientWindowBuffers :: (window: *Window) -> void #foreign imgui "_ZN5ImGui29GcAwakeTransientWindowBuffersEP11ImGuiWindow";
+
+// Error handling, State Recovery
+ErrorLog :: (msg: *u8) -> bool #foreign imgui "_ZN5ImGui8ErrorLogEPKc";
+ErrorRecoveryStoreState :: (state_out: *ErrorRecoveryState) -> void #foreign imgui "_ZN5ImGui23ErrorRecoveryStoreStateEP23ImGuiErrorRecoveryState";
+ErrorRecoveryTryToRecoverState :: (state_in: *ErrorRecoveryState) -> void #foreign imgui "_ZN5ImGui30ErrorRecoveryTryToRecoverStateEPK23ImGuiErrorRecoveryState";
+ErrorRecoveryTryToRecoverWindowState :: (state_in: *ErrorRecoveryState) -> void #foreign imgui "_ZN5ImGui36ErrorRecoveryTryToRecoverWindowStateEPK23ImGuiErrorRecoveryState";
+ErrorCheckUsingSetCursorPosToExtendParentBoundaries :: () -> void #foreign imgui "_ZN5ImGui51ErrorCheckUsingSetCursorPosToExtendParentBoundariesEv";
+ErrorCheckEndFrameFinalizeErrorTooltip :: () -> void #foreign imgui "_ZN5ImGui38ErrorCheckEndFrameFinalizeErrorTooltipEv";
+BeginErrorTooltip :: () -> bool #foreign imgui "_ZN5ImGui17BeginErrorTooltipEv";
+EndErrorTooltip :: () -> void #foreign imgui "_ZN5ImGui15EndErrorTooltipEv";
+
+// Demo Doc Marker for e.g. imgui_explorer
+DemoMarker :: (file: *u8, line: s32, section: *u8) -> void #foreign imgui "_ZN5ImGui10DemoMarkerEPKciS1_";
+
+// Debug Tools
+DebugAllocHook :: (info: *DebugAllocInfo, frame_count: s32, ptr: *void, size: u64) -> void #foreign imgui "_ZN5ImGui14DebugAllocHookEP19ImGuiDebugAllocInfoiPvm";
+DebugDrawCursorPos :: (col: ImU32 = 4278190335) -> void #foreign imgui "_ZN5ImGui18DebugDrawCursorPosEj";
+DebugDrawLineExtents :: (col: ImU32 = 4278190335) -> void #foreign imgui "_ZN5ImGui20DebugDrawLineExtentsEj";
+DebugDrawItemRect :: (col: ImU32 = 4278190335) -> void #foreign imgui "_ZN5ImGui17DebugDrawItemRectEj";
+DebugTextUnformattedWithLocateItem :: (line_begin: *u8, line_end: *u8) -> void #foreign imgui "_ZN5ImGui34DebugTextUnformattedWithLocateItemEPKcS1_";
+DebugTextUnformattedWithLocateItem :: (line: string) #no_context {
+    DebugTextUnformattedWithLocateItem(line.data, line.data + line.count);
+}
+DebugLocateItem :: (target_id: ID) -> void #foreign imgui "_ZN5ImGui15DebugLocateItemEj";
+DebugLocateItemOnHover :: (target_id: ID) -> void #foreign imgui "_ZN5ImGui22DebugLocateItemOnHoverEj";
+DebugLocateItemResolveWithLastItem :: () -> void #foreign imgui "_ZN5ImGui34DebugLocateItemResolveWithLastItemEv";
+DebugBreakClearData :: () -> void #foreign imgui "_ZN5ImGui19DebugBreakClearDataEv";
+DebugBreakButton :: (label: *u8, description_of_location: *u8) -> bool #foreign imgui "_ZN5ImGui16DebugBreakButtonEPKcS1_";
+DebugBreakButtonTooltip :: (keyboard_only: bool, description_of_location: *u8) -> void #foreign imgui "_ZN5ImGui23DebugBreakButtonTooltipEbPKc";
+ShowFontAtlas :: (atlas: *ImFontAtlas) -> void #foreign imgui "_ZN5ImGui13ShowFontAtlasEP11ImFontAtlas";
+DebugTextureIDToU64 :: (tex_id: ImTextureID) -> ImU64 #foreign imgui "_ZN5ImGui19DebugTextureIDToU64Ey";
+DebugHookIdInfo :: (id: ID, data_type: DataType, data_id: *void, data_id_end: *void) -> void #foreign imgui "_ZN5ImGui15DebugHookIdInfoEjiPKvS1_";
+DebugNodeColumns :: (columns: *OldColumns) -> void #foreign imgui "_ZN5ImGui16DebugNodeColumnsEP15ImGuiOldColumns";
+DebugNodeDockNode :: (node: *DockNode, label: *u8) -> void #foreign imgui "_ZN5ImGui17DebugNodeDockNodeEP13ImGuiDockNodePKc";
+DebugNodeDrawList :: (window: *Window, viewport: *ViewportP, draw_list: *ImDrawList, label: *u8) -> void #foreign imgui "_ZN5ImGui17DebugNodeDrawListEP11ImGuiWindowP14ImGuiViewportPPK10ImDrawListPKc";
+DebugNodeDrawCmdShowMeshAndBoundingBox :: (out_draw_list: *ImDrawList, draw_list: *ImDrawList, draw_cmd: *ImDrawCmd, show_mesh: bool, show_aabb: bool) -> void #foreign imgui "_ZN5ImGui38DebugNodeDrawCmdShowMeshAndBoundingBoxEP10ImDrawListPKS0_PK9ImDrawCmdbb";
+DebugNodeFont :: (font: *ImFont) -> void #foreign imgui "_ZN5ImGui13DebugNodeFontEP6ImFont";
+DebugNodeFontGlyphsForSrcMask :: (font: *ImFont, baked: *ImFontBaked, src_mask: s32) -> void #foreign imgui "_ZN5ImGui29DebugNodeFontGlyphsForSrcMaskEP6ImFontP11ImFontBakedi";
+DebugNodeFontGlyph :: (font: *ImFont, glyph: *ImFontGlyph) -> void #foreign imgui "_ZN5ImGui18DebugNodeFontGlyphEP6ImFontPK11ImFontGlyph";
+DebugNodeTexture :: (tex: *ImTextureData, int_id: s32, highlight_rect: *ImFontAtlasRect = null) -> void #foreign imgui "_ZN5ImGui16DebugNodeTextureEP13ImTextureDataiPK15ImFontAtlasRect";
+DebugNodeStorage :: (storage: *Storage, label: *u8) -> void #foreign imgui "_ZN5ImGui16DebugNodeStorageEP12ImGuiStoragePKc";
+DebugNodeTabBar :: (tab_bar: *TabBar, label: *u8) -> void #foreign imgui "_ZN5ImGui15DebugNodeTabBarEP11ImGuiTabBarPKc";
+DebugNodeTable :: (table: *Table) -> void #foreign imgui "_ZN5ImGui14DebugNodeTableEP10ImGuiTable";
+DebugNodeTableSettings :: (settings: *TableSettings, table: *Table) -> void #foreign imgui "_ZN5ImGui22DebugNodeTableSettingsEP18ImGuiTableSettingsP10ImGuiTable";
+DebugNodeInputTextState :: (state: *InputTextState) -> void #foreign imgui "_ZN5ImGui23DebugNodeInputTextStateEP19ImGuiInputTextState";
+DebugNodeTypingSelectState :: (state: *TypingSelectState) -> void #foreign imgui "_ZN5ImGui26DebugNodeTypingSelectStateEP22ImGuiTypingSelectState";
+DebugNodeMultiSelectState :: (state: *MultiSelectState) -> void #foreign imgui "_ZN5ImGui25DebugNodeMultiSelectStateEP21ImGuiMultiSelectState";
+DebugNodeWindow :: (window: *Window, label: *u8) -> void #foreign imgui "_ZN5ImGui15DebugNodeWindowEP11ImGuiWindowPKc";
+DebugNodeWindowSettings :: (settings: *WindowSettings) -> void #foreign imgui "_ZN5ImGui23DebugNodeWindowSettingsEP19ImGuiWindowSettings";
+DebugNodeWindowsList :: (windows: *ImVector(*Window), label: *u8) -> void #foreign imgui "_ZN5ImGui20DebugNodeWindowsListEP8ImVectorIP11ImGuiWindowEPKc";
+DebugNodeWindowsListByBeginStackParent :: (windows: **Window, windows_size: s32, parent_in_begin_stack: *Window) -> void #foreign imgui "_ZN5ImGui38DebugNodeWindowsListByBeginStackParentEPP11ImGuiWindowiS1_";
+DebugNodeViewport :: (viewport: *ViewportP) -> void #foreign imgui "_ZN5ImGui17DebugNodeViewportEP14ImGuiViewportP";
+DebugNodePlatformMonitor :: (monitor: *PlatformMonitor, label: *u8, idx: s32) -> void #foreign imgui "_ZN5ImGui24DebugNodePlatformMonitorEP20ImGuiPlatformMonitorPKci";
+DebugRenderKeyboardPreview :: (draw_list: *ImDrawList) -> void #foreign imgui "_ZN5ImGui26DebugRenderKeyboardPreviewEP10ImDrawList";
+DebugRenderViewportThumbnail :: (draw_list: *ImDrawList, viewport: *ViewportP, bb: *ImRect) -> void #foreign imgui "_ZN5ImGui28DebugRenderViewportThumbnailEP10ImDrawListP14ImGuiViewportPRK6ImRect";
+DebugRenderViewportThumbnail :: (draw_list: *ImDrawList, viewport: *ViewportP, bb: ImRect) #no_context {
+    DebugRenderViewportThumbnail(draw_list, viewport, *bb);
+}
 
 // Flags for ImGui::Begin()
 // (Those are per-window flags. There are shared flags in ImGuiIO: io.ConfigWindowsResizeFromEdges and io.ConfigWindowsMoveFromTitleBarOnly)
@@ -1683,6 +2530,8 @@ ItemFlags :: enum_flags u32 {
     LiveEditOnInputScalar :: 0x100;
     LiveEditOnInput       :: 0x180;
 
+    MixedValue            :: 0x200;
+
     ImGuiItemFlags_None                  :: None;
     ImGuiItemFlags_NoTabStop             :: NoTabStop;
     ImGuiItemFlags_NoNav                 :: NoNav;
@@ -1695,6 +2544,8 @@ ItemFlags :: enum_flags u32 {
     ImGuiItemFlags_LiveEditOnInputText   :: LiveEditOnInputText;
     ImGuiItemFlags_LiveEditOnInputScalar :: LiveEditOnInputScalar;
     ImGuiItemFlags_LiveEditOnInput       :: LiveEditOnInput;
+
+    ImGuiItemFlags_MixedValue            :: MixedValue;
 }
 
 // Flags for ImGui::InputText()
@@ -1792,8 +2643,6 @@ TreeNodeFlags :: enum_flags u32 {
     DrawLinesFull        :: 0x80000;
     DrawLinesToNodes     :: 0x100000;
 
-    NavLeftJumpsBackHere :: 0x20000;
-
     ImGuiTreeNodeFlags_None                 :: None;
     ImGuiTreeNodeFlags_Selected             :: Selected;
     ImGuiTreeNodeFlags_Framed               :: Framed;
@@ -1818,8 +2667,6 @@ TreeNodeFlags :: enum_flags u32 {
     ImGuiTreeNodeFlags_DrawLinesNone        :: DrawLinesNone;
     ImGuiTreeNodeFlags_DrawLinesFull        :: DrawLinesFull;
     ImGuiTreeNodeFlags_DrawLinesToNodes     :: DrawLinesToNodes;
-
-    ImGuiTreeNodeFlags_NavLeftJumpsBackHere :: NavLeftJumpsBackHere;
 }
 
 // Flags for OpenPopup*(), BeginPopupContext*(), IsPopupOpen() functions.
@@ -1868,8 +2715,6 @@ SelectableFlags :: enum_flags u32 {
     Highlight         :: 0x20;
     SelectOnNav       :: 0x40;
 
-    DontClosePopups   :: 0x1;
-
     ImGuiSelectableFlags_None              :: None;
     ImGuiSelectableFlags_NoAutoClosePopups :: NoAutoClosePopups;
     ImGuiSelectableFlags_SpanAllColumns    :: SpanAllColumns;
@@ -1878,8 +2723,6 @@ SelectableFlags :: enum_flags u32 {
     ImGuiSelectableFlags_AllowOverlap      :: AllowOverlap;
     ImGuiSelectableFlags_Highlight         :: Highlight;
     ImGuiSelectableFlags_SelectOnNav       :: SelectOnNav;
-
-    ImGuiSelectableFlags_DontClosePopups   :: DontClosePopups;
 }
 
 // Flags for ImGui::BeginCombo()
@@ -1924,8 +2767,6 @@ TabBarFlags :: enum_flags u32 {
     FittingPolicyMask_           :: 0x380;
     FittingPolicyDefault_        :: 0x80;
 
-    FittingPolicyResizeDown      :: 0x100;
-
     ImGuiTabBarFlags_None                         :: None;
     ImGuiTabBarFlags_Reorderable                  :: Reorderable;
     ImGuiTabBarFlags_AutoSelectNewTabs            :: AutoSelectNewTabs;
@@ -1940,8 +2781,6 @@ TabBarFlags :: enum_flags u32 {
     ImGuiTabBarFlags_FittingPolicyScroll          :: FittingPolicyScroll;
     ImGuiTabBarFlags_FittingPolicyMask_           :: FittingPolicyMask_;
     ImGuiTabBarFlags_FittingPolicyDefault_        :: FittingPolicyDefault_;
-
-    ImGuiTabBarFlags_FittingPolicyResizeDown      :: FittingPolicyResizeDown;
 }
 
 // Flags for ImGui::BeginTabItem()
@@ -2057,9 +2896,6 @@ DockNodeFlags :: enum_flags u32 {
     AutoHideTabBar           :: 0x40;
     NoUndocking              :: 0x80;
 
-    NoSplit                  :: 0x10;
-    NoDockingInCentralNode   :: 0x4;
-
     ImGuiDockNodeFlags_None                     :: None;
     ImGuiDockNodeFlags_KeepAliveOnly            :: KeepAliveOnly;
 
@@ -2069,9 +2905,6 @@ DockNodeFlags :: enum_flags u32 {
     ImGuiDockNodeFlags_NoResize                 :: NoResize;
     ImGuiDockNodeFlags_AutoHideTabBar           :: AutoHideTabBar;
     ImGuiDockNodeFlags_NoUndocking              :: NoUndocking;
-
-    ImGuiDockNodeFlags_NoSplit                  :: NoSplit;
-    ImGuiDockNodeFlags_NoDockingInCentralNode   :: NoDockingInCentralNode;
 }
 
 // Flags for ImGui::BeginDragDropSource(), ImGui::AcceptDragDropPayload()
@@ -2180,43 +3013,33 @@ InputFlags :: enum_flags u32 {
 // Configuration flags stored in io.ConfigFlags. Set by user/application.
 // Note that nowadays most of our configuration options are in other ImGuiIO fields, e.g. io.ConfigWindowsMoveFromTitleBarOnly.
 ConfigFlags :: enum_flags u32 {
-    None                    :: 0x0;
-    NavEnableKeyboard       :: 0x1;
-    NavEnableGamepad        :: 0x2;
-    NoMouse                 :: 0x10;
-    NoMouseCursorChange     :: 0x20;
-    NoKeyboard              :: 0x40;
+    None                :: 0x0;
+    NavEnableKeyboard   :: 0x1;
+    NavEnableGamepad    :: 0x2;
+    NoMouse             :: 0x10;
+    NoMouseCursorChange :: 0x20;
+    NoKeyboard          :: 0x40;
 
-    DockingEnable           :: 0x80;
+    DockingEnable       :: 0x80;
 
-    ViewportsEnable         :: 0x400;
+    ViewportsEnable     :: 0x400;
 
-    IsSRGB                  :: 0x100000;
-    IsTouchScreen           :: 0x200000;
+    IsSRGB              :: 0x100000;
+    IsTouchScreen       :: 0x200000;
 
-    NavEnableSetMousePos    :: 0x4;
-    NavNoCaptureKeyboard    :: 0x8;
-    DpiEnableScaleFonts     :: 0x4000;
-    DpiEnableScaleViewports :: 0x8000;
+    ImGuiConfigFlags_None                :: None;
+    ImGuiConfigFlags_NavEnableKeyboard   :: NavEnableKeyboard;
+    ImGuiConfigFlags_NavEnableGamepad    :: NavEnableGamepad;
+    ImGuiConfigFlags_NoMouse             :: NoMouse;
+    ImGuiConfigFlags_NoMouseCursorChange :: NoMouseCursorChange;
+    ImGuiConfigFlags_NoKeyboard          :: NoKeyboard;
 
-    ImGuiConfigFlags_None                    :: None;
-    ImGuiConfigFlags_NavEnableKeyboard       :: NavEnableKeyboard;
-    ImGuiConfigFlags_NavEnableGamepad        :: NavEnableGamepad;
-    ImGuiConfigFlags_NoMouse                 :: NoMouse;
-    ImGuiConfigFlags_NoMouseCursorChange     :: NoMouseCursorChange;
-    ImGuiConfigFlags_NoKeyboard              :: NoKeyboard;
+    ImGuiConfigFlags_DockingEnable       :: DockingEnable;
 
-    ImGuiConfigFlags_DockingEnable           :: DockingEnable;
+    ImGuiConfigFlags_ViewportsEnable     :: ViewportsEnable;
 
-    ImGuiConfigFlags_ViewportsEnable         :: ViewportsEnable;
-
-    ImGuiConfigFlags_IsSRGB                  :: IsSRGB;
-    ImGuiConfigFlags_IsTouchScreen           :: IsTouchScreen;
-
-    ImGuiConfigFlags_NavEnableSetMousePos    :: NavEnableSetMousePos;
-    ImGuiConfigFlags_NavNoCaptureKeyboard    :: NavNoCaptureKeyboard;
-    ImGuiConfigFlags_DpiEnableScaleFonts     :: DpiEnableScaleFonts;
-    ImGuiConfigFlags_DpiEnableScaleViewports :: DpiEnableScaleViewports;
+    ImGuiConfigFlags_IsSRGB              :: IsSRGB;
+    ImGuiConfigFlags_IsTouchScreen       :: IsTouchScreen;
 }
 
 // Backend capabilities flags stored in io.BackendFlags. Set by imgui_impl_xxx or custom backend.
@@ -2313,11 +3136,6 @@ Col :: enum u32 {
     ModalWindowDimBg          :: 62;
     COUNT                     :: 63;
 
-    TabActive                 :: 37;
-    TabUnfocused              :: 39;
-    TabUnfocusedActive        :: 40;
-    NavHighlight              :: 59;
-
     ImGuiCol_Text                      :: Text;
     ImGuiCol_TextDisabled              :: TextDisabled;
     ImGuiCol_WindowBg                  :: WindowBg;
@@ -2382,11 +3200,6 @@ Col :: enum u32 {
     ImGuiCol_NavWindowingDimBg         :: NavWindowingDimBg;
     ImGuiCol_ModalWindowDimBg          :: ModalWindowDimBg;
     ImGuiCol_COUNT                     :: COUNT;
-
-    ImGuiCol_TabActive                 :: TabActive;
-    ImGuiCol_TabUnfocused              :: TabUnfocused;
-    ImGuiCol_TabUnfocusedActive        :: TabUnfocusedActive;
-    ImGuiCol_NavHighlight              :: NavHighlight;
 }
 
 // Enumeration for PushStyleVar() / PopStyleVar() to temporarily modify the ImGuiStyle structure.
@@ -2552,8 +3365,6 @@ ColorEditFlags :: enum_flags u32 {
     PickerMask_      :: 0x6000000;
     InputMask_       :: 0x30000000;
 
-    AlphaPreview     :: 0x0;
-
     ImGuiColorEditFlags_None             :: None;
     ImGuiColorEditFlags_NoAlpha          :: NoAlpha;
     ImGuiColorEditFlags_NoPicker         :: NoPicker;
@@ -2591,8 +3402,6 @@ ColorEditFlags :: enum_flags u32 {
     ImGuiColorEditFlags_DataTypeMask_    :: DataTypeMask_;
     ImGuiColorEditFlags_PickerMask_      :: PickerMask_;
     ImGuiColorEditFlags_InputMask_       :: InputMask_;
-
-    ImGuiColorEditFlags_AlphaPreview     :: AlphaPreview;
 }
 
 // Flags for DragFloat(), DragInt(), SliderFloat(), SliderInt() etc.
@@ -3003,10 +3812,11 @@ Style :: struct {
     DockingNodeHasCloseButton:        bool; // Docking node has their own CloseButton() to close all docked windows.
     DockingSeparatorSize:             float; // Thickness of resizing border between docked windows
     MouseCursorScale:                 float; // Scale software rendered mouse cursor (when io.MouseDrawCursor is enabled). We apply per-monitor DPI scaling over this scale. May be removed later.
-    AntiAliasedLines:                 bool; // Enable anti-aliased lines/borders. Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
-    AntiAliasedLinesUseTex:           bool; // Enable anti-aliased lines/borders using textures where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering). Latched at the beginning of the frame (copied to ImDrawList).
-    AntiAliasedFill:                  bool; // Enable anti-aliased edges around filled shapes (rounded rectangles, circles, etc.). Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
-    CurveTessellationTol:             float; // Tessellation tolerance when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
+
+    AntiAliasedLines:                 bool; // Enable anti-aliased lines/borders. Used at the beginning of the frame to set ImDrawFlags_AALines in all draw-lists.
+    AntiAliasedLineEnds:              bool; // Enable anti-aliased lines/borders ends. Nicer for thick lines but more expensive. Used at the beginning of the frame to set ImDrawFlags_AALineEnds in all draw-lists.
+    AntiAliasedFill:                  bool; // Enable anti-aliased edges around filled shapes (rounded rectangles, circles, etc.). Used at the beginning of the frame to set ImDrawFlags_AAFill in all draw-lists.
+    CurveTessellationMaxError:        float; // Maximum error (in pixels) when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
     CircleTessellationMaxError:       float; // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
 
     // Colors
@@ -3113,6 +3923,8 @@ IO :: struct #type_info_none {
 
     ConfigDebugIgnoreFocusLoss:                    bool; // = false          // Ignore io.AddFocusEvent(false), consequently not calling io.ClearInputKeys()/io.ClearInputMouse() in input processing.
 
+    ConfigDebugDrawListDefaultsToStrokeLegacy:     bool; // false // Default all ImDrawList to ImDrawFlags_StrokeLegacy mode, mimicking pre-1.93.0 rendering.
+
     BackendPlatformName:                           *u8; // = NULL
     BackendRendererName:                           *u8; // = NULL
     BackendPlatformUserData:                       *void; // = NULL           // User data for platform backend
@@ -3190,14 +4002,6 @@ IO :: struct #type_info_none {
     AppAcceptingEvents:                            bool; // Only modify via SetAppAcceptingEvents()
     InputQueueSurrogate:                           ImWchar16; // For AddInputCharacterUTF16()
     InputQueueCharacters:                          ImVector(ImWchar); // Queue of _characters_ input (obtained by platform backend). Fill using AddInputCharacter() helper.
-
-    FontGlobalScale:                               float; // Moved io.FontGlobalScale to style.FontScaleMain in 1.92.0 (June 2025)
-
-    // Legacy: before 1.91.1, clipboard functions were stored in ImGuiIO instead of ImGuiPlatformIO.
-    // As this is will affect all users of custom engines/backends, we are providing proper legacy redirection (will obsolete).
-    GetClipboardTextFn:                            #type (user_data: *void) -> *u8 #c_call;
-    SetClipboardTextFn:                            #type (user_data: *void, text: *u8) -> void #c_call;
-    ClipboardUserData:                             *void;
 
     Constructor :: (this: *IO) -> void #cpp_method #foreign imgui "_ZN7ImGuiIOC1Ev";
 }
@@ -3287,28 +4091,44 @@ OnceUponAFrame :: struct {
     RefFrame: s32;
 }
 
-// Helper: Parse and apply text filters. In format "aaaaa[,bbbb][,ccccc]"
 TextFilter :: struct {
     Constructor :: (this: *TextFilter, default_filter: *u8 = "") -> void #cpp_method #foreign imgui "_ZN15ImGuiTextFilterC1EPKc";
-    Draw :: (this: *TextFilter, label: *u8 = "Filter (inc,-exc)", width: float = 0.0) -> bool #cpp_method #foreign imgui "_ZN15ImGuiTextFilter4DrawEPKcf";
     PassFilter :: (this: *TextFilter, text: *u8, text_end: *u8 = null) -> bool #cpp_method #foreign imgui "_ZNK15ImGuiTextFilter10PassFilterEPKcS1_";
     PassFilter :: (this: *TextFilter, text: string) -> bool #no_context {
         return PassFilter(this, text.data, text.data + text.count);
     }
     Build :: (this: *TextFilter) -> void #cpp_method #foreign imgui "_ZN15ImGuiTextFilter5BuildEv";
 
-    // [Internal]
-    TextRange :: struct {
-        b: *u8;
-        e: *u8;
+    // Helper to call InputText() + Build() when buffer is changed.
+    Draw :: (this: *TextFilter, label: *u8 = "Filter") -> bool #cpp_method #foreign imgui "_ZN15ImGuiTextFilter4DrawEPKc";
+    DrawWithHint :: (this: *TextFilter, label: *u8 = "Filter", hint: *u8 = "incl -excl") -> bool #cpp_method #foreign imgui "_ZN15ImGuiTextFilter12DrawWithHintEPKcS1_";
 
-        split :: (this: *TextRange, separator: u8, out: *ImVector(TextRange)) -> void #cpp_method #foreign imgui "_ZNK15ImGuiTextFilter14ImGuiTextRange5splitEcP8ImVectorIS0_E";
-    }
-
-    InputBuf:  [256] u8;
-    Filters:   ImVector(TextRange);
-    CountGrep: s32;
+    InputBuf:      [256] u8; // User input buffer
+    _CountExclude: s32; // [Internal] >= 0 count of leading exclude
+    _Items:        ImVector(TextFilterItem); // [Internal] Pre-parsed, trimmed, reordered items
 }
+
+// Helper: Growable text buffer for logging/accumulating text
+// (this could be called 'ImGuiTextBuilder' / 'ImGuiStringBuilder')
+TextBuffer :: struct {
+    Buf: ImVector(u8);
+
+    append :: (this: *TextBuffer, str: *u8, str_end: *u8 = null) -> void #cpp_method #foreign imgui "_ZN15ImGuiTextBuffer6appendEPKcS1_";
+    append :: (this: *TextBuffer, str: string) #no_context {
+        append(this, str.data, str.data + str.count);
+    }
+    appendf_CFormat :: (this: *TextBuffer, fmt: *u8, __args: ..Any) -> void #cpp_method #foreign imgui "_ZN15ImGuiTextBuffer7appendfEPKcz";
+    appendf :: (this: *TextBuffer, fmt: string, __args: ..Any) {
+        push_allocator(temp);
+        formatted_text_builder: String_Builder;
+        print_to_builder(*formatted_text_builder, fmt, ..__args);
+        append(*formatted_text_builder, "\0");
+        formatted_text := builder_to_string(*formatted_text_builder);
+        appendf_CFormat(this, "%s", formatted_text.data);
+    } @PrintLike
+}
+
+EmptyString: [1] u8 #elsewhere imgui "_ZN15ImGuiTextBuffer11EmptyStringE";
 
 // [Internal] Key+Value for ImGuiStorage
 StoragePair :: struct {
@@ -3356,6 +4176,12 @@ Storage :: struct {
 
     // Obsolete: use on your own storage if you know only integer are being stored (open/close all tree nodes)
     SetAllInt :: (this: *Storage, val: s32) -> void #cpp_method #foreign imgui "_ZN12ImGuiStorage9SetAllIntEi";
+}
+
+// [Internal] Used for small stacks. Do not use.
+ImSmallStack_ :: struct(T: Type, Capacity: s32, SZ_T: Type) {
+    LocalData: [Capacity] T; // FIXME: should evolve into using heap, e.g union {} with T* HeapData + add SZ_T Capacity.
+    Size:      SZ_T = 0;
 }
 
 // Flags for ImGuiListClipper (currently not fully exposed in function calls: a future refactor will likely add this to ImGuiListClipper::Begin function equivalent)
@@ -3441,8 +4267,6 @@ MultiSelectFlags :: enum_flags u32 {
     SelectOnMask_         :: 0xe000;
     CheckboxMode_         :: 0x100000;
 
-    SelectOnClick         :: 0x2000;
-
     ImGuiMultiSelectFlags_None                  :: None;
     ImGuiMultiSelectFlags_SingleSelect          :: SingleSelect;
     ImGuiMultiSelectFlags_NoSelectAll           :: NoSelectAll;
@@ -3465,8 +4289,6 @@ MultiSelectFlags :: enum_flags u32 {
     ImGuiMultiSelectFlags_NoSelectOnRightClick  :: NoSelectOnRightClick;
     ImGuiMultiSelectFlags_SelectOnMask_         :: SelectOnMask_;
     ImGuiMultiSelectFlags_CheckboxMode_         :: CheckboxMode_;
-
-    ImGuiMultiSelectFlags_SelectOnClick         :: SelectOnClick;
 }
 
 // Main IO structure returned by BeginMultiSelect()/EndMultiSelect().
@@ -3601,61 +4423,81 @@ ImDrawListSplitter :: struct {
 
 // Flags for ImDrawList functions
 ImDrawFlags :: enum_flags s32 {
-    None                    :: 0x0;
+    None                     :: 0x0;
 
-    RoundCornersTopLeft     :: 0x10;
-    RoundCornersTopRight    :: 0x20;
-    RoundCornersBottomLeft  :: 0x40;
-    RoundCornersBottomRight :: 0x80;
-    RoundCornersNone        :: 0x100;
-    RoundCornersAll         :: 0xf0;
-    RoundCornersDefault_    :: 0xf0;
-    RoundCornersTop         :: 0x30;
-    RoundCornersBottom      :: 0xc0;
-    RoundCornersLeft        :: 0x50;
-    RoundCornersRight       :: 0xa0;
-    RoundCornersMask_       :: 0x1f0;
+    RoundTopLeft             :: 0x10;
+    RoundTopRight            :: 0x20;
+    RoundBottomLeft          :: 0x40;
+    RoundBottomRight         :: 0x80;
+    RoundNone                :: 0x100;
+    RoundAll                 :: 0xf0;
+    RoundTop                 :: 0x30;
+    RoundBottom              :: 0xc0;
+    RoundLeft                :: 0x50;
+    RoundRight               :: 0xa0;
 
-    Closed                  :: 0x200;
+    Closed                   :: 0x200;
+    JoinMiter                :: 0x400;
+    CapSquare                :: 0x800;
 
-    InvalidMask_            :: 0x8000000f;
+    AAFill                   :: 0x1000;
+    AALines                  :: 0x2000;
+    AALineEnds               :: 0x4000;
 
-    ImDrawFlags_None                    :: None;
+    StrokeInside             :: 0x20000;
+    StrokeCenter             :: 0x40000;
+    StrokeCenterBiased       :: 0x60000;
+    StrokeOutside            :: 0x80000;
+    StrokeLegacy             :: 0xe0000;
 
-    ImDrawFlags_RoundCornersTopLeft     :: RoundCornersTopLeft;
-    ImDrawFlags_RoundCornersTopRight    :: RoundCornersTopRight;
-    ImDrawFlags_RoundCornersBottomLeft  :: RoundCornersBottomLeft;
-    ImDrawFlags_RoundCornersBottomRight :: RoundCornersBottomRight;
-    ImDrawFlags_RoundCornersNone        :: RoundCornersNone;
-    ImDrawFlags_RoundCornersAll         :: RoundCornersAll;
-    ImDrawFlags_RoundCornersDefault_    :: RoundCornersDefault_;
-    ImDrawFlags_RoundCornersTop         :: RoundCornersTop;
-    ImDrawFlags_RoundCornersBottom      :: RoundCornersBottom;
-    ImDrawFlags_RoundCornersLeft        :: RoundCornersLeft;
-    ImDrawFlags_RoundCornersRight       :: RoundCornersRight;
-    ImDrawFlags_RoundCornersMask_       :: RoundCornersMask_;
+    TextNoPixelSnap          :: 0x100000;
+    UseTexForRoundCorners    :: 0x200000;
+    UseVtxOffset             :: 0x400000;
+    AllowTexForRoundCorners_ :: 0x800000;
 
-    ImDrawFlags_Closed                  :: Closed;
+    RoundMask_               :: 0x1f0;
+    AllowInPushScope_        :: 0x7e71f0;
+    AllowInFrameScope_       :: 0xfe71f0;
+    StrokeMask_              :: 0xe0000;
+    InvalidMask_             :: 0x8000000f;
 
-    ImDrawFlags_InvalidMask_            :: InvalidMask_;
-}
+    ImDrawFlags_None                     :: None;
 
-// Flags for ImDrawList instance. Those are set automatically by ImGui:: functions from ImGuiIO settings, and generally not manipulated directly.
-// It is however possible to temporarily alter flags between calls to ImDrawList:: functions.
-ImDrawListFlags :: enum_flags u32 {
-    None                   :: 0x0;
-    AntiAliasedLines       :: 0x1;
-    AntiAliasedLinesUseTex :: 0x2;
-    AntiAliasedFill        :: 0x4;
-    AllowVtxOffset         :: 0x8;
-    TextNoPixelSnap        :: 0x10;
+    ImDrawFlags_RoundTopLeft             :: RoundTopLeft;
+    ImDrawFlags_RoundTopRight            :: RoundTopRight;
+    ImDrawFlags_RoundBottomLeft          :: RoundBottomLeft;
+    ImDrawFlags_RoundBottomRight         :: RoundBottomRight;
+    ImDrawFlags_RoundNone                :: RoundNone;
+    ImDrawFlags_RoundAll                 :: RoundAll;
+    ImDrawFlags_RoundTop                 :: RoundTop;
+    ImDrawFlags_RoundBottom              :: RoundBottom;
+    ImDrawFlags_RoundLeft                :: RoundLeft;
+    ImDrawFlags_RoundRight               :: RoundRight;
 
-    ImDrawListFlags_None                   :: None;
-    ImDrawListFlags_AntiAliasedLines       :: AntiAliasedLines;
-    ImDrawListFlags_AntiAliasedLinesUseTex :: AntiAliasedLinesUseTex;
-    ImDrawListFlags_AntiAliasedFill        :: AntiAliasedFill;
-    ImDrawListFlags_AllowVtxOffset         :: AllowVtxOffset;
-    ImDrawListFlags_TextNoPixelSnap        :: TextNoPixelSnap;
+    ImDrawFlags_Closed                   :: Closed;
+    ImDrawFlags_JoinMiter                :: JoinMiter;
+    ImDrawFlags_CapSquare                :: CapSquare;
+
+    ImDrawFlags_AAFill                   :: AAFill;
+    ImDrawFlags_AALines                  :: AALines;
+    ImDrawFlags_AALineEnds               :: AALineEnds;
+
+    ImDrawFlags_StrokeInside             :: StrokeInside;
+    ImDrawFlags_StrokeCenter             :: StrokeCenter;
+    ImDrawFlags_StrokeCenterBiased       :: StrokeCenterBiased;
+    ImDrawFlags_StrokeOutside            :: StrokeOutside;
+    ImDrawFlags_StrokeLegacy             :: StrokeLegacy;
+
+    ImDrawFlags_TextNoPixelSnap          :: TextNoPixelSnap;
+    ImDrawFlags_UseTexForRoundCorners    :: UseTexForRoundCorners;
+    ImDrawFlags_UseVtxOffset             :: UseVtxOffset;
+    ImDrawFlags_AllowTexForRoundCorners_ :: AllowTexForRoundCorners_;
+
+    ImDrawFlags_RoundMask_               :: RoundMask_;
+    ImDrawFlags_AllowInPushScope_        :: AllowInPushScope_;
+    ImDrawFlags_AllowInFrameScope_       :: AllowInFrameScope_;
+    ImDrawFlags_StrokeMask_              :: StrokeMask_;
+    ImDrawFlags_InvalidMask_             :: InvalidMask_;
 }
 
 // Draw command list
@@ -3667,24 +4509,27 @@ ImDrawListFlags :: enum_flags u32 {
 // In single viewport mode, top-left is == GetMainViewport()->Pos (generally 0,0), bottom-right is == GetMainViewport()->Pos+Size (generally io.DisplaySize).
 // You are totally free to apply whatever transformation matrix you want to the data (depending on the use of the transformation you may want to apply it to ClipRect as well!)
 // Important: Primitives are always added to the list and not culled (culling is done at higher-level by ImGui:: functions), if you use this API a lot consider coarse culling your drawn objects.
-ImDrawList :: struct {
-    CmdBuffer:         ImVector(ImDrawCmd); // Draw commands. Typically 1 command = 1 GPU draw call, unless the command is a callback.
-    IdxBuffer:         ImVector(ImDrawIdx); // Index buffer. Each command consume ImDrawCmd::ElemCount of those
-    VtxBuffer:         ImVector(ImDrawVert); // Vertex buffer.
-    Flags:             ImDrawListFlags; // Flags, you may poke into these to adjust anti-aliasing settings per-primitive.
+ImDrawList :: struct #type_info_none {
+    CmdBuffer:             ImVector(ImDrawCmd); // Draw commands. Typically 1 command = 1 GPU draw call, unless the command is a callback.
+    IdxBuffer:             ImVector(ImDrawIdx); // Index buffer. Each command consume ImDrawCmd::ElemCount of those
+    VtxBuffer:             ImVector(ImDrawVert); // Vertex buffer.
+    Flags:                 ImDrawFlags; // Current flags for drawing primitives.  Alter with PushDrawFlag()/PopDrawFlags() to adjust defaults to a given scope.
 
-    _VtxCurrentIdx:    u32; // [Internal] generally == VtxBuffer.Size unless we are past 64K vertices, in which case this gets reset to 0.
-    _Data:             *ImDrawListSharedData; // Pointer to shared draw data (you can use ImGui::GetDrawListSharedData() to get the one from current ImGui context)
-    _VtxWritePtr:      *ImDrawVert; // [Internal] point within VtxBuffer.Data after each add command (to avoid using the ImVector<> operators too much)
-    _IdxWritePtr:      *ImDrawIdx; // [Internal] point within IdxBuffer.Data after each add command (to avoid using the ImVector<> operators too much)
-    _Path:             ImVector(ImVec2); // [Internal] current path building
-    _CmdHeader:        ImDrawCmdHeader; // [Internal] template of active commands. Fields should match those of CmdBuffer.back().
-    _Splitter:         ImDrawListSplitter; // [Internal] for channels api (note: prefer using your own persistent instance of ImDrawListSplitter!)
-    _ClipRectStack:    ImVector(ImVec4); // [Internal]
-    _TextureStack:     ImVector(ImTextureRef); // [Internal]
-    _CallbacksDataBuf: ImVector(ImU8); // [Internal]
-    _FringeScale:      float; // [Internal] anti-alias fringe is scaled by this value, this helps to keep things sharp while zooming at vertex buffer content
-    _OwnerName:        *u8; // Pointer to owner window's name for debugging
+    _VtxCurrentIdx:        u32; // [Internal] generally == VtxBuffer.Size unless we are past 64K vertices, in which case this gets reset to 0.
+    _Data:                 *ImDrawListSharedData; // Pointer to shared draw data (you can use ImGui::GetDrawListSharedData() to get the one from current ImGui context)
+    _VtxWritePtr:          *ImDrawVert; // [Internal] point within VtxBuffer.Data after each add command (to avoid using the ImVector<> operators too much)
+    _IdxWritePtr:          *ImDrawIdx; // [Internal] point within IdxBuffer.Data after each add command (to avoid using the ImVector<> operators too much)
+    _Path:                 ImVector(ImVec2); // [Internal] current path building
+    _CmdHeader:            ImDrawCmdHeader; // [Internal] template of active commands. Fields should match those of CmdBuffer.back().
+    _Splitter:             ImDrawListSplitter; // [Internal] for channels api (note: prefer using your own persistent instance of ImDrawListSplitter!)
+    _ClipRectStack:        ImVector(ImVec4); // [Internal]
+    _TextureStack:         ImVector(ImTextureRef); // [Internal]
+    _CallbacksDataBuf:     ImVector(ImU8); // [Internal]
+    _DrawFlagsStack:       ImSmallStack_(ImDrawFlags, 3, ImU16); // [Internal]
+    _FringeScale:          float; // [Internal] anti-alias fringe is scaled by this value, this helps to keep things sharp while zooming at vertex buffer content
+    _InvFringeScale:       float; // [internal] 1.0 / _FringeScale // FIXME: Consider renaming to _PixelDensity.
+    _FringeScaleIsInteger: bool; // [Internal] true if 1/_FringeScale is a whole number, used to select fast path for rendering
+    _OwnerName:            *u8; // Pointer to owner window's name for debugging
 
     // If you want to create ImDrawList instances, pass them ImGui::GetDrawListSharedData().
     // (advanced: you may create and use your own ImDrawListSharedData so you can use ImDrawList without ImGui, but that's more involved)
@@ -3700,6 +4545,8 @@ ImDrawList :: struct {
     PopClipRect :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11PopClipRectEv";
     PushTexture :: (this: *ImDrawList, tex_ref: ImTextureRef) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11PushTextureE12ImTextureRef";
     PopTexture :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList10PopTextureEv";
+    PushDrawFlag :: (this: *ImDrawList, flags: ImDrawFlags, enabled: bool) -> void #cpp_method #foreign imgui "_ZN10ImDrawList12PushDrawFlagEib";
+    PopDrawFlag :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11PopDrawFlagEv";
 
     // Primitives
     // - Filled shapes must always use clockwise winding order. The anti-aliasing fringe depends on it. Counter-clockwise shapes will have "inward" anti-aliasing.
@@ -3708,12 +4555,12 @@ ImDrawList :: struct {
     //   In older versions (until Dear ImGui 1.77) the AddCircle functions defaulted to num_segments == 12.
     //   In future versions we will use textures to provide cheaper and higher-quality circles.
     //   Use AddNgon() and AddNgonFilled() functions if you need to guarantee a specific number of sides.
-    AddLine :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddLineERK6ImVec2S2_jf";
-    AddLine :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, col: ImU32, thickness: float = 1.0) #no_context {
-        AddLine(this, *p1, *p2, col, thickness);
+    AddLine :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddLineERK6ImVec2S2_jfi";
+    AddLine :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddLine(this, *p1, *p2, col, thickness, flags);
     }
-    AddLineH :: (this: *ImDrawList, min_x: float, max_x: float, y: float, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8AddLineHEfffjf";
-    AddLineV :: (this: *ImDrawList, x: float, min_y: float, max_y: float, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8AddLineVEfffjf";
+    AddLineH :: (this: *ImDrawList, min_x: float, max_x: float, y: float, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8AddLineHEfffjfi";
+    AddLineV :: (this: *ImDrawList, x: float, min_y: float, max_y: float, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8AddLineVEfffjfi";
     AddRect :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float = 0.0, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddRectERK6ImVec2S2_jffi";
     AddRect :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float = 0.0, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
         AddRect(this, *p_min, *p_max, col, rounding, thickness, flags);
@@ -3726,41 +4573,41 @@ ImDrawList :: struct {
     AddRectFilledMultiColor :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col_upr_left: ImU32, col_upr_right: ImU32, col_bot_right: ImU32, col_bot_left: ImU32) #no_context {
         AddRectFilledMultiColor(this, *p_min, *p_max, col_upr_left, col_upr_right, col_bot_right, col_bot_left);
     }
-    AddQuad :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddQuadERK6ImVec2S2_S2_S2_jf";
-    AddQuad :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, col: ImU32, thickness: float = 1.0) #no_context {
-        AddQuad(this, *p1, *p2, *p3, *p4, col, thickness);
+    AddQuad :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddQuadERK6ImVec2S2_S2_S2_jfi";
+    AddQuad :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddQuad(this, *p1, *p2, *p3, *p4, col, thickness, flags);
     }
     AddQuadFilled :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, col: ImU32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList13AddQuadFilledERK6ImVec2S2_S2_S2_j";
     AddQuadFilled :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, col: ImU32) #no_context {
         AddQuadFilled(this, *p1, *p2, *p3, *p4, col);
     }
-    AddTriangle :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, col: ImU32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddTriangleERK6ImVec2S2_S2_jf";
-    AddTriangle :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, col: ImU32, thickness: float = 1.0) #no_context {
-        AddTriangle(this, *p1, *p2, *p3, col, thickness);
+    AddTriangle :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddTriangleERK6ImVec2S2_S2_jfi";
+    AddTriangle :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, col: ImU32, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddTriangle(this, *p1, *p2, *p3, col, thickness, flags);
     }
     AddTriangleFilled :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, col: ImU32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList17AddTriangleFilledERK6ImVec2S2_S2_j";
     AddTriangleFilled :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, col: ImU32) #no_context {
         AddTriangleFilled(this, *p1, *p2, *p3, col);
     }
-    AddCircle :: (this: *ImDrawList, center: *ImVec2, radius: float, col: ImU32, num_segments: s32 = 0, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList9AddCircleERK6ImVec2fjif";
-    AddCircle :: (this: *ImDrawList, center: ImVec2, radius: float, col: ImU32, num_segments: s32 = 0, thickness: float = 1.0) #no_context {
-        AddCircle(this, *center, radius, col, num_segments, thickness);
+    AddCircle :: (this: *ImDrawList, center: *ImVec2, radius: float, col: ImU32, num_segments: s32 = 0, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList9AddCircleERK6ImVec2fjifi";
+    AddCircle :: (this: *ImDrawList, center: ImVec2, radius: float, col: ImU32, num_segments: s32 = 0, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddCircle(this, *center, radius, col, num_segments, thickness, flags);
     }
     AddCircleFilled :: (this: *ImDrawList, center: *ImVec2, radius: float, col: ImU32, num_segments: s32 = 0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList15AddCircleFilledERK6ImVec2fji";
     AddCircleFilled :: (this: *ImDrawList, center: ImVec2, radius: float, col: ImU32, num_segments: s32 = 0) #no_context {
         AddCircleFilled(this, *center, radius, col, num_segments);
     }
-    AddNgon :: (this: *ImDrawList, center: *ImVec2, radius: float, col: ImU32, num_segments: s32, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddNgonERK6ImVec2fjif";
-    AddNgon :: (this: *ImDrawList, center: ImVec2, radius: float, col: ImU32, num_segments: s32, thickness: float = 1.0) #no_context {
-        AddNgon(this, *center, radius, col, num_segments, thickness);
+    AddNgon :: (this: *ImDrawList, center: *ImVec2, radius: float, col: ImU32, num_segments: s32, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList7AddNgonERK6ImVec2fjifi";
+    AddNgon :: (this: *ImDrawList, center: ImVec2, radius: float, col: ImU32, num_segments: s32, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddNgon(this, *center, radius, col, num_segments, thickness, flags);
     }
     AddNgonFilled :: (this: *ImDrawList, center: *ImVec2, radius: float, col: ImU32, num_segments: s32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList13AddNgonFilledERK6ImVec2fji";
     AddNgonFilled :: (this: *ImDrawList, center: ImVec2, radius: float, col: ImU32, num_segments: s32) #no_context {
         AddNgonFilled(this, *center, radius, col, num_segments);
     }
-    AddEllipse :: (this: *ImDrawList, center: *ImVec2, radius: *ImVec2, col: ImU32, rot: float = 0.0, num_segments: s32 = 0, thickness: float = 1.0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList10AddEllipseERK6ImVec2S2_jfif";
-    AddEllipse :: (this: *ImDrawList, center: ImVec2, radius: ImVec2, col: ImU32, rot: float = 0.0, num_segments: s32 = 0, thickness: float = 1.0) #no_context {
-        AddEllipse(this, *center, *radius, col, rot, num_segments, thickness);
+    AddEllipse :: (this: *ImDrawList, center: *ImVec2, radius: *ImVec2, col: ImU32, rot: float = 0.0, num_segments: s32 = 0, thickness: float = 1.0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList10AddEllipseERK6ImVec2S2_jfifi";
+    AddEllipse :: (this: *ImDrawList, center: ImVec2, radius: ImVec2, col: ImU32, rot: float = 0.0, num_segments: s32 = 0, thickness: float = 1.0, flags: ImDrawFlags = .None) #no_context {
+        AddEllipse(this, *center, *radius, col, rot, num_segments, thickness, flags);
     }
     AddEllipseFilled :: (this: *ImDrawList, center: *ImVec2, radius: *ImVec2, col: ImU32, rot: float = 0.0, num_segments: s32 = 0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList16AddEllipseFilledERK6ImVec2S2_jfi";
     AddEllipseFilled :: (this: *ImDrawList, center: ImVec2, radius: ImVec2, col: ImU32, rot: float = 0.0, num_segments: s32 = 0) #no_context {
@@ -3774,20 +4621,16 @@ ImDrawList :: struct {
     AddText :: (this: *ImDrawList, font: *ImFont, font_size: float, pos: ImVec2, col: ImU32, text: string, wrap_width: float = 0.0, cpu_fine_clip_rect: *ImVec4 = null) #no_context {
         AddText(this, font, font_size, *pos, col, text.data, text.data + text.count, wrap_width, cpu_fine_clip_rect);
     }
-    AddBezierCubic :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList14AddBezierCubicERK6ImVec2S2_S2_S2_jfi";
-    AddBezierCubic :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0) #no_context {
-        AddBezierCubic(this, *p1, *p2, *p3, *p4, col, thickness, num_segments);
+    AddBezierCubic :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList14AddBezierCubicERK6ImVec2S2_S2_S2_jfii";
+    AddBezierCubic :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0, flags: ImDrawFlags = .None) #no_context {
+        AddBezierCubic(this, *p1, *p2, *p3, *p4, col, thickness, num_segments, flags);
     }
-    AddBezierQuadratic :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0) -> void #cpp_method #foreign imgui "_ZN10ImDrawList18AddBezierQuadraticERK6ImVec2S2_S2_jfi";
-    AddBezierQuadratic :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0) #no_context {
-        AddBezierQuadratic(this, *p1, *p2, *p3, col, thickness, num_segments);
+    AddBezierQuadratic :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList18AddBezierQuadraticERK6ImVec2S2_S2_jfii";
+    AddBezierQuadratic :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, p3: ImVec2, col: ImU32, thickness: float, num_segments: s32 = 0, flags: ImDrawFlags = .None) #no_context {
+        AddBezierQuadratic(this, *p1, *p2, *p3, col, thickness, num_segments, flags);
     }
 
-    // General polygon
-    // - Only simple polygons are supported by filling functions (no self-intersections, no holes).
-    // - Concave polygon fill is more expensive than convex one: it has O(N^2) complexity. Provided as a convenience for the user but not used by the main library.
-    AddPolyline :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, thickness: float, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList11AddPolylineEPK6ImVec2ijfi";
-    AddConvexPolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList19AddConvexPolyFilledEPK6ImVec2ij";
+    AddConvexPolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, flags: ImDrawFlags = .None) -> void #cpp_method #foreign imgui "_ZN10ImDrawList19AddConvexPolyFilledEPK6ImVec2iji";
     AddConcavePolyFilled :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32) -> void #cpp_method #foreign imgui "_ZN10ImDrawList20AddConcavePolyFilledEPK6ImVec2ij";
 
     // Image primitives
@@ -3869,6 +4712,7 @@ ImDrawList :: struct {
     // [Internal helpers]
     _SetDrawListSharedData :: (this: *ImDrawList, data: *ImDrawListSharedData) -> void #cpp_method #foreign imgui "_ZN10ImDrawList22_SetDrawListSharedDataEP20ImDrawListSharedData";
     _ResetForNewFrame :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList17_ResetForNewFrameEv";
+    _SetPixelDensity :: (this: *ImDrawList, pixel_density: float) -> void #cpp_method #foreign imgui "_ZN10ImDrawList16_SetPixelDensityEf";
     _ClearFreeMemory :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList16_ClearFreeMemoryEv";
     _PopUnusedDrawCmd :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList17_PopUnusedDrawCmdEv";
     _TryMergeDrawCmds :: (this: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawList17_TryMergeDrawCmdsEv";
@@ -3885,6 +4729,25 @@ ImDrawList :: struct {
     _PathArcToN :: (this: *ImDrawList, center: ImVec2, radius: float, a_min: float, a_max: float, num_segments: s32) #no_context {
         _PathArcToN(this, *center, radius, a_min, a_max, num_segments);
     }
+    _AddRectFilledBaked :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, r: float, tex_uvs: *ImVec4, flags: ImDrawFlags) -> void #cpp_method #foreign imgui "_ZN10ImDrawList19_AddRectFilledBakedERK6ImVec2S2_jfRK6ImVec4i";
+    _AddRectFilledBaked :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, r: float, tex_uvs: ImVec4, flags: ImDrawFlags) #no_context {
+        _AddRectFilledBaked(this, *p_min, *p_max, col, r, *tex_uvs, flags);
+    }
+    _AddRectBaked :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, r: float, t: float, tex_uvs: *ImVec4, flags: ImDrawFlags) -> void #cpp_method #foreign imgui "_ZN10ImDrawList13_AddRectBakedERK6ImVec2S2_jffRK6ImVec4i";
+    _AddRectBaked :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, r: float, t: float, tex_uvs: ImVec4, flags: ImDrawFlags) #no_context {
+        _AddRectBaked(this, *p_min, *p_max, col, r, t, *tex_uvs, flags);
+    }
+    _AddLine :: (this: *ImDrawList, p1: *ImVec2, p2: *ImVec2, col: ImU32, thickness: float, flags: ImDrawFlags) -> void #cpp_method #foreign imgui "_ZN10ImDrawList8_AddLineERK6ImVec2S2_jfi";
+    _AddLine :: (this: *ImDrawList, p1: ImVec2, p2: ImVec2, col: ImU32, thickness: float, flags: ImDrawFlags) #no_context {
+        _AddLine(this, *p1, *p2, col, thickness, flags);
+    }
+    _AddRectTinyRounding :: (this: *ImDrawList, p_min: *ImVec2, p_max: *ImVec2, col: ImU32, rounding: float, thickness: float, flags: ImDrawFlags) -> void #cpp_method #foreign imgui "_ZN10ImDrawList20_AddRectTinyRoundingERK6ImVec2S2_jffi";
+    _AddRectTinyRounding :: (this: *ImDrawList, p_min: ImVec2, p_max: ImVec2, col: ImU32, rounding: float, thickness: float, flags: ImDrawFlags) #no_context {
+        _AddRectTinyRounding(this, *p_min, *p_max, col, rounding, thickness, flags);
+    }
+    _SelectLineTexture :: (this: *ImDrawList, screen_thickness: float, out_uv0: *ImVec2, out_uv1: *ImVec2, out_fringe: *float, flags: ImDrawFlags) -> void #cpp_method #foreign imgui "_ZN10ImDrawList18_SelectLineTextureEfP6ImVec2S1_Pfi";
+    _CalculateCenterBiasedOffset :: (this: *ImDrawList, thickness: float) -> float #cpp_method #foreign imgui "_ZN10ImDrawList28_CalculateCenterBiasedOffsetEf";
+    _AddPolyline :: (this: *ImDrawList, points: *ImVec2, num_points: s32, col: ImU32, thickness: float, flags: ImDrawFlags, max_inner_offset: float) -> void #cpp_method #foreign imgui "_ZN10ImDrawList12_AddPolylineEPK6ImVec2ijfif";
 }
 
 // All draw data to render a Dear ImGui frame
@@ -3901,8 +4764,6 @@ ImDrawData :: struct {
     FramebufferScale: ImVec2; // Amount of pixels for each unit of DisplaySize. Copied from viewport->FramebufferScale (== io.DisplayFramebufferScale for main viewport). Generally (1,1) on normal display, (2,2) on OSX with Retina display.
     OwnerViewport:    *Viewport; // Viewport carrying the ImDrawData instance, might be of use to the renderer (generally not).
     Textures:         *ImVector(*ImTextureData); // List of textures to update. Most of the times the list is shared by all ImDrawData, has only 1 texture and it doesn't need any update. This almost always points to ImGui::GetPlatformIO().Textures[]. May be overridden or set to NULL if you want to manually update textures.
-
-    CmdListsCount:    s32; // Use CmdLists.Size instead. Number of ImDrawList* to render.
 
     Clear :: (this: *ImDrawData) -> void #cpp_method #foreign imgui "_ZN10ImDrawData5ClearEv";
     AddDrawList :: (this: *ImDrawData, draw_list: *ImDrawList) -> void #cpp_method #foreign imgui "_ZN10ImDrawData11AddDrawListEP10ImDrawList";
@@ -4010,8 +4871,6 @@ ImFontConfig :: struct {
     FontLoader:           *ImFontLoader; // Custom font backend for this source (default source is the one stored in ImFontAtlas)
     FontLoaderData:       *void; // Font loader opaque storage (per font config)
 
-    PixelSnapV:           bool; // true    // [Obsoleted in 1.91.6] Align Scaled GlyphOffset.y to pixel boundaries.
-
     Constructor :: (this: *ImFontConfig) -> void #cpp_method #foreign imgui "_ZN12ImFontConfigC1Ev";
 }
 
@@ -4102,15 +4961,17 @@ ImFontAtlasRect :: struct {
 
 // Flags for ImFontAtlas build
 ImFontAtlasFlags :: enum_flags u32 {
-    None               :: 0x0;
-    NoPowerOfTwoHeight :: 0x1;
-    NoMouseCursors     :: 0x2;
-    NoBakedLines       :: 0x4;
+    None                :: 0x0;
+    NoPowerOfTwoHeight  :: 0x1;
+    NoMouseCursors      :: 0x2;
+    NoBakedLines        :: 0x4;
+    NoBakedRoundCorners :: 0x8;
 
-    ImFontAtlasFlags_None               :: None;
-    ImFontAtlasFlags_NoPowerOfTwoHeight :: NoPowerOfTwoHeight;
-    ImFontAtlasFlags_NoMouseCursors     :: NoMouseCursors;
-    ImFontAtlasFlags_NoBakedLines       :: NoBakedLines;
+    ImFontAtlasFlags_None                :: None;
+    ImFontAtlasFlags_NoPowerOfTwoHeight  :: NoPowerOfTwoHeight;
+    ImFontAtlasFlags_NoMouseCursors      :: NoMouseCursors;
+    ImFontAtlasFlags_NoBakedLines        :: NoBakedLines;
+    ImFontAtlasFlags_NoBakedRoundCorners :: NoBakedRoundCorners;
 }
 
 // Load and rasterize multiple TTF/OTF fonts into a same texture. The font atlas will build a single texture holding:
@@ -4157,33 +5018,8 @@ ImFontAtlas :: struct {
     ClearInputData :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas14ClearInputDataEv";
     ClearTexData :: (this: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas12ClearTexDataEv";
 
-    // Legacy path for build atlas + retrieving pixel data.
-    // - User is in charge of copying the pixels into graphics memory (e.g. create a texture with your engine). Then store your texture handle with SetTexID().
-    // - The pitch is always = Width * BytesPerPixels (1 or 4)
-    // - Building in RGBA32 format is provided for convenience and compatibility, but note that unless you manually manipulate or copy color data into
-    //   the texture (e.g. when using the AddCustomRect*** api), then the RGB pixels emitted will always be white (~75% of memory/bandwidth waste).
-    // - From 1.92 with backends supporting ImGuiBackendFlags_RendererHasTextures:
-    //   - Calling Build(), GetTexDataAsAlpha8(), GetTexDataAsRGBA32() is not needed.
-    //   - In backend: replace calls to ImFontAtlas::SetTexID() with calls to ImTextureData::SetTexID() after honoring texture creation.
-    Build :: (this: *ImFontAtlas) -> bool #cpp_method #foreign imgui "_ZN11ImFontAtlas5BuildEv";
-    GetTexDataAsAlpha8 :: (this: *ImFontAtlas, out_pixels: **u8, out_width: *s32, out_height: *s32, out_bytes_per_pixel: *s32 = null) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas18GetTexDataAsAlpha8EPPhPiS2_S2_";
-    GetTexDataAsRGBA32 :: (this: *ImFontAtlas, out_pixels: **u8, out_width: *s32, out_height: *s32, out_bytes_per_pixel: *s32 = null) -> void #cpp_method #foreign imgui "_ZN11ImFontAtlas18GetTexDataAsRGBA32EPPhPiS2_S2_";
-
     // Since 1.92: specifying glyph ranges is only useful/necessary if your backend doesn't support ImGuiBackendFlags_RendererHasTextures!
     GetGlyphRangesDefault :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas21GetGlyphRangesDefaultEv";
-
-    // Helpers to retrieve list of common Unicode ranges (2 value per range, values are inclusive, zero-terminated list)
-    // NB: Make sure that your string are UTF-8 and NOT in your local code page.
-    // Read https://github.com/ocornut/imgui/blob/master/docs/FONTS.md/#about-utf-8-encoding for details.
-    // NB: Consider using ImFontGlyphRangesBuilder to build glyph ranges from textual data.
-    GetGlyphRangesGreek :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas19GetGlyphRangesGreekEv";
-    GetGlyphRangesKorean :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas20GetGlyphRangesKoreanEv";
-    GetGlyphRangesJapanese :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas22GetGlyphRangesJapaneseEv";
-    GetGlyphRangesChineseFull :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas25GetGlyphRangesChineseFullEv";
-    GetGlyphRangesChineseSimplifiedCommon :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas37GetGlyphRangesChineseSimplifiedCommonEv";
-    GetGlyphRangesCyrillic :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas22GetGlyphRangesCyrillicEv";
-    GetGlyphRangesThai :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas18GetGlyphRangesThaiEv";
-    GetGlyphRangesVietnamese :: (this: *ImFontAtlas) -> *ImWchar #cpp_method #foreign imgui "_ZN11ImFontAtlas24GetGlyphRangesVietnameseEv";
 
     // Register and retrieve custom rectangles
     // - You can request arbitrary rectangles to be packed into the atlas, for your own purpose.
@@ -4208,18 +5044,14 @@ ImFontAtlas :: struct {
 
     Flags:               ImFontAtlasFlags; // Build flags (see ImFontAtlasFlags_)
     TexDesiredFormat:    ImTextureFormat; // Desired texture format (default to ImTextureFormat_RGBA32 but may be changed to ImTextureFormat_Alpha8).
-    TexGlyphPadding:     s32; // FIXME: Should be called "TexPackPadding". Padding between glyphs within texture in pixels. Defaults to 1. If your rendering method doesn't rely on bilinear filtering you may set this to 0 (will also need to set AntiAliasedLinesUseTex = false).
+    TexGlyphPadding:     s32; // FIXME: Should be called "TexPackPadding". Padding between glyphs within texture in pixels. Defaults to 1. If your rendering method never relies on bilinear filtering you may set this to 0.
     TexMinWidth:         s32; // Minimum desired texture width. Must be a power of two. Default to 512.
     TexMinHeight:        s32; // Minimum desired texture height. Must be a power of two. Default to 128.
     TexMaxWidth:         s32; // Maximum desired texture width. Must be a power of two. Default to 8192.
     TexMaxHeight:        s32; // Maximum desired texture height. Must be a power of two. Default to 8192.
     UserData:            *void; // Store your own atlas related user-data (if e.g. you have multiple font atlas).
 
-    struct {
-        TexRef: ImTextureRef; // Latest texture identifier == TexData->GetTexRef(). // RENAMED TexID to TexRef in 1.92.0.
-
-        #overlay (TexRef) TexID: ImTextureRef; // Latest texture identifier == TexData->GetTexRef(). // RENAMED TexID to TexRef in 1.92.0.
-    }
+    TexRef:              ImTextureRef; // Latest texture identifier == TexData->GetTexRef().
 
     TexData:             *ImTextureData; // Latest texture.
 
@@ -4232,7 +5064,6 @@ ImFontAtlas :: struct {
     TexUvWhitePixel:     ImVec2; // Texture coordinates to a white pixel. May change as new texture gets created.
     Fonts:               ImVector(*ImFont); // Hold all the fonts returned by AddFont*. Fonts[0] is the default font upon calling ImGui::NewFrame(), use ImGui::PushFont()/PopFont() to change the current font.
     Sources:             ImVector(ImFontConfig); // Source/configuration data
-    TexUvLines:          [33] ImVec4; // UVs for baked anti-aliased lines
     TexNextUniqueID:     s32; // Next value to be stored in TexData->UniqueID
     FontNextUniqueID:    s32; // Next value to be stored in ImFont->FontID
     DrawListSharedDatas: ImVector(*ImDrawListSharedData); // List of users for this atlas. Typically one per Dear ImGui context.
@@ -4243,17 +5074,6 @@ ImFontAtlas :: struct {
     FontLoaderFlags:     u32; // Shared flags (for all fonts) for font loader. THIS IS BUILD IMPLEMENTATION DEPENDENT (e.g. Per-font override is also available in ImFontConfig).
     RefCount:            s32; // Number of contexts using this atlas
     OwnerContext:        *ImGuiContext; // Context which own the atlas will be in charge of updating and destroying it.
-
-    TempRect:            ImFontAtlasRect; // For old GetCustomRectByIndex() API
-
-    AddCustomRectFontGlyph :: (this: *ImFontAtlas, font: *ImFont, codepoint: ImWchar, w: s32, h: s32, advance_x: float, offset: *ImVec2) -> ImFontAtlasRectId #cpp_method #foreign imgui "_ZN11ImFontAtlas22AddCustomRectFontGlyphEP6ImFonttiifRK6ImVec2";
-    AddCustomRectFontGlyph :: (this: *ImFontAtlas, font: *ImFont, codepoint: ImWchar, w: s32, h: s32, advance_x: float, offset: ImVec2 = ImVec2.{0, 0}) -> ImFontAtlasRectId #no_context {
-        return AddCustomRectFontGlyph(this, font, codepoint, w, h, advance_x, *offset);
-    }
-    AddCustomRectFontGlyphForSize :: (this: *ImFontAtlas, font: *ImFont, font_size: float, codepoint: ImWchar, w: s32, h: s32, advance_x: float, offset: *ImVec2) -> ImFontAtlasRectId #cpp_method #foreign imgui "_ZN11ImFontAtlas29AddCustomRectFontGlyphForSizeEP6ImFontftiifRK6ImVec2";
-    AddCustomRectFontGlyphForSize :: (this: *ImFontAtlas, font: *ImFont, font_size: float, codepoint: ImWchar, w: s32, h: s32, advance_x: float, offset: ImVec2 = ImVec2.{0, 0}) -> ImFontAtlasRectId #no_context {
-        return AddCustomRectFontGlyphForSize(this, font, font_size, codepoint, w, h, advance_x, *offset);
-    }
 }
 
 // Font runtime data for a given size
@@ -4359,9 +5179,7 @@ ImFont :: struct {
     FallbackChar:             ImWchar; // 2-4   // out // Character used if a glyph isn't found (U+FFFD, '?')
     Used8kPagesMap:           [1] ImU8; // 1 bytes if ImWchar=ImWchar16, 17 bytes if ImWchar==ImWchar32. Store 1-bit for each block of 8K codepoints that has one active glyph. This is mainly used to facilitate iterations across all used codepoints.
     EllipsisAutoBake:         bool; // 1     //     // Mark when the "..." glyph (== EllipsisChar) needs to be generated by combining multiple '.'.
-    RemapPairs:               Storage; // 16    //     // Remapping pairs when using AddRemapChar(), otherwise empty.
-
-    Scale:                    float; // 4     // in  // Legacy base font scale (~1.0f), multiplied by the per-window font scale which you can adjust with SetWindowFontScale()
+    RemapPairs:               Storage; // 16    //     // Remapping pairs when using AddRemapCodepointXXX().
 
     // Methods
     Constructor :: (this: *ImFont) -> void #cpp_method #foreign imgui "_ZN6ImFontC1Ev";
@@ -4385,14 +5203,15 @@ ImFont :: struct {
     RenderChar :: (this: *ImFont, draw_list: *ImDrawList, size: float, pos: ImVec2, col: ImU32, c: ImWchar, cpu_fine_clip: *ImVec4 = null) #no_context {
         RenderChar(this, draw_list, size, *pos, col, c, cpu_fine_clip);
     }
-    RenderText :: (this: *ImFont, draw_list: *ImDrawList, size: float, pos: *ImVec2, col: ImU32, clip_rect: *ImVec4, text_begin: *u8, text_end: *u8, wrap_width: float = 0.0, flags: ImDrawTextFlags = 0) -> void #cpp_method #foreign imgui "_ZN6ImFont10RenderTextEP10ImDrawListfRK6ImVec2jRK6ImVec4PKcS9_fi";
-    RenderText :: (this: *ImFont, draw_list: *ImDrawList, size: float, pos: ImVec2, col: ImU32, clip_rect: ImVec4, text: string, wrap_width: float = 0.0, flags: ImDrawTextFlags = 0) #no_context {
+    RenderText :: (this: *ImFont, draw_list: *ImDrawList, size: float, pos: *ImVec2, col: ImU32, clip_rect: *ImVec4, text_begin: *u8, text_end: *u8, wrap_width: float = 0.0, flags: ImDrawTextFlags = .None) -> void #cpp_method #foreign imgui "_ZN6ImFont10RenderTextEP10ImDrawListfRK6ImVec2jRK6ImVec4PKcS9_fi";
+    RenderText :: (this: *ImFont, draw_list: *ImDrawList, size: float, pos: ImVec2, col: ImU32, clip_rect: ImVec4, text: string, wrap_width: float = 0.0, flags: ImDrawTextFlags = .None) #no_context {
         RenderText(this, draw_list, size, *pos, col, *clip_rect, text.data, text.data + text.count, wrap_width, flags);
     }
 
     // [Internal] Don't use!
     ClearOutputData :: (this: *ImFont) -> void #cpp_method #foreign imgui "_ZN6ImFont15ClearOutputDataEv";
-    AddRemapChar :: (this: *ImFont, from_codepoint: ImWchar, to_codepoint: ImWchar) -> void #cpp_method #foreign imgui "_ZN6ImFont12AddRemapCharEtt";
+    AddRemapCodepoint :: (this: *ImFont, from_codepoint: ImWchar, to_codepoint: ImWchar) -> void #cpp_method #foreign imgui "_ZN6ImFont17AddRemapCodepointEtt";
+    AddRemapCodepointToGlyphIndex :: (this: *ImFont, from_codepoint: ImWchar, font_src_idx: s32, glyph_idx: s32) -> void #cpp_method #foreign imgui "_ZN6ImFont29AddRemapCodepointToGlyphIndexEtii";
     IsGlyphRangeUnused :: (this: *ImFont, c_begin: u32, c_last: u32) -> bool #cpp_method #foreign imgui "_ZN6ImFont18IsGlyphRangeUnusedEjj";
 }
 
@@ -4441,6 +5260,10 @@ ViewportFlags :: enum_flags u32 {
 //   - Work Area = entire viewport minus sections used by main menu bars (for platform windows), or by task bar (for platform monitor).
 //   - Windows are generally trying to stay within the Work Area of their host viewport.
 Viewport :: struct {
+    using viewport__raw: Viewport__RAW;
+}
+// Viewport without padding. Needed to generate a C++-equivalent struct layout when "inheriting" from Viewport
+Viewport__RAW :: struct {
     ID_:                   ID; // Unique identifier for the viewport
     Flags:                 ViewportFlags; // See ImGuiViewportFlags_
     Pos:                   ImVec2; // Main Area: Position of the viewport (Dear ImGui coordinates are the same as OS desktop/native coordinates)
@@ -4464,7 +5287,7 @@ Viewport :: struct {
     PlatformRequestClose:  bool; // Platform window requested closure (e.g. window was moved by the OS / host window manager, e.g. pressing ALT-F4)
 
     GetDebugName :: (this: *Viewport) -> *u8 #cpp_method #foreign imgui "_ZNK13ImGuiViewport12GetDebugNameEv";
-}
+} #no_padding
 
 // Access via ImGui::GetPlatformIO()
 PlatformIO :: struct {
@@ -4498,6 +5321,7 @@ PlatformIO :: struct {
     DrawCallback_ResetRenderState:      ImDrawCallback; // Request to reset the graphics/render state.
     DrawCallback_SetSamplerLinear:      ImDrawCallback; // Request backend to set texture sampling to Linear.
     DrawCallback_SetSamplerNearest:     ImDrawCallback; // Request backend to set texture sampling to Nearest/Point.
+    DrawCallback_SetSamplerFromTex:     ImDrawCallback; // Request backend to use sampler associated to texture - only available in some backends: OpenGL2/3 and SDLRenderer3.
 
     Platform_CreateWindow:              #type (vp: *Viewport) -> void #c_call; // . . U . .  // Create a new platform window for the given viewport
     Platform_DestroyWindow:             #type (vp: *Viewport) -> void #c_call; // N . U . D  //
@@ -4561,13 +5385,6 @@ PlatformImeData :: struct {
     InputLineHeight: float; // Line height (for IME).
     ViewportId:      ID; // ID of platform window/viewport.
 }
-
-//-- OBSOLETED in 1.92.0: ImFontAtlasCustomRect becomes ImTextureRect
-// - ImFontAtlasCustomRect::X,Y          --> ImTextureRect::x,y
-// - ImFontAtlasCustomRect::Width,Height --> ImTextureRect::w,h
-// - ImFontAtlasCustomRect::GlyphColored --> if you need to write to this, instead you can write to 'font->Glyphs.back()->Colored' after calling AddCustomRectFontGlyph()
-// We could make ImTextureRect an union to use old names, but 1) this would be confusing 2) the fix is easy 3) ImFontAtlasCustomRect was always a rather esoteric api.
-ImFontAtlasCustomRect :: ImFontAtlasRect;
 
 // Indicates variable should deduced automatically.
 IMPLOT_AUTO: s32 : -1;
@@ -4669,47 +5486,49 @@ ImPlotFlags :: enum_flags u32 {
 
 // Options for plot axes (see SetupAxis).
 ImPlotAxisFlags :: enum_flags u32 {
-    None          :: 0x0;
-    NoLabel       :: 0x1;
-    NoGridLines   :: 0x2;
-    NoTickMarks   :: 0x4;
-    NoTickLabels  :: 0x8;
-    NoInitialFit  :: 0x10;
-    NoMenus       :: 0x20;
-    NoSideSwitch  :: 0x40;
-    NoHighlight   :: 0x80;
-    Opposite      :: 0x100;
-    Foreground    :: 0x200;
-    Invert        :: 0x400;
-    AutoFit       :: 0x800;
-    RangeFit      :: 0x1000;
-    PanStretch    :: 0x2000;
-    LockMin       :: 0x4000;
-    LockMax       :: 0x8000;
-    Lock          :: 0xc000;
-    NoDecorations :: 0xf;
-    AuxDefault    :: 0x102;
+    None             :: 0x0;
+    NoLabel          :: 0x1;
+    NoGridLines      :: 0x2;
+    NoTickMarks      :: 0x4;
+    NoTickLabels     :: 0x8;
+    NoInitialFit     :: 0x10;
+    NoMenus          :: 0x20;
+    NoSideSwitch     :: 0x40;
+    NoHighlight      :: 0x80;
+    Opposite         :: 0x100;
+    Foreground       :: 0x200;
+    Invert           :: 0x400;
+    AutoFit          :: 0x800;
+    RangeFit         :: 0x1000;
+    PanStretch       :: 0x2000;
+    LockMin          :: 0x4000;
+    LockMax          :: 0x8000;
+    TickLabelsInside :: 0x10000;
+    Lock             :: 0xc000;
+    NoDecorations    :: 0xf;
+    AuxDefault       :: 0x102;
 
-    ImPlotAxisFlags_None          :: None;
-    ImPlotAxisFlags_NoLabel       :: NoLabel;
-    ImPlotAxisFlags_NoGridLines   :: NoGridLines;
-    ImPlotAxisFlags_NoTickMarks   :: NoTickMarks;
-    ImPlotAxisFlags_NoTickLabels  :: NoTickLabels;
-    ImPlotAxisFlags_NoInitialFit  :: NoInitialFit;
-    ImPlotAxisFlags_NoMenus       :: NoMenus;
-    ImPlotAxisFlags_NoSideSwitch  :: NoSideSwitch;
-    ImPlotAxisFlags_NoHighlight   :: NoHighlight;
-    ImPlotAxisFlags_Opposite      :: Opposite;
-    ImPlotAxisFlags_Foreground    :: Foreground;
-    ImPlotAxisFlags_Invert        :: Invert;
-    ImPlotAxisFlags_AutoFit       :: AutoFit;
-    ImPlotAxisFlags_RangeFit      :: RangeFit;
-    ImPlotAxisFlags_PanStretch    :: PanStretch;
-    ImPlotAxisFlags_LockMin       :: LockMin;
-    ImPlotAxisFlags_LockMax       :: LockMax;
-    ImPlotAxisFlags_Lock          :: Lock;
-    ImPlotAxisFlags_NoDecorations :: NoDecorations;
-    ImPlotAxisFlags_AuxDefault    :: AuxDefault;
+    ImPlotAxisFlags_None             :: None;
+    ImPlotAxisFlags_NoLabel          :: NoLabel;
+    ImPlotAxisFlags_NoGridLines      :: NoGridLines;
+    ImPlotAxisFlags_NoTickMarks      :: NoTickMarks;
+    ImPlotAxisFlags_NoTickLabels     :: NoTickLabels;
+    ImPlotAxisFlags_NoInitialFit     :: NoInitialFit;
+    ImPlotAxisFlags_NoMenus          :: NoMenus;
+    ImPlotAxisFlags_NoSideSwitch     :: NoSideSwitch;
+    ImPlotAxisFlags_NoHighlight      :: NoHighlight;
+    ImPlotAxisFlags_Opposite         :: Opposite;
+    ImPlotAxisFlags_Foreground       :: Foreground;
+    ImPlotAxisFlags_Invert           :: Invert;
+    ImPlotAxisFlags_AutoFit          :: AutoFit;
+    ImPlotAxisFlags_RangeFit         :: RangeFit;
+    ImPlotAxisFlags_PanStretch       :: PanStretch;
+    ImPlotAxisFlags_LockMin          :: LockMin;
+    ImPlotAxisFlags_LockMax          :: LockMax;
+    ImPlotAxisFlags_TickLabelsInside :: TickLabelsInside;
+    ImPlotAxisFlags_Lock             :: Lock;
+    ImPlotAxisFlags_NoDecorations    :: NoDecorations;
+    ImPlotAxisFlags_AuxDefault       :: AuxDefault;
 }
 
 // Options for subplots (see BeginSubplot)
@@ -4784,12 +5603,16 @@ ImPlotDragToolFlags :: enum_flags u32 {
     NoFit     :: 0x2;
     NoInputs  :: 0x4;
     Delayed   :: 0x8;
+    NoMove    :: 0x10;
+    NoResize  :: 0x20;
 
     ImPlotDragToolFlags_None      :: None;
     ImPlotDragToolFlags_NoCursors :: NoCursors;
     ImPlotDragToolFlags_NoFit     :: NoFit;
     ImPlotDragToolFlags_NoInputs  :: NoInputs;
     ImPlotDragToolFlags_Delayed   :: Delayed;
+    ImPlotDragToolFlags_NoMove    :: NoMove;
+    ImPlotDragToolFlags_NoResize  :: NoResize;
 }
 
 // Flags for ColormapScale
@@ -5216,7 +6039,7 @@ ImPlotBin :: enum s32 {
 //    spec.LineColor = ImVec4(1,0,0,1);
 //    spec.LineWeight = 2.0f;
 //    spec.Marker = ImPlotMarker_Circle;
-//    spec.Flags = ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments;
+//    spec.Flags = (ImPlotItemFlags)ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments;
 //    ImPlot::PlotLine("MyLine", xs, ys, 100, spec);
 //
 // 2. Inline using (ImPlotProp,value) pairs (order does NOT matter):
@@ -5225,7 +6048,7 @@ ImPlotBin :: enum s32 {
 //      ImPlotProp_LineColor, ImVec4(1,0,0,1),
 //      ImPlotProp_LineWeight, 2.0f,
 //      ImPlotProp_Marker, ImPlotMarker_Circle,
-//      ImPlotProp_Flags, ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments
+//      ImPlotProp_Flags, (ImPlotItemFlags)ImPlotItemFlags_NoLegend | ImPlotLineFlags_Segments
 //    });
 ImPlotSpec :: struct {
     LineColor:        ImVec4; // line color (applies to lines, bar edges); IMPLOT_AUTO_COL will use next Colormap color or current item color
@@ -5655,6 +6478,11 @@ ImPlot :: struct {
     // Use ImPlotCond_Always if you need to forcefully set this every frame.
     HideNextItem :: (hidden := true, cond: ImPlotCond = cast(ImPlotCond).Once) -> void #foreign imgui "_ZN6ImPlot12HideNextItemEbi";
 
+    // Returns true if the plot item #label_id in the current plot is hidden (i.e. toggled off from the legend or by HideNextItem).
+    // Can be called before the item is submitted (e.g. to skip expensive work for a hidden item), in which case it reports
+    // the state from the previous frame. Returns false for items that have never been submitted. See also IsLastItemHidden.
+    IsItemHidden :: (label_id: *u8) -> bool #foreign imgui "_ZN6ImPlot12IsItemHiddenEPKc";
+
     // Align axis padding over multiple plots in a single row or column. #group_id must
     // be unique. If this function returns true, EndAlignedPlots() must be called.
     BeginAlignedPlots :: (group_id: *u8, vertical := true) -> bool #foreign imgui "_ZN6ImPlot17BeginAlignedPlotsEPKcb";
@@ -5737,6 +6565,9 @@ ImPlot :: struct {
 
     // Gets the last item primary color (i.e. its legend icon color)
     GetLastItemColor :: () -> ImVec4 #foreign imgui "_ZN6ImPlot16GetLastItemColorEv";
+
+    // Returns true if the last plot item is hidden (i.e. toggled off from the legend or by HideNextItem).
+    IsLastItemHidden :: () -> bool #foreign imgui "_ZN6ImPlot16IsLastItemHiddenEv";
 
     // Returns the null terminated string name for an ImPlotCol.
     GetStyleColorName :: (idx: ImPlotCol) -> *u8 #foreign imgui "_ZN6ImPlot17GetStyleColorNameEi";
@@ -5857,8 +6688,6 @@ ImPlot :: struct {
     // Shows the ImPlot demo window (add implot_demo.cpp to your sources!)
     ShowDemoWindow :: (p_open: *bool = null) -> void #foreign imgui "_ZN6ImPlot14ShowDemoWindowEPb";
 }
-
-Window :: struct {}
 
 zmo :: struct {
     // call inside your own window and before Manipulate() in order to draw gizmo to that window.
@@ -6097,2228 +6926,3301 @@ zmo :: struct {
     GetStyle :: () -> *Style #foreign imgui "_ZN8ImGuizmo8GetStyleEv";
 }
 
-#scope_file
+DockRequest :: struct {}
 
-#import "Basic"; // For assert, print_to_builder
+DockNodeSettings :: struct {}
+
+InputTextDeactivateData :: struct {}
+
+TableColumnsSettings :: struct {}
+
+// Enumerations
+// Use your programming IDE "Go to definition" facility on the names of the center columns to find the actual flags/enum lists.
+LocKey :: enum s32 {
+    VersionStr                    :: 0;
+    TableSizeOne                  :: 1;
+    TableSizeAllFit               :: 2;
+    TableSizeAllDefault           :: 3;
+    TableReset                    :: 4;
+
+    TableResetOrder               :: 5;
+    TableResetVisibility          :: 6;
+    WindowingMainMenuBar          :: 7;
+    WindowingPopup                :: 8;
+    WindowingUntitled             :: 9;
+    OpenLink_s                    :: 10;
+    CopyLink                      :: 11;
+    DockingHideTabBar             :: 12;
+    DockingHoldShiftToDock        :: 13;
+    DockingDragToUndockOrMoveNode :: 14;
+    COUNT                         :: 15;
+
+    ImGuiLocKey_VersionStr                    :: VersionStr;
+    ImGuiLocKey_TableSizeOne                  :: TableSizeOne;
+    ImGuiLocKey_TableSizeAllFit               :: TableSizeAllFit;
+    ImGuiLocKey_TableSizeAllDefault           :: TableSizeAllDefault;
+    ImGuiLocKey_TableReset                    :: TableReset;
+
+    ImGuiLocKey_TableResetOrder               :: TableResetOrder;
+    ImGuiLocKey_TableResetVisibility          :: TableResetVisibility;
+    ImGuiLocKey_WindowingMainMenuBar          :: WindowingMainMenuBar;
+    ImGuiLocKey_WindowingPopup                :: WindowingPopup;
+    ImGuiLocKey_WindowingUntitled             :: WindowingUntitled;
+    ImGuiLocKey_OpenLink_s                    :: OpenLink_s;
+    ImGuiLocKey_CopyLink                      :: CopyLink;
+    ImGuiLocKey_DockingHideTabBar             :: DockingHideTabBar;
+    ImGuiLocKey_DockingHoldShiftToDock        :: DockingHoldShiftToDock;
+    ImGuiLocKey_DockingDragToUndockOrMoveNode :: DockingDragToUndockOrMoveNode;
+    ImGuiLocKey_COUNT                         :: COUNT;
+}
+
+// Table column indexing
+TableColumnIdx :: ImS16;
+TableDrawChannelIdx :: ImU16;
+
+// Helpers: Hashing
+ImHashData :: (data: *void, data_size: u64, seed: ID = 0) -> ID #foreign imgui "_Z10ImHashDataPKvmj";
+ImHashStr :: (data: *u8, data_size: u64 = 0, seed: ID = 0) -> ID #foreign imgui "_Z9ImHashStrPKcmj";
+ImHashSkipUncontributingPrefix :: (label: *u8) -> *u8 #foreign imgui "_Z30ImHashSkipUncontributingPrefixPKc";
+
+// Helpers: Color Blending
+ImAlphaBlendColors :: (col_a: ImU32, col_b: ImU32) -> ImU32 #foreign imgui "_Z18ImAlphaBlendColorsjj";
+
+ImStricmp :: (str1: *u8, str2: *u8) -> s32 #foreign imgui "_Z9ImStricmpPKcS0_";
+ImStrnicmp :: (str1: *u8, str2: *u8, count: u64) -> s32 #foreign imgui "_Z10ImStrnicmpPKcS0_m";
+ImStrncpy :: (dst: *u8, src: *u8, count: u64) -> void #foreign imgui "_Z9ImStrncpyPcPKcm";
+ImStrdup :: (str: *u8) -> *u8 #foreign imgui "_Z8ImStrdupPKc";
+ImMemdup :: (src: *void, size: u64) -> *void #foreign imgui "_Z8ImMemdupPKvm";
+ImStrdupcpy :: (dst: *u8, p_dst_size: *u64, str: *u8) -> *u8 #foreign imgui "_Z11ImStrdupcpyPcPmPKc";
+ImStrchrRange :: (str_begin: *u8, str_end: *u8, c: u8) -> *u8 #foreign imgui "_Z13ImStrchrRangePKcS0_c";
+ImStrchrRange :: (str: string, c: u8) -> *u8 #no_context {
+    return ImStrchrRange(str.data, str.data + str.count, c);
+}
+ImStreolRange :: (str: *u8, str_end: *u8) -> *u8 #foreign imgui "_Z13ImStreolRangePKcS0_";
+ImStreolRange :: (str: string) -> *u8 #no_context {
+    return ImStreolRange(str.data, str.data + str.count);
+}
+ImStristr :: (haystack: *u8, haystack_end: *u8, needle: *u8, needle_end: *u8) -> *u8 #foreign imgui "_Z9ImStristrPKcS0_S0_S0_";
+ImStristr :: (haystack: string, needle: string) -> *u8 #no_context {
+    return ImStristr(haystack.data, haystack.data + haystack.count, needle.data, needle.data + needle.count);
+}
+ImStrTrimBlanks :: (str: *u8) -> void #foreign imgui "_Z15ImStrTrimBlanksPc";
+ImStrSkipBlank :: (str: *u8) -> *u8 #foreign imgui "_Z14ImStrSkipBlankPKc";
+ImStrlenW :: (str: *ImWchar) -> s32 #foreign imgui "_Z9ImStrlenWPKt";
+ImStrbol :: (buf_mid_line: *u8, buf_begin: *u8) -> *u8 #foreign imgui "_Z8ImStrbolPKcS0_";
+
+// Helpers: Formatting
+ImFormatString_CFormat :: (buf: *u8, buf_size: u64, fmt: *u8, __args: ..Any) -> s32 #foreign imgui "_Z14ImFormatStringPcmPKcz";
+ImFormatString :: (buf: *u8, buf_size: u64, fmt: string, __args: ..Any) -> s32 {
+    push_allocator(temp);
+    formatted_text_builder: String_Builder;
+    print_to_builder(*formatted_text_builder, fmt, ..__args);
+    append(*formatted_text_builder, "\0");
+    formatted_text := builder_to_string(*formatted_text_builder);
+    return ImFormatString_CFormat(buf, buf_size, "%s", formatted_text.data);
+} @PrintLike
+
+ImFormatStringToTempBuffer_CFormat :: (out_buf: **u8, out_buf_end: **u8, fmt: *u8, __args: ..Any) -> void #foreign imgui "_Z26ImFormatStringToTempBufferPPKcS1_S0_z";
+ImFormatStringToTempBuffer :: (out_buf: **u8, out_buf_end: **u8, fmt: string, __args: ..Any) {
+    push_allocator(temp);
+    formatted_text_builder: String_Builder;
+    print_to_builder(*formatted_text_builder, fmt, ..__args);
+    append(*formatted_text_builder, "\0");
+    formatted_text := builder_to_string(*formatted_text_builder);
+    ImFormatStringToTempBuffer_CFormat(out_buf, out_buf_end, "%s", formatted_text.data);
+} @PrintLike
+
+ImParseFormatFindStart :: (format: *u8) -> *u8 #foreign imgui "_Z22ImParseFormatFindStartPKc";
+ImParseFormatFindEnd :: (format: *u8) -> *u8 #foreign imgui "_Z20ImParseFormatFindEndPKc";
+ImParseFormatTrimDecorations :: (format: *u8, buf: *u8, buf_size: u64) -> *u8 #foreign imgui "_Z28ImParseFormatTrimDecorationsPKcPcm";
+ImParseFormatSanitizeForPrinting :: (fmt_in: *u8, fmt_out: *u8, fmt_out_size: u64) -> void #foreign imgui "_Z32ImParseFormatSanitizeForPrintingPKcPcm";
+ImParseFormatSanitizeForScanning :: (fmt_in: *u8, fmt_out: *u8, fmt_out_size: u64) -> *u8 #foreign imgui "_Z32ImParseFormatSanitizeForScanningPKcPcm";
+ImParseFormatPrecision :: (format: *u8, default_value: s32) -> s32 #foreign imgui "_Z22ImParseFormatPrecisionPKci";
+
+// Helpers: UTF-8 <> wchar conversions
+ImTextCharToUtf8 :: (out_buf: *[5] u8, c: u32) -> s32 #foreign imgui "_Z16ImTextCharToUtf8Pcj";
+ImTextStrToUtf8 :: (out_buf: *u8, out_buf_size: s32, in_text: *ImWchar, in_text_end: *ImWchar) -> s32 #foreign imgui "_Z15ImTextStrToUtf8PciPKtS1_";
+ImTextCharFromUtf8 :: (out_char: *u32, in_text: *u8, in_text_end: *u8) -> s32 #foreign imgui "_Z18ImTextCharFromUtf8PjPKcS1_";
+ImTextCharFromUtf8 :: (out_char: *u32, in_text: string) -> s32 #no_context {
+    return ImTextCharFromUtf8(out_char, in_text.data, in_text.data + in_text.count);
+}
+ImTextStrFromUtf8 :: (out_buf: *ImWchar, out_buf_size: s32, in_text: *u8, in_text_end: *u8, in_remaining: **u8 = null) -> s32 #foreign imgui "_Z17ImTextStrFromUtf8PtiPKcS1_PS1_";
+ImTextStrFromUtf8 :: (out_buf: *ImWchar, out_buf_size: s32, in_text: string, in_remaining: **u8 = null) -> s32 #no_context {
+    return ImTextStrFromUtf8(out_buf, out_buf_size, in_text.data, in_text.data + in_text.count, in_remaining);
+}
+ImTextCountCharsFromUtf8 :: (in_text: *u8, in_text_end: *u8) -> s32 #foreign imgui "_Z24ImTextCountCharsFromUtf8PKcS0_";
+ImTextCountCharsFromUtf8 :: (in_text: string) -> s32 #no_context {
+    return ImTextCountCharsFromUtf8(in_text.data, in_text.data + in_text.count);
+}
+ImTextCountUtf8BytesFromChar :: (in_text: *u8, in_text_end: *u8) -> s32 #foreign imgui "_Z28ImTextCountUtf8BytesFromCharPKcS0_";
+ImTextCountUtf8BytesFromChar :: (in_text: string) -> s32 #no_context {
+    return ImTextCountUtf8BytesFromChar(in_text.data, in_text.data + in_text.count);
+}
+ImTextCountUtf8BytesFromStr :: (in_text: *ImWchar, in_text_end: *ImWchar) -> s32 #foreign imgui "_Z27ImTextCountUtf8BytesFromStrPKtS0_";
+ImTextFindPreviousUtf8Codepoint :: (in_text_start: *u8, in_p: *u8) -> *u8 #foreign imgui "_Z31ImTextFindPreviousUtf8CodepointPKcS0_";
+ImTextFindValidUtf8CodepointEnd :: (in_text_start: *u8, in_text_end: *u8, in_p: *u8) -> *u8 #foreign imgui "_Z31ImTextFindValidUtf8CodepointEndPKcS0_S0_";
+ImTextCountLines :: (in_text: *u8, in_text_end: *u8) -> s32 #foreign imgui "_Z16ImTextCountLinesPKcS0_";
+ImTextCountLines :: (in_text: string) -> s32 #no_context {
+    return ImTextCountLines(in_text.data, in_text.data + in_text.count);
+}
+
+// Helpers: High-level text functions (DO NOT USE!!! THIS IS A MINIMAL SUBSET OF LARGER UPCOMING CHANGES)
+ImDrawTextFlags :: enum_flags u32 {
+    None           :: 0x0;
+    CpuFineClip    :: 0x1;
+    WrapKeepBlanks :: 0x2;
+    StopOnNewLine  :: 0x4;
+
+    ImDrawTextFlags_None           :: None;
+    ImDrawTextFlags_CpuFineClip    :: CpuFineClip;
+    ImDrawTextFlags_WrapKeepBlanks :: WrapKeepBlanks;
+    ImDrawTextFlags_StopOnNewLine  :: StopOnNewLine;
+}
+
+ImFontCalcTextSizeEx :: (font: *ImFont, size: float, max_width: float, wrap_width: float, text_begin: *u8, text_end_display: *u8, text_end: *u8, out_remaining: **u8, out_offset: *ImVec2, flags: ImDrawTextFlags) -> ImVec2 #foreign imgui "_Z20ImFontCalcTextSizeExP6ImFontfffPKcS2_S2_PS2_P6ImVec2i";
+ImFontCalcWordWrapPositionEx :: (font: *ImFont, size: float, text: *u8, text_end: *u8, wrap_width: float, flags: ImDrawTextFlags = .None) -> *u8 #foreign imgui "_Z28ImFontCalcWordWrapPositionExP6ImFontfPKcS2_fi";
+ImFontCalcWordWrapPositionEx :: (font: *ImFont, size: float, text: string, wrap_width: float, flags: ImDrawTextFlags = .None) -> *u8 #no_context {
+    return ImFontCalcWordWrapPositionEx(font, size, text.data, text.data + text.count, wrap_width, flags);
+}
+ImTextCalcWordWrapNextLineStart :: (text: *u8, text_end: *u8, flags: ImDrawTextFlags = .None) -> *u8 #foreign imgui "_Z31ImTextCalcWordWrapNextLineStartPKcS0_i";
+ImTextCalcWordWrapNextLineStart :: (text: string, flags: ImDrawTextFlags = .None) -> *u8 #no_context {
+    return ImTextCalcWordWrapNextLineStart(text.data, text.data + text.count, flags);
+}
+
+// Character classification for word-wrapping logic
+ImWcharClass :: enum u32 {
+    Blank :: 0;
+    Punct :: 1;
+    Other :: 2;
+    ImWcharClass_Blank :: Blank;
+    ImWcharClass_Punct :: Punct;
+    ImWcharClass_Other :: Other;
+}
+
+ImTextInitClassifiers :: () -> void #foreign imgui "_Z21ImTextInitClassifiersv";
+ImTextClassifierClear :: (bits: *ImU32, codepoint_min: u32, codepoint_end: u32, char_class: ImWcharClass) -> void #foreign imgui "_Z21ImTextClassifierClearPjjj12ImWcharClass";
+ImTextClassifierSetCharClass :: (bits: *ImU32, codepoint_min: u32, codepoint_end: u32, char_class: ImWcharClass, c: u32) -> void #foreign imgui "_Z28ImTextClassifierSetCharClassPjjj12ImWcharClassj";
+ImTextClassifierSetCharClassFromStr :: (bits: *ImU32, codepoint_min: u32, codepoint_end: u32, char_class: ImWcharClass, s: *u8) -> void #foreign imgui "_Z35ImTextClassifierSetCharClassFromStrPjjj12ImWcharClassPKc";
+
+ImFileHandle :: *void;
+
+ImFileLoadToMemory :: (filename: *u8, mode: *u8, out_file_size: *u64 = null, padding_bytes: s32 = 0) -> *void #foreign imgui "_Z18ImFileLoadToMemoryPKcS0_Pmi";
+
+// Helpers: Geometry
+ImBezierCubicCalc :: (p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, t: float) -> ImVec2 #foreign imgui "_Z17ImBezierCubicCalcRK6ImVec2S1_S1_S1_f";
+ImBezierCubicCalc :: (p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, t: float) -> ImVec2 #no_context {
+    return ImBezierCubicCalc(*p1, *p2, *p3, *p4, t);
+}
+ImBezierCubicClosestPoint :: (p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, p: *ImVec2, num_segments: s32) -> ImVec2 #foreign imgui "_Z25ImBezierCubicClosestPointRK6ImVec2S1_S1_S1_S1_i";
+ImBezierCubicClosestPoint :: (p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, p: ImVec2, num_segments: s32) -> ImVec2 #no_context {
+    return ImBezierCubicClosestPoint(*p1, *p2, *p3, *p4, *p, num_segments);
+}
+ImBezierCubicClosestPointCasteljau :: (p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, p4: *ImVec2, p: *ImVec2, max_error: float) -> ImVec2 #foreign imgui "_Z34ImBezierCubicClosestPointCasteljauRK6ImVec2S1_S1_S1_S1_f";
+ImBezierCubicClosestPointCasteljau :: (p1: ImVec2, p2: ImVec2, p3: ImVec2, p4: ImVec2, p: ImVec2, max_error: float) -> ImVec2 #no_context {
+    return ImBezierCubicClosestPointCasteljau(*p1, *p2, *p3, *p4, *p, max_error);
+}
+ImBezierQuadraticCalc :: (p1: *ImVec2, p2: *ImVec2, p3: *ImVec2, t: float) -> ImVec2 #foreign imgui "_Z21ImBezierQuadraticCalcRK6ImVec2S1_S1_f";
+ImBezierQuadraticCalc :: (p1: ImVec2, p2: ImVec2, p3: ImVec2, t: float) -> ImVec2 #no_context {
+    return ImBezierQuadraticCalc(*p1, *p2, *p3, t);
+}
+ImLineClosestPoint :: (a: *ImVec2, b: *ImVec2, p: *ImVec2) -> ImVec2 #foreign imgui "_Z18ImLineClosestPointRK6ImVec2S1_S1_";
+ImLineClosestPoint :: (a: ImVec2, b: ImVec2, p: ImVec2) -> ImVec2 #no_context {
+    return ImLineClosestPoint(*a, *b, *p);
+}
+ImTriangleContainsPoint :: (a: *ImVec2, b: *ImVec2, c: *ImVec2, p: *ImVec2) -> bool #foreign imgui "_Z23ImTriangleContainsPointRK6ImVec2S1_S1_S1_";
+ImTriangleContainsPoint :: (a: ImVec2, b: ImVec2, c: ImVec2, p: ImVec2) -> bool #no_context {
+    return ImTriangleContainsPoint(*a, *b, *c, *p);
+}
+ImTriangleClosestPoint :: (a: *ImVec2, b: *ImVec2, c: *ImVec2, p: *ImVec2) -> ImVec2 #foreign imgui "_Z22ImTriangleClosestPointRK6ImVec2S1_S1_S1_";
+ImTriangleClosestPoint :: (a: ImVec2, b: ImVec2, c: ImVec2, p: ImVec2) -> ImVec2 #no_context {
+    return ImTriangleClosestPoint(*a, *b, *c, *p);
+}
+ImTriangleBarycentricCoords :: (a: *ImVec2, b: *ImVec2, c: *ImVec2, p: *ImVec2, out_u: *float, out_v: *float, out_w: *float) -> void #foreign imgui "_Z27ImTriangleBarycentricCoordsRK6ImVec2S1_S1_S1_RfS2_S2_";
+ImTriangleBarycentricCoords :: (a: ImVec2, b: ImVec2, c: ImVec2, p: ImVec2, out_u: *float, out_v: *float, out_w: *float) #no_context {
+    ImTriangleBarycentricCoords(*a, *b, *c, *p, out_u, out_v, out_w);
+}
+
+// Helper: ImVec1 (1D vector)
+// (this odd construct is used to facilitate the transition between 1D and 2D, and the maintenance of some branches/patches)
+ImVec1 :: struct {
+    x: float;
+}
+
+// Helper: ImVec2i (2D vector, integer)
+ImVec2i :: struct {
+    x: s32;
+    y: s32;
+}
+
+// Helper: ImVec2ih (2D vector, half-size integer, for long-term packed storage)
+ImVec2ih :: struct {
+    x: s16;
+    y: s16;
+}
+
+// Helper: ImRect (2D axis aligned bounding-box)
+// NB: we can't rely on ImVec2 math operators being available here!
+ImRect :: struct {
+    Min: ImVec2; // Upper-left
+    Max: ImVec2; // Lower-right
+}
+
+ImBitArrayPtr :: *ImU32;
+
+// Helper: ImBitArray class (wrapper over ImBitArray functions)
+// Store 1-bit per value.
+ImBitArray :: struct(BITCOUNT: s32, OFFSET: s32 = 0) {
+    Data: [(BITCOUNT + 31) >> 5] ImU32;
+}
+
+// Utilities
+// (other types which are not forwarded declared are: ImBitArray<>, ImSpan<>, ImSpanAllocator<>, ImStableVector<>, ImPool<>, ImChunkStream<>)
+ImBitVector :: struct {
+    Storage: ImVector(ImU32);
+}
+
+// Helper: ImSpan<>
+// Pointing to a span of data we don't own.
+ImSpan :: struct(T: Type) {
+    Data:    *T;
+    DataEnd: *T;
+}
+
+// Helper: ImSpanAllocator<>
+// Facilitate storing multiple chunks into a single large block (the "arena")
+// - Usage: call Reserve() N times, allocate GetArenaSizeInBytes() worth, pass it to SetArenaBasePtr(), call GetSpan() N times to retrieve the aligned ranges.
+ImSpanAllocator :: struct(CHUNKS: s32) {
+    BasePtr: *u8;
+    CurrOff: s32;
+    CurrIdx: s32;
+    Offsets: [CHUNKS] s32;
+    Sizes:   [CHUNKS] s32;
+}
+
+// Helper: ImStableVector<>
+// Allocating chunks of BLOCKSIZE items. Objects pointers are never invalidated when growing, only by clear().
+// Important: does not destruct anything!
+// Implemented only the minimum set of functions we need for it.
+ImStableVector :: struct(T: Type, BLOCKSIZE: s32) {
+    Size:     s32 = 0;
+    Capacity: s32 = 0;
+    Blocks:   ImVector(*T);
+}
+
+// Helper: ImPool<>
+// Basic keyed storage for contiguous instances, slow/amortized insertion, O(1) indexable, O(Log N) queries by ID over a dense/hot buffer,
+// Honor constructor/destructor. Add/remove invalidate all pointers. Indexes have the same lifetime as the associated object.
+ImPoolIdx :: s32;
+
+ImPool :: struct(T: Type) {
+    Buf:        ImVector(T); // Contiguous data
+    Map:        Storage; // ID->Index
+    FreeIdx:    ImPoolIdx; // Next free idx to use
+    AliveCount: ImPoolIdx; // Number of active/alive items (for display purpose)
+}
+
+// Helper: ImChunkStream<>
+// Build and iterate a contiguous stream of variable-sized structures.
+// This is used by Settings to store persistent data while reducing allocation count.
+// We store the chunk size first, and align the final size on 4 bytes boundaries.
+// The tedious/zealous amount of casting is to avoid -Wcast-align warnings.
+ImChunkStream :: struct(T: Type) {
+    Buf: ImVector(u8);
+}
+
+// Helper: ImGuiTextIndex
+// Maintain a line index for a text buffer. This is a strong candidate to be moved into the public API.
+TextIndex :: struct {
+    Offsets:   ImVector(s32);
+    EndOffset: s32 = 0; // Because we don't own text buffer we need to maintain EndOffset (may bake in LineOffsets?)
+
+    append :: (this: *TextIndex, base: *u8, old_size: s32, new_size: s32) -> void #cpp_method #foreign imgui "_ZN14ImGuiTextIndex6appendEPKcii";
+}
+
+// Helper: Parse and apply text filters e.g. 'aaa bbb' (all), 'aaa,bbb' (any), '-aaa' (exclude), '"Hello, world"' (exact sequence)
+TextFilterItem :: struct {
+    Begin:             *u8; // Pointer within parent's buffer
+    Len:               s32; // Length of text (non-zero terminated)
+    CountInclude:      s16; // Number of consecutive items forming an end chain. >0 when beginning of an AND chain, =0 otherwise.
+    MatchIncludesMask: u16; // Storage for multi-sources versions of PassFilter(). Unused by core library.
+}
+
+// Helper: ImGuiPackedDate (sizeof() == 2)
+// Store a date in a way that is efficient to read/write in text form. If we stored e.g. number of days since Epoch we'd need costlier back and forth.
+// This is specifically designed to be able to prune old .ini data.
+PackedDate :: struct {
+    __bitfield: ImU16;
+    /* 
+        Year: ImU16; /* 7 bits */ // Year since 2000      // We can change to another offset e.g. 1970 but this is easier to watch in debugger.
+        Month: ImU16; /* 4 bits */ // Month (1-12)
+        Day: ImU16; /* 5 bits */ // Day (1-31);
+    */
+}
+
+set_Year :: (fields: *PackedDate, value: ImU16) {
+    MASK0: ImU16 : 0b111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_Year :: (fields: PackedDate) -> ImU16 {
+    return (fields.__bitfield & 0b111_1111);
+}
+
+set_Month :: (fields: *PackedDate, value: ImU16) {
+    MASK0: ImU16 : (0b1111 << 7);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 7) & MASK0);
+}
+get_Month :: (fields: PackedDate) -> ImU16 {
+    return ((fields.__bitfield & (0b1111 << 7)) >> 7);
+}
+
+set_Day :: (fields: *PackedDate, value: ImU16) {
+    MASK0: ImU16 : (0b1_1111 << 11);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 11) & MASK0);
+}
+get_Day :: (fields: PackedDate) -> ImU16 {
+    return ((fields.__bitfield & (0b1_1111 << 11)) >> 11);
+}
 
 
-#run {
-    {
-        info := type_info(ImTextureRef);
-        for info.members {
-            if it.name == {
-                case "_TexData";
-                    assert(it.offset_in_bytes == 0, "ImTextureRef._TexData has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureRef._TexData has unexpected size % instead of 8", it.type.runtime_size);
-                case "_TexID";
-                    assert(it.offset_in_bytes == 8, "ImTextureRef._TexID has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureRef._TexID has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImTextureRef) == 16, "ImTextureRef has size % instead of 16", size_of(ImTextureRef));
-    }
+// Helper: ImGuiStorage
+ImLowerBound :: (in_begin: *StoragePair, in_end: *StoragePair, key: ID) -> *StoragePair #foreign imgui "_Z12ImLowerBoundP16ImGuiStoragePairS0_j";
 
-    {
-        info := type_info(TableSortSpecs);
-        for info.members {
-            if it.name == {
-                case "Specs";
-                    assert(it.offset_in_bytes == 0, "TableSortSpecs.Specs has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "TableSortSpecs.Specs has unexpected size % instead of 8", it.type.runtime_size);
-                case "SpecsCount";
-                    assert(it.offset_in_bytes == 8, "TableSortSpecs.SpecsCount has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "TableSortSpecs.SpecsCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "SpecsDirty";
-                    assert(it.offset_in_bytes == 12, "TableSortSpecs.SpecsDirty has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "TableSortSpecs.SpecsDirty has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(TableSortSpecs) == 16, "TableSortSpecs has size % instead of 16", size_of(TableSortSpecs));
-    }
+// Data shared between all ImDrawList instances
+// Conceptually this could have been called e.g. ImDrawListSharedContext
+// Typically one ImGui context would create and maintain one of this.
+// You may want to create your own instance of you try to ImDrawList completely without ImGui. In that case, watch out for future changes to this structure.
+ImDrawListSharedData :: struct {
+    TexUvWhitePixel:            ImVec2; // UV of white pixel in the atlas (== FontAtlas->TexUvWhitePixel)
+    TexUvLines:                 *ImVec4; // UV of anti-aliased lines in the atlas (== FontAtlas->Builder->TexUvLines)
+    TexUvCorners:               *ImVec4; // UV of rounded corner (== FontAtlas->Builder->TexUvCorners)
+    FontAtlas:                  *ImFontAtlas; // Current font atlas
+    Font:                       *ImFont; // Current font (used for simplified AddText overload)
+    FontSize:                   float; // Current font size (used for simplified AddText overload)
+    FontScale:                  float; // Current font scale (== FontSize / Font->FontSize)
+    CurveTessellationMaxError:  float; // Tessellation tolerance when using PathBezierCurveTo()
+    CircleTessellationMaxError: float; // Number of circle segments to use per pixel of radius for AddCircle() etc
+    InitialDrawFlags:           ImDrawFlags; // Initial flags at the beginning of the frame (it is possible to alter flags on a per-drawlist basis afterwards)
+    ClipRectFullscreen:         ImVec4; // Value for PushClipRectFullscreen()
+    TempBuffer:                 ImVector(ImVec2); // Temporary write buffer
+    DrawLists:                  ImVector(*ImDrawList); // All draw lists associated to this ImDrawListSharedData
+    Context:                    *ImGuiContext; // [OPTIONAL] Link to Dear ImGui context. 99% of ImDrawList/ImFontAtlas can function without an ImGui context, but this facilitate handling one legacy edge case.
 
-    {
-        info := type_info(TableColumnSortSpecs);
-        for info.members {
-            if it.name == {
-                case "ColumnUserID";
-                    assert(it.offset_in_bytes == 0, "TableColumnSortSpecs.ColumnUserID has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "TableColumnSortSpecs.ColumnUserID has unexpected size % instead of 4", it.type.runtime_size);
-                case "ColumnIndex";
-                    assert(it.offset_in_bytes == 4, "TableColumnSortSpecs.ColumnIndex has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "TableColumnSortSpecs.ColumnIndex has unexpected size % instead of 2", it.type.runtime_size);
-                case "SortOrder";
-                    assert(it.offset_in_bytes == 6, "TableColumnSortSpecs.SortOrder has unexpected offset % instead of 6", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "TableColumnSortSpecs.SortOrder has unexpected size % instead of 2", it.type.runtime_size);
-                case "SortDirection_";
-                    assert(it.offset_in_bytes == 8, "TableColumnSortSpecs.SortDirection_ has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "TableColumnSortSpecs.SortDirection_ has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(TableColumnSortSpecs) == 12, "TableColumnSortSpecs has size % instead of 12", size_of(TableColumnSortSpecs));
-    }
+    ArcFastVtx:                 [48] ImVec2; // Sample points on the quarter of the circle.
+    ArcFastRadiusCutoff:        float; // Cutoff radius after which arc drawing will fallback to slower PathArcTo()
+    CircleSegmentCounts:        [64] ImU8; // Precomputed segment count for given radius before we calculate it dynamically (to avoid calculation overhead)
 
-    assert(size_of(ImNewWrapper) == 1, "ImNewWrapper has size % instead of 1", size_of(ImNewWrapper));
+    Constructor :: (this: *ImDrawListSharedData) -> void #cpp_method #foreign imgui "_ZN20ImDrawListSharedDataC1Ev";
+    Destructor_Base :: (this: *ImDrawListSharedData) -> void #cpp_method #foreign imgui "_ZN20ImDrawListSharedDataD2Ev";
+    Destructor :: (this: *ImDrawListSharedData) -> void #cpp_method #foreign imgui "_ZN20ImDrawListSharedDataD1Ev";
+    SetCircleTessellationMaxError :: (this: *ImDrawListSharedData, max_error: float) -> void #cpp_method #foreign imgui "_ZN20ImDrawListSharedData29SetCircleTessellationMaxErrorEf";
+}
 
-    {
-        info := type_info(Style);
-        for info.members {
-            if it.name == {
-                case "FontSizeBase";
-                    assert(it.offset_in_bytes == 0, "Style.FontSizeBase has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.FontSizeBase has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontScaleMain";
-                    assert(it.offset_in_bytes == 4, "Style.FontScaleMain has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.FontScaleMain has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontScaleDpi";
-                    assert(it.offset_in_bytes == 8, "Style.FontScaleDpi has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.FontScaleDpi has unexpected size % instead of 4", it.type.runtime_size);
-                case "Alpha";
-                    assert(it.offset_in_bytes == 12, "Style.Alpha has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.Alpha has unexpected size % instead of 4", it.type.runtime_size);
-                case "DisabledAlpha";
-                    assert(it.offset_in_bytes == 16, "Style.DisabledAlpha has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.DisabledAlpha has unexpected size % instead of 4", it.type.runtime_size);
-                case "WindowPadding";
-                    assert(it.offset_in_bytes == 20, "Style.WindowPadding has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.WindowPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "WindowRounding";
-                    assert(it.offset_in_bytes == 28, "Style.WindowRounding has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.WindowRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "WindowBorderSize";
-                    assert(it.offset_in_bytes == 32, "Style.WindowBorderSize has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.WindowBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "WindowBorderHoverPadding";
-                    assert(it.offset_in_bytes == 36, "Style.WindowBorderHoverPadding has unexpected offset % instead of 36", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.WindowBorderHoverPadding has unexpected size % instead of 4", it.type.runtime_size);
-                case "WindowMinSize";
-                    assert(it.offset_in_bytes == 40, "Style.WindowMinSize has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.WindowMinSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "WindowTitleAlign";
-                    assert(it.offset_in_bytes == 48, "Style.WindowTitleAlign has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.WindowTitleAlign has unexpected size % instead of 8", it.type.runtime_size);
-                case "WindowMenuButtonPosition";
-                    assert(it.offset_in_bytes == 56, "Style.WindowMenuButtonPosition has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.WindowMenuButtonPosition has unexpected size % instead of 4", it.type.runtime_size);
-                case "ChildRounding";
-                    assert(it.offset_in_bytes == 60, "Style.ChildRounding has unexpected offset % instead of 60", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ChildRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "ChildBorderSize";
-                    assert(it.offset_in_bytes == 64, "Style.ChildBorderSize has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ChildBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "PopupRounding";
-                    assert(it.offset_in_bytes == 68, "Style.PopupRounding has unexpected offset % instead of 68", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.PopupRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "PopupBorderSize";
-                    assert(it.offset_in_bytes == 72, "Style.PopupBorderSize has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.PopupBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "FramePadding";
-                    assert(it.offset_in_bytes == 76, "Style.FramePadding has unexpected offset % instead of 76", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.FramePadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "FrameRounding";
-                    assert(it.offset_in_bytes == 84, "Style.FrameRounding has unexpected offset % instead of 84", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.FrameRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "FrameBorderSize";
-                    assert(it.offset_in_bytes == 88, "Style.FrameBorderSize has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.FrameBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "ItemSpacing";
-                    assert(it.offset_in_bytes == 92, "Style.ItemSpacing has unexpected offset % instead of 92", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.ItemSpacing has unexpected size % instead of 8", it.type.runtime_size);
-                case "ItemInnerSpacing";
-                    assert(it.offset_in_bytes == 100, "Style.ItemInnerSpacing has unexpected offset % instead of 100", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.ItemInnerSpacing has unexpected size % instead of 8", it.type.runtime_size);
-                case "CellPadding";
-                    assert(it.offset_in_bytes == 108, "Style.CellPadding has unexpected offset % instead of 108", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.CellPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "TouchExtraPadding";
-                    assert(it.offset_in_bytes == 116, "Style.TouchExtraPadding has unexpected offset % instead of 116", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.TouchExtraPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "IndentSpacing";
-                    assert(it.offset_in_bytes == 124, "Style.IndentSpacing has unexpected offset % instead of 124", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.IndentSpacing has unexpected size % instead of 4", it.type.runtime_size);
-                case "ColumnsMinSpacing";
-                    assert(it.offset_in_bytes == 128, "Style.ColumnsMinSpacing has unexpected offset % instead of 128", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ColumnsMinSpacing has unexpected size % instead of 4", it.type.runtime_size);
-                case "ScrollbarSize";
-                    assert(it.offset_in_bytes == 132, "Style.ScrollbarSize has unexpected offset % instead of 132", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ScrollbarSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "ScrollbarRounding";
-                    assert(it.offset_in_bytes == 136, "Style.ScrollbarRounding has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ScrollbarRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "ScrollbarPadding";
-                    assert(it.offset_in_bytes == 140, "Style.ScrollbarPadding has unexpected offset % instead of 140", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ScrollbarPadding has unexpected size % instead of 4", it.type.runtime_size);
-                case "GrabMinSize";
-                    assert(it.offset_in_bytes == 144, "Style.GrabMinSize has unexpected offset % instead of 144", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.GrabMinSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "GrabRounding";
-                    assert(it.offset_in_bytes == 148, "Style.GrabRounding has unexpected offset % instead of 148", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.GrabRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "LogSliderDeadzone";
-                    assert(it.offset_in_bytes == 152, "Style.LogSliderDeadzone has unexpected offset % instead of 152", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.LogSliderDeadzone has unexpected size % instead of 4", it.type.runtime_size);
-                case "ImageRounding";
-                    assert(it.offset_in_bytes == 156, "Style.ImageRounding has unexpected offset % instead of 156", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ImageRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "ImageBorderSize";
-                    assert(it.offset_in_bytes == 160, "Style.ImageBorderSize has unexpected offset % instead of 160", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ImageBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabRounding";
-                    assert(it.offset_in_bytes == 164, "Style.TabRounding has unexpected offset % instead of 164", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabBorderSize";
-                    assert(it.offset_in_bytes == 168, "Style.TabBorderSize has unexpected offset % instead of 168", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabMinWidthBase";
-                    assert(it.offset_in_bytes == 172, "Style.TabMinWidthBase has unexpected offset % instead of 172", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabMinWidthBase has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabMinWidthShrink";
-                    assert(it.offset_in_bytes == 176, "Style.TabMinWidthShrink has unexpected offset % instead of 176", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabMinWidthShrink has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabCloseButtonMinWidthSelected";
-                    assert(it.offset_in_bytes == 180, "Style.TabCloseButtonMinWidthSelected has unexpected offset % instead of 180", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabCloseButtonMinWidthSelected has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabCloseButtonMinWidthUnselected";
-                    assert(it.offset_in_bytes == 184, "Style.TabCloseButtonMinWidthUnselected has unexpected offset % instead of 184", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabCloseButtonMinWidthUnselected has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabBarBorderSize";
-                    assert(it.offset_in_bytes == 188, "Style.TabBarBorderSize has unexpected offset % instead of 188", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabBarBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabBarOverlineSize";
-                    assert(it.offset_in_bytes == 192, "Style.TabBarOverlineSize has unexpected offset % instead of 192", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TabBarOverlineSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "TableAngledHeadersAngle";
-                    assert(it.offset_in_bytes == 196, "Style.TableAngledHeadersAngle has unexpected offset % instead of 196", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TableAngledHeadersAngle has unexpected size % instead of 4", it.type.runtime_size);
-                case "TableAngledHeadersTextAlign";
-                    assert(it.offset_in_bytes == 200, "Style.TableAngledHeadersTextAlign has unexpected offset % instead of 200", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.TableAngledHeadersTextAlign has unexpected size % instead of 8", it.type.runtime_size);
-                case "TreeLinesFlags";
-                    assert(it.offset_in_bytes == 208, "Style.TreeLinesFlags has unexpected offset % instead of 208", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TreeLinesFlags has unexpected size % instead of 4", it.type.runtime_size);
-                case "TreeLinesSize";
-                    assert(it.offset_in_bytes == 212, "Style.TreeLinesSize has unexpected offset % instead of 212", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TreeLinesSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "TreeLinesRounding";
-                    assert(it.offset_in_bytes == 216, "Style.TreeLinesRounding has unexpected offset % instead of 216", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.TreeLinesRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "MenuItemRounding";
-                    assert(it.offset_in_bytes == 220, "Style.MenuItemRounding has unexpected offset % instead of 220", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.MenuItemRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectableRounding";
-                    assert(it.offset_in_bytes == 224, "Style.SelectableRounding has unexpected offset % instead of 224", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.SelectableRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "DragDropTargetRounding";
-                    assert(it.offset_in_bytes == 228, "Style.DragDropTargetRounding has unexpected offset % instead of 228", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.DragDropTargetRounding has unexpected size % instead of 4", it.type.runtime_size);
-                case "DragDropTargetBorderSize";
-                    assert(it.offset_in_bytes == 232, "Style.DragDropTargetBorderSize has unexpected offset % instead of 232", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.DragDropTargetBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "DragDropTargetPadding";
-                    assert(it.offset_in_bytes == 236, "Style.DragDropTargetPadding has unexpected offset % instead of 236", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.DragDropTargetPadding has unexpected size % instead of 4", it.type.runtime_size);
-                case "ColorMarkerSize";
-                    assert(it.offset_in_bytes == 240, "Style.ColorMarkerSize has unexpected offset % instead of 240", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ColorMarkerSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "ColorButtonPosition";
-                    assert(it.offset_in_bytes == 244, "Style.ColorButtonPosition has unexpected offset % instead of 244", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.ColorButtonPosition has unexpected size % instead of 4", it.type.runtime_size);
-                case "ButtonTextAlign";
-                    assert(it.offset_in_bytes == 248, "Style.ButtonTextAlign has unexpected offset % instead of 248", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.ButtonTextAlign has unexpected size % instead of 8", it.type.runtime_size);
-                case "SelectableTextAlign";
-                    assert(it.offset_in_bytes == 256, "Style.SelectableTextAlign has unexpected offset % instead of 256", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.SelectableTextAlign has unexpected size % instead of 8", it.type.runtime_size);
-                case "InputTextCursorSize";
-                    assert(it.offset_in_bytes == 264, "Style.InputTextCursorSize has unexpected offset % instead of 264", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.InputTextCursorSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "SeparatorSize";
-                    assert(it.offset_in_bytes == 268, "Style.SeparatorSize has unexpected offset % instead of 268", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.SeparatorSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "SeparatorTextBorderSize";
-                    assert(it.offset_in_bytes == 272, "Style.SeparatorTextBorderSize has unexpected offset % instead of 272", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.SeparatorTextBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "SeparatorTextAlign";
-                    assert(it.offset_in_bytes == 276, "Style.SeparatorTextAlign has unexpected offset % instead of 276", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.SeparatorTextAlign has unexpected size % instead of 8", it.type.runtime_size);
-                case "SeparatorTextPadding";
-                    assert(it.offset_in_bytes == 284, "Style.SeparatorTextPadding has unexpected offset % instead of 284", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.SeparatorTextPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "DisplayWindowPadding";
-                    assert(it.offset_in_bytes == 292, "Style.DisplayWindowPadding has unexpected offset % instead of 292", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.DisplayWindowPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "DisplaySafeAreaPadding";
-                    assert(it.offset_in_bytes == 300, "Style.DisplaySafeAreaPadding has unexpected offset % instead of 300", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Style.DisplaySafeAreaPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "DockingNodeHasCloseButton";
-                    assert(it.offset_in_bytes == 308, "Style.DockingNodeHasCloseButton has unexpected offset % instead of 308", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Style.DockingNodeHasCloseButton has unexpected size % instead of 1", it.type.runtime_size);
-                case "DockingSeparatorSize";
-                    assert(it.offset_in_bytes == 312, "Style.DockingSeparatorSize has unexpected offset % instead of 312", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.DockingSeparatorSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseCursorScale";
-                    assert(it.offset_in_bytes == 316, "Style.MouseCursorScale has unexpected offset % instead of 316", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.MouseCursorScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "AntiAliasedLines";
-                    assert(it.offset_in_bytes == 320, "Style.AntiAliasedLines has unexpected offset % instead of 320", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Style.AntiAliasedLines has unexpected size % instead of 1", it.type.runtime_size);
-                case "AntiAliasedLinesUseTex";
-                    assert(it.offset_in_bytes == 321, "Style.AntiAliasedLinesUseTex has unexpected offset % instead of 321", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Style.AntiAliasedLinesUseTex has unexpected size % instead of 1", it.type.runtime_size);
-                case "AntiAliasedFill";
-                    assert(it.offset_in_bytes == 322, "Style.AntiAliasedFill has unexpected offset % instead of 322", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Style.AntiAliasedFill has unexpected size % instead of 1", it.type.runtime_size);
-                case "CurveTessellationTol";
-                    assert(it.offset_in_bytes == 324, "Style.CurveTessellationTol has unexpected offset % instead of 324", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.CurveTessellationTol has unexpected size % instead of 4", it.type.runtime_size);
-                case "CircleTessellationMaxError";
-                    assert(it.offset_in_bytes == 328, "Style.CircleTessellationMaxError has unexpected offset % instead of 328", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.CircleTessellationMaxError has unexpected size % instead of 4", it.type.runtime_size);
-                case "Colors";
-                    assert(it.offset_in_bytes == 332, "Style.Colors has unexpected offset % instead of 332", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1008, "Style.Colors has unexpected size % instead of 1008", it.type.runtime_size);
-                case "HoverStationaryDelay";
-                    assert(it.offset_in_bytes == 1340, "Style.HoverStationaryDelay has unexpected offset % instead of 1340", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.HoverStationaryDelay has unexpected size % instead of 4", it.type.runtime_size);
-                case "HoverDelayShort";
-                    assert(it.offset_in_bytes == 1344, "Style.HoverDelayShort has unexpected offset % instead of 1344", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.HoverDelayShort has unexpected size % instead of 4", it.type.runtime_size);
-                case "HoverDelayNormal";
-                    assert(it.offset_in_bytes == 1348, "Style.HoverDelayNormal has unexpected offset % instead of 1348", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.HoverDelayNormal has unexpected size % instead of 4", it.type.runtime_size);
-                case "HoverFlagsForTooltipMouse";
-                    assert(it.offset_in_bytes == 1352, "Style.HoverFlagsForTooltipMouse has unexpected offset % instead of 1352", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.HoverFlagsForTooltipMouse has unexpected size % instead of 4", it.type.runtime_size);
-                case "HoverFlagsForTooltipNav";
-                    assert(it.offset_in_bytes == 1356, "Style.HoverFlagsForTooltipNav has unexpected offset % instead of 1356", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style.HoverFlagsForTooltipNav has unexpected size % instead of 4", it.type.runtime_size);
-                case "_MainScale";
-                    assert(it.offset_in_bytes == 1360, "Style._MainScale has unexpected offset % instead of 1360", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style._MainScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "_NextFrameFontSizeBase";
-                    assert(it.offset_in_bytes == 1364, "Style._NextFrameFontSizeBase has unexpected offset % instead of 1364", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Style._NextFrameFontSizeBase has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(Style) == 1368, "Style has size % instead of 1368", size_of(Style));
-    }
+// ImDrawList/ImFontAtlas
+ImDrawDataBuilder :: struct {
+    Layers:     [2] *ImVector(*ImDrawList); // Pointers to global layers for: regular, tooltip. LayersP[0] is owned by DrawData.
+    LayerData1: ImVector(*ImDrawList);
+}
 
-    {
-        info := type_info(KeyData);
-        for info.members {
-            if it.name == {
-                case "Down";
-                    assert(it.offset_in_bytes == 0, "KeyData.Down has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "KeyData.Down has unexpected size % instead of 1", it.type.runtime_size);
-                case "DownDuration";
-                    assert(it.offset_in_bytes == 4, "KeyData.DownDuration has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "KeyData.DownDuration has unexpected size % instead of 4", it.type.runtime_size);
-                case "DownDurationPrev";
-                    assert(it.offset_in_bytes == 8, "KeyData.DownDurationPrev has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "KeyData.DownDurationPrev has unexpected size % instead of 4", it.type.runtime_size);
-                case "AnalogValue";
-                    assert(it.offset_in_bytes == 12, "KeyData.AnalogValue has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "KeyData.AnalogValue has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(KeyData) == 16, "KeyData has size % instead of 16", size_of(KeyData));
-    }
+ImFontStackData :: struct {
+    Font:                  *ImFont;
+    FontSizeBeforeScaling: float; // ~~ style.FontSizeBase
+    FontSizeAfterScaling:  float; // ~~ g.FontSize
+}
 
-    {
-        info := type_info(IO);
-        for info.members {
-            if it.name == {
-                case "ConfigFlags_";
-                    assert(it.offset_in_bytes == 0, "IO.ConfigFlags_ has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.ConfigFlags_ has unexpected size % instead of 4", it.type.runtime_size);
-                case "BackendFlags_";
-                    assert(it.offset_in_bytes == 4, "IO.BackendFlags_ has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.BackendFlags_ has unexpected size % instead of 4", it.type.runtime_size);
-                case "DisplaySize";
-                    assert(it.offset_in_bytes == 8, "IO.DisplaySize has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.DisplaySize has unexpected size % instead of 8", it.type.runtime_size);
-                case "DisplayFramebufferScale";
-                    assert(it.offset_in_bytes == 16, "IO.DisplayFramebufferScale has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.DisplayFramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
-                case "DeltaTime";
-                    assert(it.offset_in_bytes == 24, "IO.DeltaTime has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.DeltaTime has unexpected size % instead of 4", it.type.runtime_size);
-                case "IniSavingRate";
-                    assert(it.offset_in_bytes == 28, "IO.IniSavingRate has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.IniSavingRate has unexpected size % instead of 4", it.type.runtime_size);
-                case "IniFilename";
-                    assert(it.offset_in_bytes == 32, "IO.IniFilename has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.IniFilename has unexpected size % instead of 8", it.type.runtime_size);
-                case "LogFilename";
-                    assert(it.offset_in_bytes == 40, "IO.LogFilename has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.LogFilename has unexpected size % instead of 8", it.type.runtime_size);
-                case "UserData";
-                    assert(it.offset_in_bytes == 48, "IO.UserData has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.UserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "Fonts";
-                    assert(it.offset_in_bytes == 56, "IO.Fonts has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.Fonts has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontDefault";
-                    assert(it.offset_in_bytes == 64, "IO.FontDefault has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.FontDefault has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontAllowUserScaling";
-                    assert(it.offset_in_bytes == 72, "IO.FontAllowUserScaling has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.FontAllowUserScaling has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavSwapGamepadButtons";
-                    assert(it.offset_in_bytes == 73, "IO.ConfigNavSwapGamepadButtons has unexpected offset % instead of 73", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavSwapGamepadButtons has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavMoveSetMousePos";
-                    assert(it.offset_in_bytes == 74, "IO.ConfigNavMoveSetMousePos has unexpected offset % instead of 74", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavMoveSetMousePos has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavCaptureKeyboard";
-                    assert(it.offset_in_bytes == 75, "IO.ConfigNavCaptureKeyboard has unexpected offset % instead of 75", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavCaptureKeyboard has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavEscapeClearFocusItem";
-                    assert(it.offset_in_bytes == 76, "IO.ConfigNavEscapeClearFocusItem has unexpected offset % instead of 76", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavEscapeClearFocusItem has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavEscapeClearFocusWindow";
-                    assert(it.offset_in_bytes == 77, "IO.ConfigNavEscapeClearFocusWindow has unexpected offset % instead of 77", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavEscapeClearFocusWindow has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavCursorVisibleAuto";
-                    assert(it.offset_in_bytes == 78, "IO.ConfigNavCursorVisibleAuto has unexpected offset % instead of 78", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavCursorVisibleAuto has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigNavCursorVisibleAlways";
-                    assert(it.offset_in_bytes == 79, "IO.ConfigNavCursorVisibleAlways has unexpected offset % instead of 79", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigNavCursorVisibleAlways has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDockingNoSplit";
-                    assert(it.offset_in_bytes == 80, "IO.ConfigDockingNoSplit has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDockingNoSplit has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDockingNoDockingOver";
-                    assert(it.offset_in_bytes == 81, "IO.ConfigDockingNoDockingOver has unexpected offset % instead of 81", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDockingNoDockingOver has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDockingWithShift";
-                    assert(it.offset_in_bytes == 82, "IO.ConfigDockingWithShift has unexpected offset % instead of 82", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDockingWithShift has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDockingAlwaysTabBar";
-                    assert(it.offset_in_bytes == 83, "IO.ConfigDockingAlwaysTabBar has unexpected offset % instead of 83", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDockingAlwaysTabBar has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDockingTransparentPayload";
-                    assert(it.offset_in_bytes == 84, "IO.ConfigDockingTransparentPayload has unexpected offset % instead of 84", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDockingTransparentPayload has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigViewportsNoAutoMerge";
-                    assert(it.offset_in_bytes == 85, "IO.ConfigViewportsNoAutoMerge has unexpected offset % instead of 85", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoAutoMerge has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigViewportsNoTaskBarIcon";
-                    assert(it.offset_in_bytes == 86, "IO.ConfigViewportsNoTaskBarIcon has unexpected offset % instead of 86", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoTaskBarIcon has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigViewportsNoDecoration";
-                    assert(it.offset_in_bytes == 87, "IO.ConfigViewportsNoDecoration has unexpected offset % instead of 87", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoDecoration has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigViewportsNoDefaultParent";
-                    assert(it.offset_in_bytes == 88, "IO.ConfigViewportsNoDefaultParent has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsNoDefaultParent has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigViewportsPlatformFocusSetsImGuiFocus";
-                    assert(it.offset_in_bytes == 89, "IO.ConfigViewportsPlatformFocusSetsImGuiFocus has unexpected offset % instead of 89", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigViewportsPlatformFocusSetsImGuiFocus has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDpiScaleFonts";
-                    assert(it.offset_in_bytes == 90, "IO.ConfigDpiScaleFonts has unexpected offset % instead of 90", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDpiScaleFonts has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDpiScaleViewports";
-                    assert(it.offset_in_bytes == 91, "IO.ConfigDpiScaleViewports has unexpected offset % instead of 91", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDpiScaleViewports has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigMacOSXBehaviors";
-                    assert(it.offset_in_bytes == 92, "IO.ConfigMacOSXBehaviors has unexpected offset % instead of 92", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigMacOSXBehaviors has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigInputTrickleEventQueue";
-                    assert(it.offset_in_bytes == 93, "IO.ConfigInputTrickleEventQueue has unexpected offset % instead of 93", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigInputTrickleEventQueue has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigInputTextCursorBlink";
-                    assert(it.offset_in_bytes == 94, "IO.ConfigInputTextCursorBlink has unexpected offset % instead of 94", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigInputTextCursorBlink has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigInputTextEnterKeepActive";
-                    assert(it.offset_in_bytes == 95, "IO.ConfigInputTextEnterKeepActive has unexpected offset % instead of 95", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigInputTextEnterKeepActive has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigColorEditFlags";
-                    assert(it.offset_in_bytes == 96, "IO.ConfigColorEditFlags has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.ConfigColorEditFlags has unexpected size % instead of 4", it.type.runtime_size);
-                case "ConfigDragClickToInputText";
-                    assert(it.offset_in_bytes == 100, "IO.ConfigDragClickToInputText has unexpected offset % instead of 100", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDragClickToInputText has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigWindowsResizeFromEdges";
-                    assert(it.offset_in_bytes == 101, "IO.ConfigWindowsResizeFromEdges has unexpected offset % instead of 101", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigWindowsResizeFromEdges has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigWindowsMoveFromTitleBarOnly";
-                    assert(it.offset_in_bytes == 102, "IO.ConfigWindowsMoveFromTitleBarOnly has unexpected offset % instead of 102", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigWindowsMoveFromTitleBarOnly has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigWindowsCopyContentsWithCtrlC";
-                    assert(it.offset_in_bytes == 103, "IO.ConfigWindowsCopyContentsWithCtrlC has unexpected offset % instead of 103", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigWindowsCopyContentsWithCtrlC has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigScrollbarScrollByPage";
-                    assert(it.offset_in_bytes == 104, "IO.ConfigScrollbarScrollByPage has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigScrollbarScrollByPage has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigIniSettingsSaveLastUsedDate";
-                    assert(it.offset_in_bytes == 105, "IO.ConfigIniSettingsSaveLastUsedDate has unexpected offset % instead of 105", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigIniSettingsSaveLastUsedDate has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigIniSettingsAutoDiscardMonths";
-                    assert(it.offset_in_bytes == 108, "IO.ConfigIniSettingsAutoDiscardMonths has unexpected offset % instead of 108", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.ConfigIniSettingsAutoDiscardMonths has unexpected size % instead of 4", it.type.runtime_size);
-                case "ConfigDebugIniSettings";
-                    assert(it.offset_in_bytes == 112, "IO.ConfigDebugIniSettings has unexpected offset % instead of 112", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugIniSettings has unexpected size % instead of 1", it.type.runtime_size);
-                case "MouseDrawCursor";
-                    assert(it.offset_in_bytes == 113, "IO.MouseDrawCursor has unexpected offset % instead of 113", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.MouseDrawCursor has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigMemoryCompactTimer";
-                    assert(it.offset_in_bytes == 116, "IO.ConfigMemoryCompactTimer has unexpected offset % instead of 116", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.ConfigMemoryCompactTimer has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseDoubleClickTime";
-                    assert(it.offset_in_bytes == 120, "IO.MouseDoubleClickTime has unexpected offset % instead of 120", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseDoubleClickTime has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseDoubleClickMaxDist";
-                    assert(it.offset_in_bytes == 124, "IO.MouseDoubleClickMaxDist has unexpected offset % instead of 124", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseDoubleClickMaxDist has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseSingleClickDelay";
-                    assert(it.offset_in_bytes == 128, "IO.MouseSingleClickDelay has unexpected offset % instead of 128", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseSingleClickDelay has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseDragThreshold";
-                    assert(it.offset_in_bytes == 132, "IO.MouseDragThreshold has unexpected offset % instead of 132", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseDragThreshold has unexpected size % instead of 4", it.type.runtime_size);
-                case "KeyRepeatDelay";
-                    assert(it.offset_in_bytes == 136, "IO.KeyRepeatDelay has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.KeyRepeatDelay has unexpected size % instead of 4", it.type.runtime_size);
-                case "KeyRepeatRate";
-                    assert(it.offset_in_bytes == 140, "IO.KeyRepeatRate has unexpected offset % instead of 140", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.KeyRepeatRate has unexpected size % instead of 4", it.type.runtime_size);
-                case "ConfigErrorRecovery";
-                    assert(it.offset_in_bytes == 144, "IO.ConfigErrorRecovery has unexpected offset % instead of 144", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecovery has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigErrorRecoveryEnableAssert";
-                    assert(it.offset_in_bytes == 145, "IO.ConfigErrorRecoveryEnableAssert has unexpected offset % instead of 145", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecoveryEnableAssert has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigErrorRecoveryEnableDebugLog";
-                    assert(it.offset_in_bytes == 146, "IO.ConfigErrorRecoveryEnableDebugLog has unexpected offset % instead of 146", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecoveryEnableDebugLog has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigErrorRecoveryEnableTooltip";
-                    assert(it.offset_in_bytes == 147, "IO.ConfigErrorRecoveryEnableTooltip has unexpected offset % instead of 147", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigErrorRecoveryEnableTooltip has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDebugIsDebuggerPresent";
-                    assert(it.offset_in_bytes == 148, "IO.ConfigDebugIsDebuggerPresent has unexpected offset % instead of 148", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugIsDebuggerPresent has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDebugHighlightIdConflicts";
-                    assert(it.offset_in_bytes == 149, "IO.ConfigDebugHighlightIdConflicts has unexpected offset % instead of 149", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugHighlightIdConflicts has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDebugHighlightIdConflictsShowItemPicker";
-                    assert(it.offset_in_bytes == 150, "IO.ConfigDebugHighlightIdConflictsShowItemPicker has unexpected offset % instead of 150", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugHighlightIdConflictsShowItemPicker has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDebugBeginReturnValueOnce";
-                    assert(it.offset_in_bytes == 151, "IO.ConfigDebugBeginReturnValueOnce has unexpected offset % instead of 151", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugBeginReturnValueOnce has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDebugBeginReturnValueLoop";
-                    assert(it.offset_in_bytes == 152, "IO.ConfigDebugBeginReturnValueLoop has unexpected offset % instead of 152", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugBeginReturnValueLoop has unexpected size % instead of 1", it.type.runtime_size);
-                case "ConfigDebugIgnoreFocusLoss";
-                    assert(it.offset_in_bytes == 153, "IO.ConfigDebugIgnoreFocusLoss has unexpected offset % instead of 153", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.ConfigDebugIgnoreFocusLoss has unexpected size % instead of 1", it.type.runtime_size);
-                case "BackendPlatformName";
-                    assert(it.offset_in_bytes == 160, "IO.BackendPlatformName has unexpected offset % instead of 160", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.BackendPlatformName has unexpected size % instead of 8", it.type.runtime_size);
-                case "BackendRendererName";
-                    assert(it.offset_in_bytes == 168, "IO.BackendRendererName has unexpected offset % instead of 168", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.BackendRendererName has unexpected size % instead of 8", it.type.runtime_size);
-                case "BackendPlatformUserData";
-                    assert(it.offset_in_bytes == 176, "IO.BackendPlatformUserData has unexpected offset % instead of 176", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.BackendPlatformUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "BackendRendererUserData";
-                    assert(it.offset_in_bytes == 184, "IO.BackendRendererUserData has unexpected offset % instead of 184", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.BackendRendererUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "BackendLanguageUserData";
-                    assert(it.offset_in_bytes == 192, "IO.BackendLanguageUserData has unexpected offset % instead of 192", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.BackendLanguageUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "WantCaptureMouse";
-                    assert(it.offset_in_bytes == 200, "IO.WantCaptureMouse has unexpected offset % instead of 200", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.WantCaptureMouse has unexpected size % instead of 1", it.type.runtime_size);
-                case "WantCaptureKeyboard";
-                    assert(it.offset_in_bytes == 201, "IO.WantCaptureKeyboard has unexpected offset % instead of 201", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.WantCaptureKeyboard has unexpected size % instead of 1", it.type.runtime_size);
-                case "WantTextInput";
-                    assert(it.offset_in_bytes == 202, "IO.WantTextInput has unexpected offset % instead of 202", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.WantTextInput has unexpected size % instead of 1", it.type.runtime_size);
-                case "WantSetMousePos";
-                    assert(it.offset_in_bytes == 203, "IO.WantSetMousePos has unexpected offset % instead of 203", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.WantSetMousePos has unexpected size % instead of 1", it.type.runtime_size);
-                case "WantSaveIniSettings";
-                    assert(it.offset_in_bytes == 204, "IO.WantSaveIniSettings has unexpected offset % instead of 204", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.WantSaveIniSettings has unexpected size % instead of 1", it.type.runtime_size);
-                case "NavActive";
-                    assert(it.offset_in_bytes == 205, "IO.NavActive has unexpected offset % instead of 205", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.NavActive has unexpected size % instead of 1", it.type.runtime_size);
-                case "NavVisible";
-                    assert(it.offset_in_bytes == 206, "IO.NavVisible has unexpected offset % instead of 206", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.NavVisible has unexpected size % instead of 1", it.type.runtime_size);
-                case "Framerate";
-                    assert(it.offset_in_bytes == 208, "IO.Framerate has unexpected offset % instead of 208", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.Framerate has unexpected size % instead of 4", it.type.runtime_size);
-                case "MetricsRenderVertices";
-                    assert(it.offset_in_bytes == 212, "IO.MetricsRenderVertices has unexpected offset % instead of 212", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MetricsRenderVertices has unexpected size % instead of 4", it.type.runtime_size);
-                case "MetricsRenderIndices";
-                    assert(it.offset_in_bytes == 216, "IO.MetricsRenderIndices has unexpected offset % instead of 216", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MetricsRenderIndices has unexpected size % instead of 4", it.type.runtime_size);
-                case "MetricsRenderWindows";
-                    assert(it.offset_in_bytes == 220, "IO.MetricsRenderWindows has unexpected offset % instead of 220", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MetricsRenderWindows has unexpected size % instead of 4", it.type.runtime_size);
-                case "MetricsActiveWindows";
-                    assert(it.offset_in_bytes == 224, "IO.MetricsActiveWindows has unexpected offset % instead of 224", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MetricsActiveWindows has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseDelta";
-                    assert(it.offset_in_bytes == 228, "IO.MouseDelta has unexpected offset % instead of 228", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.MouseDelta has unexpected size % instead of 8", it.type.runtime_size);
-                case "Ctx";
-                    assert(it.offset_in_bytes == 240, "IO.Ctx has unexpected offset % instead of 240", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.Ctx has unexpected size % instead of 8", it.type.runtime_size);
-                case "MousePos";
-                    assert(it.offset_in_bytes == 248, "IO.MousePos has unexpected offset % instead of 248", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.MousePos has unexpected size % instead of 8", it.type.runtime_size);
-                case "MouseDown";
-                    assert(it.offset_in_bytes == 256, "IO.MouseDown has unexpected offset % instead of 256", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 5, "IO.MouseDown has unexpected size % instead of 5", it.type.runtime_size);
-                case "MouseWheel";
-                    assert(it.offset_in_bytes == 264, "IO.MouseWheel has unexpected offset % instead of 264", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseWheel has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseWheelH";
-                    assert(it.offset_in_bytes == 268, "IO.MouseWheelH has unexpected offset % instead of 268", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseWheelH has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseSource_";
-                    assert(it.offset_in_bytes == 272, "IO.MouseSource_ has unexpected offset % instead of 272", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseSource_ has unexpected size % instead of 4", it.type.runtime_size);
-                case "MouseHoveredViewport";
-                    assert(it.offset_in_bytes == 276, "IO.MouseHoveredViewport has unexpected offset % instead of 276", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.MouseHoveredViewport has unexpected size % instead of 4", it.type.runtime_size);
-                case "KeyCtrl";
-                    assert(it.offset_in_bytes == 280, "IO.KeyCtrl has unexpected offset % instead of 280", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.KeyCtrl has unexpected size % instead of 1", it.type.runtime_size);
-                case "KeyShift";
-                    assert(it.offset_in_bytes == 281, "IO.KeyShift has unexpected offset % instead of 281", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.KeyShift has unexpected size % instead of 1", it.type.runtime_size);
-                case "KeyAlt";
-                    assert(it.offset_in_bytes == 282, "IO.KeyAlt has unexpected offset % instead of 282", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.KeyAlt has unexpected size % instead of 1", it.type.runtime_size);
-                case "KeySuper";
-                    assert(it.offset_in_bytes == 283, "IO.KeySuper has unexpected offset % instead of 283", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.KeySuper has unexpected size % instead of 1", it.type.runtime_size);
-                case "KeyMods";
-                    assert(it.offset_in_bytes == 284, "IO.KeyMods has unexpected offset % instead of 284", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.KeyMods has unexpected size % instead of 4", it.type.runtime_size);
-                case "KeysData";
-                    assert(it.offset_in_bytes == 288, "IO.KeysData has unexpected offset % instead of 288", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2480, "IO.KeysData has unexpected size % instead of 2480", it.type.runtime_size);
-                case "WantCaptureMouseUnlessPopupClose";
-                    assert(it.offset_in_bytes == 2768, "IO.WantCaptureMouseUnlessPopupClose has unexpected offset % instead of 2768", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.WantCaptureMouseUnlessPopupClose has unexpected size % instead of 1", it.type.runtime_size);
-                case "MousePosPrev";
-                    assert(it.offset_in_bytes == 2772, "IO.MousePosPrev has unexpected offset % instead of 2772", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.MousePosPrev has unexpected size % instead of 8", it.type.runtime_size);
-                case "MouseClickedPos";
-                    assert(it.offset_in_bytes == 2780, "IO.MouseClickedPos has unexpected offset % instead of 2780", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "IO.MouseClickedPos has unexpected size % instead of 40", it.type.runtime_size);
-                case "MouseClickedTime";
-                    assert(it.offset_in_bytes == 2824, "IO.MouseClickedTime has unexpected offset % instead of 2824", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "IO.MouseClickedTime has unexpected size % instead of 40", it.type.runtime_size);
-                case "MouseClicked";
-                    assert(it.offset_in_bytes == 2864, "IO.MouseClicked has unexpected offset % instead of 2864", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 5, "IO.MouseClicked has unexpected size % instead of 5", it.type.runtime_size);
-                case "MouseDoubleClicked";
-                    assert(it.offset_in_bytes == 2869, "IO.MouseDoubleClicked has unexpected offset % instead of 2869", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 5, "IO.MouseDoubleClicked has unexpected size % instead of 5", it.type.runtime_size);
-                case "MouseClickedCount";
-                    assert(it.offset_in_bytes == 2874, "IO.MouseClickedCount has unexpected offset % instead of 2874", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 10, "IO.MouseClickedCount has unexpected size % instead of 10", it.type.runtime_size);
-                case "MouseClickedLastCount";
-                    assert(it.offset_in_bytes == 2884, "IO.MouseClickedLastCount has unexpected offset % instead of 2884", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 10, "IO.MouseClickedLastCount has unexpected size % instead of 10", it.type.runtime_size);
-                case "MouseReleased";
-                    assert(it.offset_in_bytes == 2894, "IO.MouseReleased has unexpected offset % instead of 2894", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 5, "IO.MouseReleased has unexpected size % instead of 5", it.type.runtime_size);
-                case "MouseReleasedTime";
-                    assert(it.offset_in_bytes == 2904, "IO.MouseReleasedTime has unexpected offset % instead of 2904", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "IO.MouseReleasedTime has unexpected size % instead of 40", it.type.runtime_size);
-                case "MouseDownOwned";
-                    assert(it.offset_in_bytes == 2944, "IO.MouseDownOwned has unexpected offset % instead of 2944", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 5, "IO.MouseDownOwned has unexpected size % instead of 5", it.type.runtime_size);
-                case "MouseDownOwnedUnlessPopupClose";
-                    assert(it.offset_in_bytes == 2949, "IO.MouseDownOwnedUnlessPopupClose has unexpected offset % instead of 2949", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 5, "IO.MouseDownOwnedUnlessPopupClose has unexpected size % instead of 5", it.type.runtime_size);
-                case "MouseWheelRequestAxisSwap";
-                    assert(it.offset_in_bytes == 2954, "IO.MouseWheelRequestAxisSwap has unexpected offset % instead of 2954", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.MouseWheelRequestAxisSwap has unexpected size % instead of 1", it.type.runtime_size);
-                case "MouseCtrlLeftAsRightClick";
-                    assert(it.offset_in_bytes == 2955, "IO.MouseCtrlLeftAsRightClick has unexpected offset % instead of 2955", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.MouseCtrlLeftAsRightClick has unexpected size % instead of 1", it.type.runtime_size);
-                case "MouseDownDuration";
-                    assert(it.offset_in_bytes == 2956, "IO.MouseDownDuration has unexpected offset % instead of 2956", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 20, "IO.MouseDownDuration has unexpected size % instead of 20", it.type.runtime_size);
-                case "MouseDownDurationPrev";
-                    assert(it.offset_in_bytes == 2976, "IO.MouseDownDurationPrev has unexpected offset % instead of 2976", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 20, "IO.MouseDownDurationPrev has unexpected size % instead of 20", it.type.runtime_size);
-                case "MouseDragMaxDistanceAbs";
-                    assert(it.offset_in_bytes == 2996, "IO.MouseDragMaxDistanceAbs has unexpected offset % instead of 2996", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "IO.MouseDragMaxDistanceAbs has unexpected size % instead of 40", it.type.runtime_size);
-                case "MouseDragMaxDistanceSqr";
-                    assert(it.offset_in_bytes == 3036, "IO.MouseDragMaxDistanceSqr has unexpected offset % instead of 3036", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 20, "IO.MouseDragMaxDistanceSqr has unexpected size % instead of 20", it.type.runtime_size);
-                case "PenPressure";
-                    assert(it.offset_in_bytes == 3056, "IO.PenPressure has unexpected offset % instead of 3056", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.PenPressure has unexpected size % instead of 4", it.type.runtime_size);
-                case "AppFocusLost";
-                    assert(it.offset_in_bytes == 3060, "IO.AppFocusLost has unexpected offset % instead of 3060", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.AppFocusLost has unexpected size % instead of 1", it.type.runtime_size);
-                case "AppAcceptingEvents";
-                    assert(it.offset_in_bytes == 3061, "IO.AppAcceptingEvents has unexpected offset % instead of 3061", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "IO.AppAcceptingEvents has unexpected size % instead of 1", it.type.runtime_size);
-                case "InputQueueSurrogate";
-                    assert(it.offset_in_bytes == 3062, "IO.InputQueueSurrogate has unexpected offset % instead of 3062", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "IO.InputQueueSurrogate has unexpected size % instead of 2", it.type.runtime_size);
-                case "InputQueueCharacters";
-                    assert(it.offset_in_bytes == 3064, "IO.InputQueueCharacters has unexpected offset % instead of 3064", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "IO.InputQueueCharacters has unexpected size % instead of 16", it.type.runtime_size);
-                case "FontGlobalScale";
-                    assert(it.offset_in_bytes == 3080, "IO.FontGlobalScale has unexpected offset % instead of 3080", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "IO.FontGlobalScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "GetClipboardTextFn";
-                    assert(it.offset_in_bytes == 3088, "IO.GetClipboardTextFn has unexpected offset % instead of 3088", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.GetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
-                case "SetClipboardTextFn";
-                    assert(it.offset_in_bytes == 3096, "IO.SetClipboardTextFn has unexpected offset % instead of 3096", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.SetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
-                case "ClipboardUserData";
-                    assert(it.offset_in_bytes == 3104, "IO.ClipboardUserData has unexpected offset % instead of 3104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "IO.ClipboardUserData has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(IO) == 3112, "IO has size % instead of 3112", size_of(IO));
-    }
+StyleVarInfo :: struct {
+    __bitfield: ImU32;
+    /* 
+        Count: ImU32; /* 8 bits */ // 1+
+        DataType: DataType; /* 8 bits */
+        Offset: ImU32; /* 16 bits */ // Offset in parent structure;
+    */
+}
 
-    {
-        info := type_info(InputTextCallbackData);
-        for info.members {
-            if it.name == {
-                case "Ctx";
-                    assert(it.offset_in_bytes == 0, "InputTextCallbackData.Ctx has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "InputTextCallbackData.Ctx has unexpected size % instead of 8", it.type.runtime_size);
-                case "EventFlag";
-                    assert(it.offset_in_bytes == 8, "InputTextCallbackData.EventFlag has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.EventFlag has unexpected size % instead of 4", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 12, "InputTextCallbackData.Flags has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "UserData";
-                    assert(it.offset_in_bytes == 16, "InputTextCallbackData.UserData has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "InputTextCallbackData.UserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "ID_";
-                    assert(it.offset_in_bytes == 24, "InputTextCallbackData.ID_ has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.ID_ has unexpected size % instead of 4", it.type.runtime_size);
-                case "EventKey";
-                    assert(it.offset_in_bytes == 28, "InputTextCallbackData.EventKey has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.EventKey has unexpected size % instead of 4", it.type.runtime_size);
-                case "EventChar";
-                    assert(it.offset_in_bytes == 32, "InputTextCallbackData.EventChar has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "InputTextCallbackData.EventChar has unexpected size % instead of 2", it.type.runtime_size);
-                case "EventActivated";
-                    assert(it.offset_in_bytes == 34, "InputTextCallbackData.EventActivated has unexpected offset % instead of 34", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "InputTextCallbackData.EventActivated has unexpected size % instead of 1", it.type.runtime_size);
-                case "BufDirty";
-                    assert(it.offset_in_bytes == 35, "InputTextCallbackData.BufDirty has unexpected offset % instead of 35", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "InputTextCallbackData.BufDirty has unexpected size % instead of 1", it.type.runtime_size);
-                case "Buf";
-                    assert(it.offset_in_bytes == 40, "InputTextCallbackData.Buf has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "InputTextCallbackData.Buf has unexpected size % instead of 8", it.type.runtime_size);
-                case "BufTextLen";
-                    assert(it.offset_in_bytes == 48, "InputTextCallbackData.BufTextLen has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.BufTextLen has unexpected size % instead of 4", it.type.runtime_size);
-                case "BufSize";
-                    assert(it.offset_in_bytes == 52, "InputTextCallbackData.BufSize has unexpected offset % instead of 52", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.BufSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "CursorPos";
-                    assert(it.offset_in_bytes == 56, "InputTextCallbackData.CursorPos has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.CursorPos has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectionStart";
-                    assert(it.offset_in_bytes == 60, "InputTextCallbackData.SelectionStart has unexpected offset % instead of 60", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.SelectionStart has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectionEnd";
-                    assert(it.offset_in_bytes == 64, "InputTextCallbackData.SelectionEnd has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "InputTextCallbackData.SelectionEnd has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(InputTextCallbackData) == 72, "InputTextCallbackData has size % instead of 72", size_of(InputTextCallbackData));
-    }
+set_Count :: (fields: *StyleVarInfo, value: ImU32) {
+    MASK0: ImU32 : 0b1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_Count :: (fields: StyleVarInfo) -> ImU32 {
+    return (fields.__bitfield & 0b1111_1111);
+}
 
-    {
-        info := type_info(SizeCallbackData);
-        for info.members {
-            if it.name == {
-                case "UserData";
-                    assert(it.offset_in_bytes == 0, "SizeCallbackData.UserData has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SizeCallbackData.UserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "Pos";
-                    assert(it.offset_in_bytes == 8, "SizeCallbackData.Pos has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SizeCallbackData.Pos has unexpected size % instead of 8", it.type.runtime_size);
-                case "CurrentSize";
-                    assert(it.offset_in_bytes == 16, "SizeCallbackData.CurrentSize has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SizeCallbackData.CurrentSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "DesiredSize";
-                    assert(it.offset_in_bytes == 24, "SizeCallbackData.DesiredSize has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SizeCallbackData.DesiredSize has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(SizeCallbackData) == 32, "SizeCallbackData has size % instead of 32", size_of(SizeCallbackData));
-    }
+set_DataType :: (fields: *StyleVarInfo, value: DataType) {
+    MASK0: ImU32 : (0b1111_1111 << 8);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (((cast,no_check(ImU32) value) << 8) & MASK0);
+}
+get_DataType :: (fields: StyleVarInfo) -> DataType {
+    return (cast,no_check(DataType) ((fields.__bitfield & (0b1111_1111 << 8)) >> 8));
+}
 
-    {
-        info := type_info(WindowClass);
-        for info.members {
-            if it.name == {
-                case "ClassId";
-                    assert(it.offset_in_bytes == 0, "WindowClass.ClassId has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.ClassId has unexpected size % instead of 4", it.type.runtime_size);
-                case "ParentViewportId";
-                    assert(it.offset_in_bytes == 4, "WindowClass.ParentViewportId has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.ParentViewportId has unexpected size % instead of 4", it.type.runtime_size);
-                case "FocusRouteParentWindowId";
-                    assert(it.offset_in_bytes == 8, "WindowClass.FocusRouteParentWindowId has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.FocusRouteParentWindowId has unexpected size % instead of 4", it.type.runtime_size);
-                case "ViewportFlagsOverrideSet";
-                    assert(it.offset_in_bytes == 12, "WindowClass.ViewportFlagsOverrideSet has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.ViewportFlagsOverrideSet has unexpected size % instead of 4", it.type.runtime_size);
-                case "ViewportFlagsOverrideClear";
-                    assert(it.offset_in_bytes == 16, "WindowClass.ViewportFlagsOverrideClear has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.ViewportFlagsOverrideClear has unexpected size % instead of 4", it.type.runtime_size);
-                case "TabItemFlagsOverrideSet";
-                    assert(it.offset_in_bytes == 20, "WindowClass.TabItemFlagsOverrideSet has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.TabItemFlagsOverrideSet has unexpected size % instead of 4", it.type.runtime_size);
-                case "DockNodeFlagsOverrideSet";
-                    assert(it.offset_in_bytes == 24, "WindowClass.DockNodeFlagsOverrideSet has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "WindowClass.DockNodeFlagsOverrideSet has unexpected size % instead of 4", it.type.runtime_size);
-                case "DockingAlwaysTabBar";
-                    assert(it.offset_in_bytes == 28, "WindowClass.DockingAlwaysTabBar has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "WindowClass.DockingAlwaysTabBar has unexpected size % instead of 1", it.type.runtime_size);
-                case "DockingAllowUnclassed";
-                    assert(it.offset_in_bytes == 29, "WindowClass.DockingAllowUnclassed has unexpected offset % instead of 29", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "WindowClass.DockingAllowUnclassed has unexpected size % instead of 1", it.type.runtime_size);
-                case "PlatformIconData";
-                    assert(it.offset_in_bytes == 32, "WindowClass.PlatformIconData has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "WindowClass.PlatformIconData has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(WindowClass) == 40, "WindowClass has size % instead of 40", size_of(WindowClass));
-    }
+set_Offset :: (fields: *StyleVarInfo, value: ImU32) {
+    MASK0: ImU32 : (0b1111_1111_1111_1111 << 16);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 16) & MASK0);
+}
+get_Offset :: (fields: StyleVarInfo) -> ImU32 {
+    return ((fields.__bitfield & (0b1111_1111_1111_1111 << 16)) >> 16);
+}
 
-    {
-        info := type_info(Payload);
-        for info.members {
-            if it.name == {
-                case "Data";
-                    assert(it.offset_in_bytes == 0, "Payload.Data has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Payload.Data has unexpected size % instead of 8", it.type.runtime_size);
-                case "DataSize";
-                    assert(it.offset_in_bytes == 8, "Payload.DataSize has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Payload.DataSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "SourceId";
-                    assert(it.offset_in_bytes == 12, "Payload.SourceId has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Payload.SourceId has unexpected size % instead of 4", it.type.runtime_size);
-                case "SourceParentId";
-                    assert(it.offset_in_bytes == 16, "Payload.SourceParentId has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Payload.SourceParentId has unexpected size % instead of 4", it.type.runtime_size);
-                case "DataFrameCount";
-                    assert(it.offset_in_bytes == 20, "Payload.DataFrameCount has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Payload.DataFrameCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "DataType";
-                    assert(it.offset_in_bytes == 24, "Payload.DataType has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 33, "Payload.DataType has unexpected size % instead of 33", it.type.runtime_size);
-                case "Preview";
-                    assert(it.offset_in_bytes == 57, "Payload.Preview has unexpected offset % instead of 57", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Payload.Preview has unexpected size % instead of 1", it.type.runtime_size);
-                case "Delivery";
-                    assert(it.offset_in_bytes == 58, "Payload.Delivery has unexpected offset % instead of 58", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Payload.Delivery has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(Payload) == 64, "Payload has size % instead of 64", size_of(Payload));
-    }
 
-    {
-        info := type_info(OnceUponAFrame);
-        for info.members {
-            if it.name == {
-                case "RefFrame";
-                    assert(it.offset_in_bytes == 0, "OnceUponAFrame.RefFrame has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "OnceUponAFrame.RefFrame has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(OnceUponAFrame) == 4, "OnceUponAFrame has size % instead of 4", size_of(OnceUponAFrame));
-    }
+// Stacked color modifier, backup of modified data so we can restore it
+ColorMod :: struct {
+    Col_:        Col;
+    BackupValue: ImVec4;
+}
 
-    {
-        info := type_info(TextFilter.TextRange);
-        for info.members {
-            if it.name == {
-                case "b";
-                    assert(it.offset_in_bytes == 0, "TextFilter.TextRange.b has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "TextFilter.TextRange.b has unexpected size % instead of 8", it.type.runtime_size);
-                case "e";
-                    assert(it.offset_in_bytes == 8, "TextFilter.TextRange.e has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "TextFilter.TextRange.e has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(TextFilter.TextRange) == 16, "TextFilter.TextRange has size % instead of 16", size_of(TextFilter.TextRange));
-    }
+// Stacked style modifier, backup of modified data so we can restore it. Data type inferred from the variable.
+StyleMod :: struct {
+    VarIdx: StyleVar;
+    struct {
+        BackupInt: [2] s32;
 
-    {
-        info := type_info(TextFilter);
-        for info.members {
-            if it.name == {
-                case "InputBuf";
-                    assert(it.offset_in_bytes == 0, "TextFilter.InputBuf has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 256, "TextFilter.InputBuf has unexpected size % instead of 256", it.type.runtime_size);
-                case "Filters";
-                    assert(it.offset_in_bytes == 256, "TextFilter.Filters has unexpected offset % instead of 256", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "TextFilter.Filters has unexpected size % instead of 16", it.type.runtime_size);
-                case "CountGrep";
-                    assert(it.offset_in_bytes == 272, "TextFilter.CountGrep has unexpected offset % instead of 272", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "TextFilter.CountGrep has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(TextFilter) == 280, "TextFilter has size % instead of 280", size_of(TextFilter));
-    }
-
-    {
-        info := type_info(StoragePair);
-        for info.members {
-            if it.name == {
-                case "key";
-                    assert(it.offset_in_bytes == 0, "StoragePair.key has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "StoragePair.key has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(StoragePair) == 16, "StoragePair has size % instead of 16", size_of(StoragePair));
-    }
-
-    {
-        info := type_info(Storage);
-        for info.members {
-            if it.name == {
-                case "Data";
-                    assert(it.offset_in_bytes == 0, "Storage.Data has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "Storage.Data has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(Storage) == 16, "Storage has size % instead of 16", size_of(Storage));
-    }
-
-    {
-        info := type_info(ListClipper);
-        for info.members {
-            if it.name == {
-                case "DisplayStart";
-                    assert(it.offset_in_bytes == 0, "ListClipper.DisplayStart has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ListClipper.DisplayStart has unexpected size % instead of 4", it.type.runtime_size);
-                case "DisplayEnd";
-                    assert(it.offset_in_bytes == 4, "ListClipper.DisplayEnd has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ListClipper.DisplayEnd has unexpected size % instead of 4", it.type.runtime_size);
-                case "UserIndex";
-                    assert(it.offset_in_bytes == 8, "ListClipper.UserIndex has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ListClipper.UserIndex has unexpected size % instead of 4", it.type.runtime_size);
-                case "ItemsCount";
-                    assert(it.offset_in_bytes == 12, "ListClipper.ItemsCount has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ListClipper.ItemsCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "ItemsHeight";
-                    assert(it.offset_in_bytes == 16, "ListClipper.ItemsHeight has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ListClipper.ItemsHeight has unexpected size % instead of 4", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 20, "ListClipper.Flags has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ListClipper.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "StartPosY";
-                    assert(it.offset_in_bytes == 24, "ListClipper.StartPosY has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ListClipper.StartPosY has unexpected size % instead of 8", it.type.runtime_size);
-                case "StartSeekOffsetY";
-                    assert(it.offset_in_bytes == 32, "ListClipper.StartSeekOffsetY has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ListClipper.StartSeekOffsetY has unexpected size % instead of 8", it.type.runtime_size);
-                case "Ctx";
-                    assert(it.offset_in_bytes == 40, "ListClipper.Ctx has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ListClipper.Ctx has unexpected size % instead of 8", it.type.runtime_size);
-                case "TempData";
-                    assert(it.offset_in_bytes == 48, "ListClipper.TempData has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ListClipper.TempData has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ListClipper) == 56, "ListClipper has size % instead of 56", size_of(ListClipper));
-    }
-
-    {
-        info := type_info(MultiSelectIO);
-        for info.members {
-            if it.name == {
-                case "Requests";
-                    assert(it.offset_in_bytes == 0, "MultiSelectIO.Requests has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "MultiSelectIO.Requests has unexpected size % instead of 16", it.type.runtime_size);
-                case "RangeSrcItem";
-                    assert(it.offset_in_bytes == 16, "MultiSelectIO.RangeSrcItem has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "MultiSelectIO.RangeSrcItem has unexpected size % instead of 8", it.type.runtime_size);
-                case "NavIdItem";
-                    assert(it.offset_in_bytes == 24, "MultiSelectIO.NavIdItem has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "MultiSelectIO.NavIdItem has unexpected size % instead of 8", it.type.runtime_size);
-                case "NavIdSelected";
-                    assert(it.offset_in_bytes == 32, "MultiSelectIO.NavIdSelected has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "MultiSelectIO.NavIdSelected has unexpected size % instead of 1", it.type.runtime_size);
-                case "RangeSrcReset";
-                    assert(it.offset_in_bytes == 33, "MultiSelectIO.RangeSrcReset has unexpected offset % instead of 33", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "MultiSelectIO.RangeSrcReset has unexpected size % instead of 1", it.type.runtime_size);
-                case "ItemsCount";
-                    assert(it.offset_in_bytes == 36, "MultiSelectIO.ItemsCount has unexpected offset % instead of 36", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "MultiSelectIO.ItemsCount has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(MultiSelectIO) == 40, "MultiSelectIO has size % instead of 40", size_of(MultiSelectIO));
-    }
-
-    {
-        info := type_info(SelectionRequest);
-        for info.members {
-            if it.name == {
-                case "Type";
-                    assert(it.offset_in_bytes == 0, "SelectionRequest.Type has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "SelectionRequest.Type has unexpected size % instead of 4", it.type.runtime_size);
-                case "Selected";
-                    assert(it.offset_in_bytes == 4, "SelectionRequest.Selected has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "SelectionRequest.Selected has unexpected size % instead of 1", it.type.runtime_size);
-                case "RangeDirection";
-                    assert(it.offset_in_bytes == 5, "SelectionRequest.RangeDirection has unexpected offset % instead of 5", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "SelectionRequest.RangeDirection has unexpected size % instead of 1", it.type.runtime_size);
-                case "RangeFirstItem";
-                    assert(it.offset_in_bytes == 8, "SelectionRequest.RangeFirstItem has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SelectionRequest.RangeFirstItem has unexpected size % instead of 8", it.type.runtime_size);
-                case "RangeLastItem";
-                    assert(it.offset_in_bytes == 16, "SelectionRequest.RangeLastItem has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SelectionRequest.RangeLastItem has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(SelectionRequest) == 24, "SelectionRequest has size % instead of 24", size_of(SelectionRequest));
-    }
-
-    {
-        info := type_info(SelectionBasicStorage);
-        for info.members {
-            if it.name == {
-                case "Size";
-                    assert(it.offset_in_bytes == 0, "SelectionBasicStorage.Size has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "SelectionBasicStorage.Size has unexpected size % instead of 4", it.type.runtime_size);
-                case "PreserveOrder";
-                    assert(it.offset_in_bytes == 4, "SelectionBasicStorage.PreserveOrder has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "SelectionBasicStorage.PreserveOrder has unexpected size % instead of 1", it.type.runtime_size);
-                case "UserData";
-                    assert(it.offset_in_bytes == 8, "SelectionBasicStorage.UserData has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SelectionBasicStorage.UserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "AdapterIndexToStorageId";
-                    assert(it.offset_in_bytes == 16, "SelectionBasicStorage.AdapterIndexToStorageId has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SelectionBasicStorage.AdapterIndexToStorageId has unexpected size % instead of 8", it.type.runtime_size);
-                case "_SelectionOrder";
-                    assert(it.offset_in_bytes == 24, "SelectionBasicStorage._SelectionOrder has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "SelectionBasicStorage._SelectionOrder has unexpected size % instead of 4", it.type.runtime_size);
-                case "_Storage";
-                    assert(it.offset_in_bytes == 32, "SelectionBasicStorage._Storage has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "SelectionBasicStorage._Storage has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(SelectionBasicStorage) == 48, "SelectionBasicStorage has size % instead of 48", size_of(SelectionBasicStorage));
-    }
-
-    {
-        info := type_info(SelectionExternalStorage);
-        for info.members {
-            if it.name == {
-                case "UserData";
-                    assert(it.offset_in_bytes == 0, "SelectionExternalStorage.UserData has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SelectionExternalStorage.UserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "AdapterSetItemSelected";
-                    assert(it.offset_in_bytes == 8, "SelectionExternalStorage.AdapterSetItemSelected has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "SelectionExternalStorage.AdapterSetItemSelected has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(SelectionExternalStorage) == 16, "SelectionExternalStorage has size % instead of 16", size_of(SelectionExternalStorage));
-    }
-
-    {
-        info := type_info(ImDrawCmd);
-        for info.members {
-            if it.name == {
-                case "ClipRect";
-                    assert(it.offset_in_bytes == 0, "ImDrawCmd.ClipRect has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawCmd.ClipRect has unexpected size % instead of 16", it.type.runtime_size);
-                case "TexRef";
-                    assert(it.offset_in_bytes == 16, "ImDrawCmd.TexRef has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawCmd.TexRef has unexpected size % instead of 16", it.type.runtime_size);
-                case "VtxOffset";
-                    assert(it.offset_in_bytes == 32, "ImDrawCmd.VtxOffset has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawCmd.VtxOffset has unexpected size % instead of 4", it.type.runtime_size);
-                case "IdxOffset";
-                    assert(it.offset_in_bytes == 36, "ImDrawCmd.IdxOffset has unexpected offset % instead of 36", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawCmd.IdxOffset has unexpected size % instead of 4", it.type.runtime_size);
-                case "ElemCount";
-                    assert(it.offset_in_bytes == 40, "ImDrawCmd.ElemCount has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawCmd.ElemCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "UserCallback";
-                    assert(it.offset_in_bytes == 48, "ImDrawCmd.UserCallback has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawCmd.UserCallback has unexpected size % instead of 8", it.type.runtime_size);
-                case "UserCallbackData";
-                    assert(it.offset_in_bytes == 56, "ImDrawCmd.UserCallbackData has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawCmd.UserCallbackData has unexpected size % instead of 8", it.type.runtime_size);
-                case "UserCallbackDataSize";
-                    assert(it.offset_in_bytes == 64, "ImDrawCmd.UserCallbackDataSize has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawCmd.UserCallbackDataSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "UserCallbackDataOffset";
-                    assert(it.offset_in_bytes == 68, "ImDrawCmd.UserCallbackDataOffset has unexpected offset % instead of 68", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawCmd.UserCallbackDataOffset has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawCmd) == 72, "ImDrawCmd has size % instead of 72", size_of(ImDrawCmd));
-    }
-
-    {
-        info := type_info(ImDrawVert);
-        for info.members {
-            if it.name == {
-                case "pos";
-                    assert(it.offset_in_bytes == 0, "ImDrawVert.pos has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawVert.pos has unexpected size % instead of 8", it.type.runtime_size);
-                case "uv";
-                    assert(it.offset_in_bytes == 8, "ImDrawVert.uv has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawVert.uv has unexpected size % instead of 8", it.type.runtime_size);
-                case "col";
-                    assert(it.offset_in_bytes == 16, "ImDrawVert.col has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawVert.col has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawVert) == 20, "ImDrawVert has size % instead of 20", size_of(ImDrawVert));
-    }
-
-    {
-        info := type_info(ImDrawCmdHeader);
-        for info.members {
-            if it.name == {
-                case "ClipRect";
-                    assert(it.offset_in_bytes == 0, "ImDrawCmdHeader.ClipRect has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawCmdHeader.ClipRect has unexpected size % instead of 16", it.type.runtime_size);
-                case "TexRef";
-                    assert(it.offset_in_bytes == 16, "ImDrawCmdHeader.TexRef has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawCmdHeader.TexRef has unexpected size % instead of 16", it.type.runtime_size);
-                case "VtxOffset";
-                    assert(it.offset_in_bytes == 32, "ImDrawCmdHeader.VtxOffset has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawCmdHeader.VtxOffset has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawCmdHeader) == 40, "ImDrawCmdHeader has size % instead of 40", size_of(ImDrawCmdHeader));
-    }
-
-    {
-        info := type_info(ImDrawChannel);
-        for info.members {
-            if it.name == {
-                case "_CmdBuffer";
-                    assert(it.offset_in_bytes == 0, "ImDrawChannel._CmdBuffer has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawChannel._CmdBuffer has unexpected size % instead of 16", it.type.runtime_size);
-                case "_IdxBuffer";
-                    assert(it.offset_in_bytes == 16, "ImDrawChannel._IdxBuffer has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawChannel._IdxBuffer has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawChannel) == 32, "ImDrawChannel has size % instead of 32", size_of(ImDrawChannel));
-    }
-
-    {
-        info := type_info(ImDrawListSplitter);
-        for info.members {
-            if it.name == {
-                case "_Current";
-                    assert(it.offset_in_bytes == 0, "ImDrawListSplitter._Current has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawListSplitter._Current has unexpected size % instead of 4", it.type.runtime_size);
-                case "_Count";
-                    assert(it.offset_in_bytes == 4, "ImDrawListSplitter._Count has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawListSplitter._Count has unexpected size % instead of 4", it.type.runtime_size);
-                case "_Channels";
-                    assert(it.offset_in_bytes == 8, "ImDrawListSplitter._Channels has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawListSplitter._Channels has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawListSplitter) == 24, "ImDrawListSplitter has size % instead of 24", size_of(ImDrawListSplitter));
-    }
-
-    {
-        info := type_info(ImDrawList);
-        for info.members {
-            if it.name == {
-                case "CmdBuffer";
-                    assert(it.offset_in_bytes == 0, "ImDrawList.CmdBuffer has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList.CmdBuffer has unexpected size % instead of 16", it.type.runtime_size);
-                case "IdxBuffer";
-                    assert(it.offset_in_bytes == 16, "ImDrawList.IdxBuffer has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList.IdxBuffer has unexpected size % instead of 16", it.type.runtime_size);
-                case "VtxBuffer";
-                    assert(it.offset_in_bytes == 32, "ImDrawList.VtxBuffer has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList.VtxBuffer has unexpected size % instead of 16", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 48, "ImDrawList.Flags has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawList.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "_VtxCurrentIdx";
-                    assert(it.offset_in_bytes == 52, "ImDrawList._VtxCurrentIdx has unexpected offset % instead of 52", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawList._VtxCurrentIdx has unexpected size % instead of 4", it.type.runtime_size);
-                case "_Data";
-                    assert(it.offset_in_bytes == 56, "ImDrawList._Data has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawList._Data has unexpected size % instead of 8", it.type.runtime_size);
-                case "_VtxWritePtr";
-                    assert(it.offset_in_bytes == 64, "ImDrawList._VtxWritePtr has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawList._VtxWritePtr has unexpected size % instead of 8", it.type.runtime_size);
-                case "_IdxWritePtr";
-                    assert(it.offset_in_bytes == 72, "ImDrawList._IdxWritePtr has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawList._IdxWritePtr has unexpected size % instead of 8", it.type.runtime_size);
-                case "_Path";
-                    assert(it.offset_in_bytes == 80, "ImDrawList._Path has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList._Path has unexpected size % instead of 16", it.type.runtime_size);
-                case "_CmdHeader";
-                    assert(it.offset_in_bytes == 96, "ImDrawList._CmdHeader has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "ImDrawList._CmdHeader has unexpected size % instead of 40", it.type.runtime_size);
-                case "_Splitter";
-                    assert(it.offset_in_bytes == 136, "ImDrawList._Splitter has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 24, "ImDrawList._Splitter has unexpected size % instead of 24", it.type.runtime_size);
-                case "_ClipRectStack";
-                    assert(it.offset_in_bytes == 160, "ImDrawList._ClipRectStack has unexpected offset % instead of 160", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList._ClipRectStack has unexpected size % instead of 16", it.type.runtime_size);
-                case "_TextureStack";
-                    assert(it.offset_in_bytes == 176, "ImDrawList._TextureStack has unexpected offset % instead of 176", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList._TextureStack has unexpected size % instead of 16", it.type.runtime_size);
-                case "_CallbacksDataBuf";
-                    assert(it.offset_in_bytes == 192, "ImDrawList._CallbacksDataBuf has unexpected offset % instead of 192", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawList._CallbacksDataBuf has unexpected size % instead of 16", it.type.runtime_size);
-                case "_FringeScale";
-                    assert(it.offset_in_bytes == 208, "ImDrawList._FringeScale has unexpected offset % instead of 208", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawList._FringeScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "_OwnerName";
-                    assert(it.offset_in_bytes == 216, "ImDrawList._OwnerName has unexpected offset % instead of 216", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawList._OwnerName has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawList) == 224, "ImDrawList has size % instead of 224", size_of(ImDrawList));
-    }
-
-    {
-        info := type_info(ImDrawData);
-        for info.members {
-            if it.name == {
-                case "Valid";
-                    assert(it.offset_in_bytes == 0, "ImDrawData.Valid has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImDrawData.Valid has unexpected size % instead of 1", it.type.runtime_size);
-                case "FrameCount";
-                    assert(it.offset_in_bytes == 4, "ImDrawData.FrameCount has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawData.FrameCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "TotalIdxCount";
-                    assert(it.offset_in_bytes == 8, "ImDrawData.TotalIdxCount has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawData.TotalIdxCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "TotalVtxCount";
-                    assert(it.offset_in_bytes == 12, "ImDrawData.TotalVtxCount has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawData.TotalVtxCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "CmdLists";
-                    assert(it.offset_in_bytes == 16, "ImDrawData.CmdLists has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImDrawData.CmdLists has unexpected size % instead of 16", it.type.runtime_size);
-                case "DisplayPos";
-                    assert(it.offset_in_bytes == 32, "ImDrawData.DisplayPos has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawData.DisplayPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "DisplaySize";
-                    assert(it.offset_in_bytes == 40, "ImDrawData.DisplaySize has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawData.DisplaySize has unexpected size % instead of 8", it.type.runtime_size);
-                case "FramebufferScale";
-                    assert(it.offset_in_bytes == 48, "ImDrawData.FramebufferScale has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawData.FramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
-                case "OwnerViewport";
-                    assert(it.offset_in_bytes == 56, "ImDrawData.OwnerViewport has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawData.OwnerViewport has unexpected size % instead of 8", it.type.runtime_size);
-                case "Textures";
-                    assert(it.offset_in_bytes == 64, "ImDrawData.Textures has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImDrawData.Textures has unexpected size % instead of 8", it.type.runtime_size);
-                case "CmdListsCount";
-                    assert(it.offset_in_bytes == 72, "ImDrawData.CmdListsCount has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImDrawData.CmdListsCount has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImDrawData) == 80, "ImDrawData has size % instead of 80", size_of(ImDrawData));
-    }
-
-    {
-        info := type_info(ImTextureRect);
-        for info.members {
-            if it.name == {
-                case "x";
-                    assert(it.offset_in_bytes == 0, "ImTextureRect.x has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImTextureRect.x has unexpected size % instead of 2", it.type.runtime_size);
-                case "y";
-                    assert(it.offset_in_bytes == 2, "ImTextureRect.y has unexpected offset % instead of 2", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImTextureRect.y has unexpected size % instead of 2", it.type.runtime_size);
-                case "w";
-                    assert(it.offset_in_bytes == 4, "ImTextureRect.w has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImTextureRect.w has unexpected size % instead of 2", it.type.runtime_size);
-                case "h";
-                    assert(it.offset_in_bytes == 6, "ImTextureRect.h has unexpected offset % instead of 6", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImTextureRect.h has unexpected size % instead of 2", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImTextureRect) == 8, "ImTextureRect has size % instead of 8", size_of(ImTextureRect));
-    }
-
-    {
-        info := type_info(ImTextureData);
-        for info.members {
-            if it.name == {
-                case "UniqueID";
-                    assert(it.offset_in_bytes == 0, "ImTextureData.UniqueID has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.UniqueID has unexpected size % instead of 4", it.type.runtime_size);
-                case "Status";
-                    assert(it.offset_in_bytes == 4, "ImTextureData.Status has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.Status has unexpected size % instead of 4", it.type.runtime_size);
-                case "BackendUserData";
-                    assert(it.offset_in_bytes == 8, "ImTextureData.BackendUserData has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureData.BackendUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "QueueUserData";
-                    assert(it.offset_in_bytes == 16, "ImTextureData.QueueUserData has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureData.QueueUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "TexID";
-                    assert(it.offset_in_bytes == 24, "ImTextureData.TexID has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureData.TexID has unexpected size % instead of 8", it.type.runtime_size);
-                case "Format";
-                    assert(it.offset_in_bytes == 32, "ImTextureData.Format has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.Format has unexpected size % instead of 4", it.type.runtime_size);
-                case "Width";
-                    assert(it.offset_in_bytes == 36, "ImTextureData.Width has unexpected offset % instead of 36", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.Width has unexpected size % instead of 4", it.type.runtime_size);
-                case "Height";
-                    assert(it.offset_in_bytes == 40, "ImTextureData.Height has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.Height has unexpected size % instead of 4", it.type.runtime_size);
-                case "BytesPerPixel";
-                    assert(it.offset_in_bytes == 44, "ImTextureData.BytesPerPixel has unexpected offset % instead of 44", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.BytesPerPixel has unexpected size % instead of 4", it.type.runtime_size);
-                case "Pixels";
-                    assert(it.offset_in_bytes == 48, "ImTextureData.Pixels has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureData.Pixels has unexpected size % instead of 8", it.type.runtime_size);
-                case "UsedRect";
-                    assert(it.offset_in_bytes == 56, "ImTextureData.UsedRect has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureData.UsedRect has unexpected size % instead of 8", it.type.runtime_size);
-                case "UpdateRect";
-                    assert(it.offset_in_bytes == 64, "ImTextureData.UpdateRect has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImTextureData.UpdateRect has unexpected size % instead of 8", it.type.runtime_size);
-                case "Updates";
-                    assert(it.offset_in_bytes == 72, "ImTextureData.Updates has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImTextureData.Updates has unexpected size % instead of 16", it.type.runtime_size);
-                case "UnusedFrames";
-                    assert(it.offset_in_bytes == 88, "ImTextureData.UnusedFrames has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImTextureData.UnusedFrames has unexpected size % instead of 4", it.type.runtime_size);
-                case "RefCount";
-                    assert(it.offset_in_bytes == 92, "ImTextureData.RefCount has unexpected offset % instead of 92", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImTextureData.RefCount has unexpected size % instead of 2", it.type.runtime_size);
-                case "UseColors";
-                    assert(it.offset_in_bytes == 94, "ImTextureData.UseColors has unexpected offset % instead of 94", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImTextureData.UseColors has unexpected size % instead of 1", it.type.runtime_size);
-                case "WantDestroyNextFrame";
-                    assert(it.offset_in_bytes == 95, "ImTextureData.WantDestroyNextFrame has unexpected offset % instead of 95", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImTextureData.WantDestroyNextFrame has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImTextureData) == 96, "ImTextureData has size % instead of 96", size_of(ImTextureData));
-    }
-
-    {
-        info := type_info(ImFontConfig);
-        for info.members {
-            if it.name == {
-                case "Name";
-                    assert(it.offset_in_bytes == 0, "ImFontConfig.Name has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 40, "ImFontConfig.Name has unexpected size % instead of 40", it.type.runtime_size);
-                case "FontData";
-                    assert(it.offset_in_bytes == 40, "ImFontConfig.FontData has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.FontData has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontDataSize";
-                    assert(it.offset_in_bytes == 48, "ImFontConfig.FontDataSize has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.FontDataSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontDataOwnedByAtlas";
-                    assert(it.offset_in_bytes == 52, "ImFontConfig.FontDataOwnedByAtlas has unexpected offset % instead of 52", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontConfig.FontDataOwnedByAtlas has unexpected size % instead of 1", it.type.runtime_size);
-                case "MergeMode";
-                    assert(it.offset_in_bytes == 53, "ImFontConfig.MergeMode has unexpected offset % instead of 53", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontConfig.MergeMode has unexpected size % instead of 1", it.type.runtime_size);
-                case "PixelSnapH";
-                    assert(it.offset_in_bytes == 54, "ImFontConfig.PixelSnapH has unexpected offset % instead of 54", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontConfig.PixelSnapH has unexpected size % instead of 1", it.type.runtime_size);
-                case "OversampleH";
-                    assert(it.offset_in_bytes == 55, "ImFontConfig.OversampleH has unexpected offset % instead of 55", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontConfig.OversampleH has unexpected size % instead of 1", it.type.runtime_size);
-                case "OversampleV";
-                    assert(it.offset_in_bytes == 56, "ImFontConfig.OversampleV has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontConfig.OversampleV has unexpected size % instead of 1", it.type.runtime_size);
-                case "EllipsisChar";
-                    assert(it.offset_in_bytes == 58, "ImFontConfig.EllipsisChar has unexpected offset % instead of 58", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFontConfig.EllipsisChar has unexpected size % instead of 2", it.type.runtime_size);
-                case "SizePixels";
-                    assert(it.offset_in_bytes == 60, "ImFontConfig.SizePixels has unexpected offset % instead of 60", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.SizePixels has unexpected size % instead of 4", it.type.runtime_size);
-                case "GlyphRanges";
-                    assert(it.offset_in_bytes == 64, "ImFontConfig.GlyphRanges has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.GlyphRanges has unexpected size % instead of 8", it.type.runtime_size);
-                case "GlyphExcludeRanges";
-                    assert(it.offset_in_bytes == 72, "ImFontConfig.GlyphExcludeRanges has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.GlyphExcludeRanges has unexpected size % instead of 8", it.type.runtime_size);
-                case "GlyphOffset";
-                    assert(it.offset_in_bytes == 80, "ImFontConfig.GlyphOffset has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.GlyphOffset has unexpected size % instead of 8", it.type.runtime_size);
-                case "GlyphMinAdvanceX";
-                    assert(it.offset_in_bytes == 88, "ImFontConfig.GlyphMinAdvanceX has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.GlyphMinAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
-                case "GlyphMaxAdvanceX";
-                    assert(it.offset_in_bytes == 92, "ImFontConfig.GlyphMaxAdvanceX has unexpected offset % instead of 92", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.GlyphMaxAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
-                case "GlyphExtraAdvanceX";
-                    assert(it.offset_in_bytes == 96, "ImFontConfig.GlyphExtraAdvanceX has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.GlyphExtraAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontNo";
-                    assert(it.offset_in_bytes == 100, "ImFontConfig.FontNo has unexpected offset % instead of 100", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.FontNo has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontLoaderFlags";
-                    assert(it.offset_in_bytes == 104, "ImFontConfig.FontLoaderFlags has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.FontLoaderFlags has unexpected size % instead of 4", it.type.runtime_size);
-                case "RasterizerMultiply";
-                    assert(it.offset_in_bytes == 108, "ImFontConfig.RasterizerMultiply has unexpected offset % instead of 108", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.RasterizerMultiply has unexpected size % instead of 4", it.type.runtime_size);
-                case "RasterizerDensity";
-                    assert(it.offset_in_bytes == 112, "ImFontConfig.RasterizerDensity has unexpected offset % instead of 112", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.RasterizerDensity has unexpected size % instead of 4", it.type.runtime_size);
-                case "ExtraSizeScale";
-                    assert(it.offset_in_bytes == 116, "ImFontConfig.ExtraSizeScale has unexpected offset % instead of 116", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.ExtraSizeScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 120, "ImFontConfig.Flags has unexpected offset % instead of 120", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontConfig.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "DstFont";
-                    assert(it.offset_in_bytes == 128, "ImFontConfig.DstFont has unexpected offset % instead of 128", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.DstFont has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoader";
-                    assert(it.offset_in_bytes == 136, "ImFontConfig.FontLoader has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.FontLoader has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoaderData";
-                    assert(it.offset_in_bytes == 144, "ImFontConfig.FontLoaderData has unexpected offset % instead of 144", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontConfig.FontLoaderData has unexpected size % instead of 8", it.type.runtime_size);
-                case "PixelSnapV";
-                    assert(it.offset_in_bytes == 152, "ImFontConfig.PixelSnapV has unexpected offset % instead of 152", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontConfig.PixelSnapV has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFontConfig) == 160, "ImFontConfig has size % instead of 160", size_of(ImFontConfig));
-    }
-
-    {
-        info := type_info(ImFontGlyph);
-        for info.members {
-            if it.name == {
-                case "__bitfield";
-                    assert(it.offset_in_bytes == 0, "ImFontGlyph.__bitfield has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.__bitfield has unexpected size % instead of 4", it.type.runtime_size);
-                case "AdvanceX";
-                    assert(it.offset_in_bytes == 4, "ImFontGlyph.AdvanceX has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.AdvanceX has unexpected size % instead of 4", it.type.runtime_size);
-                case "X0";
-                    assert(it.offset_in_bytes == 8, "ImFontGlyph.X0 has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.X0 has unexpected size % instead of 4", it.type.runtime_size);
-                case "Y0";
-                    assert(it.offset_in_bytes == 12, "ImFontGlyph.Y0 has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.Y0 has unexpected size % instead of 4", it.type.runtime_size);
-                case "X1";
-                    assert(it.offset_in_bytes == 16, "ImFontGlyph.X1 has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.X1 has unexpected size % instead of 4", it.type.runtime_size);
-                case "Y1";
-                    assert(it.offset_in_bytes == 20, "ImFontGlyph.Y1 has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.Y1 has unexpected size % instead of 4", it.type.runtime_size);
-                case "U0";
-                    assert(it.offset_in_bytes == 24, "ImFontGlyph.U0 has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.U0 has unexpected size % instead of 4", it.type.runtime_size);
-                case "V0";
-                    assert(it.offset_in_bytes == 28, "ImFontGlyph.V0 has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.V0 has unexpected size % instead of 4", it.type.runtime_size);
-                case "U1";
-                    assert(it.offset_in_bytes == 32, "ImFontGlyph.U1 has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.U1 has unexpected size % instead of 4", it.type.runtime_size);
-                case "V1";
-                    assert(it.offset_in_bytes == 36, "ImFontGlyph.V1 has unexpected offset % instead of 36", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.V1 has unexpected size % instead of 4", it.type.runtime_size);
-                case "PackId";
-                    assert(it.offset_in_bytes == 40, "ImFontGlyph.PackId has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontGlyph.PackId has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFontGlyph) == 44, "ImFontGlyph has size % instead of 44", size_of(ImFontGlyph));
-    }
-
-    {
-        info := type_info(ImFontGlyphRangesBuilder);
-        for info.members {
-            if it.name == {
-                case "UsedChars";
-                    assert(it.offset_in_bytes == 0, "ImFontGlyphRangesBuilder.UsedChars has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontGlyphRangesBuilder.UsedChars has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFontGlyphRangesBuilder) == 16, "ImFontGlyphRangesBuilder has size % instead of 16", size_of(ImFontGlyphRangesBuilder));
-    }
-
-    {
-        info := type_info(ImFontAtlasRect);
-        for info.members {
-            if it.name == {
-                case "x";
-                    assert(it.offset_in_bytes == 0, "ImFontAtlasRect.x has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.x has unexpected size % instead of 2", it.type.runtime_size);
-                case "y";
-                    assert(it.offset_in_bytes == 2, "ImFontAtlasRect.y has unexpected offset % instead of 2", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.y has unexpected size % instead of 2", it.type.runtime_size);
-                case "w";
-                    assert(it.offset_in_bytes == 4, "ImFontAtlasRect.w has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.w has unexpected size % instead of 2", it.type.runtime_size);
-                case "h";
-                    assert(it.offset_in_bytes == 6, "ImFontAtlasRect.h has unexpected offset % instead of 6", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFontAtlasRect.h has unexpected size % instead of 2", it.type.runtime_size);
-                case "uv0";
-                    assert(it.offset_in_bytes == 8, "ImFontAtlasRect.uv0 has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlasRect.uv0 has unexpected size % instead of 8", it.type.runtime_size);
-                case "uv1";
-                    assert(it.offset_in_bytes == 16, "ImFontAtlasRect.uv1 has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlasRect.uv1 has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFontAtlasRect) == 24, "ImFontAtlasRect has size % instead of 24", size_of(ImFontAtlasRect));
-    }
-
-    {
-        info := type_info(ImFontAtlas);
-        for info.members {
-            if it.name == {
-                case "Flags";
-                    assert(it.offset_in_bytes == 0, "ImFontAtlas.Flags has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "TexDesiredFormat";
-                    assert(it.offset_in_bytes == 4, "ImFontAtlas.TexDesiredFormat has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexDesiredFormat has unexpected size % instead of 4", it.type.runtime_size);
-                case "TexGlyphPadding";
-                    assert(it.offset_in_bytes == 8, "ImFontAtlas.TexGlyphPadding has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexGlyphPadding has unexpected size % instead of 4", it.type.runtime_size);
-                case "TexMinWidth";
-                    assert(it.offset_in_bytes == 12, "ImFontAtlas.TexMinWidth has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMinWidth has unexpected size % instead of 4", it.type.runtime_size);
-                case "TexMinHeight";
-                    assert(it.offset_in_bytes == 16, "ImFontAtlas.TexMinHeight has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMinHeight has unexpected size % instead of 4", it.type.runtime_size);
-                case "TexMaxWidth";
-                    assert(it.offset_in_bytes == 20, "ImFontAtlas.TexMaxWidth has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMaxWidth has unexpected size % instead of 4", it.type.runtime_size);
-                case "TexMaxHeight";
-                    assert(it.offset_in_bytes == 24, "ImFontAtlas.TexMaxHeight has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexMaxHeight has unexpected size % instead of 4", it.type.runtime_size);
-                case "UserData";
-                    assert(it.offset_in_bytes == 32, "ImFontAtlas.UserData has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.UserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "TexData";
-                    assert(it.offset_in_bytes == 56, "ImFontAtlas.TexData has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.TexData has unexpected size % instead of 8", it.type.runtime_size);
-                case "TexList";
-                    assert(it.offset_in_bytes == 64, "ImFontAtlas.TexList has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontAtlas.TexList has unexpected size % instead of 16", it.type.runtime_size);
-                case "Locked";
-                    assert(it.offset_in_bytes == 80, "ImFontAtlas.Locked has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontAtlas.Locked has unexpected size % instead of 1", it.type.runtime_size);
-                case "RendererHasTextures";
-                    assert(it.offset_in_bytes == 81, "ImFontAtlas.RendererHasTextures has unexpected offset % instead of 81", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontAtlas.RendererHasTextures has unexpected size % instead of 1", it.type.runtime_size);
-                case "TexIsBuilt";
-                    assert(it.offset_in_bytes == 82, "ImFontAtlas.TexIsBuilt has unexpected offset % instead of 82", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontAtlas.TexIsBuilt has unexpected size % instead of 1", it.type.runtime_size);
-                case "TexPixelsUseColors";
-                    assert(it.offset_in_bytes == 83, "ImFontAtlas.TexPixelsUseColors has unexpected offset % instead of 83", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFontAtlas.TexPixelsUseColors has unexpected size % instead of 1", it.type.runtime_size);
-                case "TexUvScale";
-                    assert(it.offset_in_bytes == 84, "ImFontAtlas.TexUvScale has unexpected offset % instead of 84", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.TexUvScale has unexpected size % instead of 8", it.type.runtime_size);
-                case "TexUvWhitePixel";
-                    assert(it.offset_in_bytes == 92, "ImFontAtlas.TexUvWhitePixel has unexpected offset % instead of 92", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.TexUvWhitePixel has unexpected size % instead of 8", it.type.runtime_size);
-                case "Fonts";
-                    assert(it.offset_in_bytes == 104, "ImFontAtlas.Fonts has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontAtlas.Fonts has unexpected size % instead of 16", it.type.runtime_size);
-                case "Sources";
-                    assert(it.offset_in_bytes == 120, "ImFontAtlas.Sources has unexpected offset % instead of 120", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontAtlas.Sources has unexpected size % instead of 16", it.type.runtime_size);
-                case "TexUvLines";
-                    assert(it.offset_in_bytes == 136, "ImFontAtlas.TexUvLines has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 528, "ImFontAtlas.TexUvLines has unexpected size % instead of 528", it.type.runtime_size);
-                case "TexNextUniqueID";
-                    assert(it.offset_in_bytes == 664, "ImFontAtlas.TexNextUniqueID has unexpected offset % instead of 664", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.TexNextUniqueID has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontNextUniqueID";
-                    assert(it.offset_in_bytes == 668, "ImFontAtlas.FontNextUniqueID has unexpected offset % instead of 668", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.FontNextUniqueID has unexpected size % instead of 4", it.type.runtime_size);
-                case "DrawListSharedDatas";
-                    assert(it.offset_in_bytes == 672, "ImFontAtlas.DrawListSharedDatas has unexpected offset % instead of 672", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontAtlas.DrawListSharedDatas has unexpected size % instead of 16", it.type.runtime_size);
-                case "Builder";
-                    assert(it.offset_in_bytes == 688, "ImFontAtlas.Builder has unexpected offset % instead of 688", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.Builder has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoader";
-                    assert(it.offset_in_bytes == 696, "ImFontAtlas.FontLoader has unexpected offset % instead of 696", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.FontLoader has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoaderName";
-                    assert(it.offset_in_bytes == 704, "ImFontAtlas.FontLoaderName has unexpected offset % instead of 704", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.FontLoaderName has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoaderData";
-                    assert(it.offset_in_bytes == 712, "ImFontAtlas.FontLoaderData has unexpected offset % instead of 712", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.FontLoaderData has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoaderFlags";
-                    assert(it.offset_in_bytes == 720, "ImFontAtlas.FontLoaderFlags has unexpected offset % instead of 720", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.FontLoaderFlags has unexpected size % instead of 4", it.type.runtime_size);
-                case "RefCount";
-                    assert(it.offset_in_bytes == 724, "ImFontAtlas.RefCount has unexpected offset % instead of 724", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontAtlas.RefCount has unexpected size % instead of 4", it.type.runtime_size);
-                case "OwnerContext";
-                    assert(it.offset_in_bytes == 728, "ImFontAtlas.OwnerContext has unexpected offset % instead of 728", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontAtlas.OwnerContext has unexpected size % instead of 8", it.type.runtime_size);
-                case "TempRect";
-                    assert(it.offset_in_bytes == 736, "ImFontAtlas.TempRect has unexpected offset % instead of 736", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 24, "ImFontAtlas.TempRect has unexpected size % instead of 24", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFontAtlas) == 760, "ImFontAtlas has size % instead of 760", size_of(ImFontAtlas));
-    }
-
-    {
-        info := type_info(ImFontBaked);
-        for info.members {
-            if it.name == {
-                case "IndexAdvanceX";
-                    assert(it.offset_in_bytes == 0, "ImFontBaked.IndexAdvanceX has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontBaked.IndexAdvanceX has unexpected size % instead of 16", it.type.runtime_size);
-                case "FallbackAdvanceX";
-                    assert(it.offset_in_bytes == 16, "ImFontBaked.FallbackAdvanceX has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.FallbackAdvanceX has unexpected size % instead of 4", it.type.runtime_size);
-                case "Size";
-                    assert(it.offset_in_bytes == 20, "ImFontBaked.Size has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.Size has unexpected size % instead of 4", it.type.runtime_size);
-                case "RasterizerDensity";
-                    assert(it.offset_in_bytes == 24, "ImFontBaked.RasterizerDensity has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.RasterizerDensity has unexpected size % instead of 4", it.type.runtime_size);
-                case "IndexLookup";
-                    assert(it.offset_in_bytes == 32, "ImFontBaked.IndexLookup has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontBaked.IndexLookup has unexpected size % instead of 16", it.type.runtime_size);
-                case "Glyphs";
-                    assert(it.offset_in_bytes == 48, "ImFontBaked.Glyphs has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFontBaked.Glyphs has unexpected size % instead of 16", it.type.runtime_size);
-                case "FallbackGlyphIndex";
-                    assert(it.offset_in_bytes == 64, "ImFontBaked.FallbackGlyphIndex has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.FallbackGlyphIndex has unexpected size % instead of 4", it.type.runtime_size);
-                case "Ascent";
-                    assert(it.offset_in_bytes == 68, "ImFontBaked.Ascent has unexpected offset % instead of 68", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.Ascent has unexpected size % instead of 4", it.type.runtime_size);
-                case "Descent";
-                    assert(it.offset_in_bytes == 72, "ImFontBaked.Descent has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.Descent has unexpected size % instead of 4", it.type.runtime_size);
-                case "__bitfield";
-                    assert(it.offset_in_bytes == 76, "ImFontBaked.__bitfield has unexpected offset % instead of 76", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.__bitfield has unexpected size % instead of 4", it.type.runtime_size);
-                case "LastUsedFrame";
-                    assert(it.offset_in_bytes == 80, "ImFontBaked.LastUsedFrame has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.LastUsedFrame has unexpected size % instead of 4", it.type.runtime_size);
-                case "BakedId";
-                    assert(it.offset_in_bytes == 84, "ImFontBaked.BakedId has unexpected offset % instead of 84", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFontBaked.BakedId has unexpected size % instead of 4", it.type.runtime_size);
-                case "OwnerFont";
-                    assert(it.offset_in_bytes == 88, "ImFontBaked.OwnerFont has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontBaked.OwnerFont has unexpected size % instead of 8", it.type.runtime_size);
-                case "FontLoaderDatas";
-                    assert(it.offset_in_bytes == 96, "ImFontBaked.FontLoaderDatas has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFontBaked.FontLoaderDatas has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFontBaked) == 104, "ImFontBaked has size % instead of 104", size_of(ImFontBaked));
-    }
-
-    {
-        info := type_info(ImFont);
-        for info.members {
-            if it.name == {
-                case "LastBaked";
-                    assert(it.offset_in_bytes == 0, "ImFont.LastBaked has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFont.LastBaked has unexpected size % instead of 8", it.type.runtime_size);
-                case "OwnerAtlas";
-                    assert(it.offset_in_bytes == 8, "ImFont.OwnerAtlas has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImFont.OwnerAtlas has unexpected size % instead of 8", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 16, "ImFont.Flags has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFont.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "CurrentRasterizerDensity";
-                    assert(it.offset_in_bytes == 20, "ImFont.CurrentRasterizerDensity has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFont.CurrentRasterizerDensity has unexpected size % instead of 4", it.type.runtime_size);
-                case "FontId";
-                    assert(it.offset_in_bytes == 24, "ImFont.FontId has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFont.FontId has unexpected size % instead of 4", it.type.runtime_size);
-                case "LegacySize";
-                    assert(it.offset_in_bytes == 28, "ImFont.LegacySize has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFont.LegacySize has unexpected size % instead of 4", it.type.runtime_size);
-                case "Sources";
-                    assert(it.offset_in_bytes == 32, "ImFont.Sources has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFont.Sources has unexpected size % instead of 16", it.type.runtime_size);
-                case "EllipsisChar";
-                    assert(it.offset_in_bytes == 48, "ImFont.EllipsisChar has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFont.EllipsisChar has unexpected size % instead of 2", it.type.runtime_size);
-                case "FallbackChar";
-                    assert(it.offset_in_bytes == 50, "ImFont.FallbackChar has unexpected offset % instead of 50", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "ImFont.FallbackChar has unexpected size % instead of 2", it.type.runtime_size);
-                case "Used8kPagesMap";
-                    assert(it.offset_in_bytes == 52, "ImFont.Used8kPagesMap has unexpected offset % instead of 52", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFont.Used8kPagesMap has unexpected size % instead of 1", it.type.runtime_size);
-                case "EllipsisAutoBake";
-                    assert(it.offset_in_bytes == 53, "ImFont.EllipsisAutoBake has unexpected offset % instead of 53", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImFont.EllipsisAutoBake has unexpected size % instead of 1", it.type.runtime_size);
-                case "RemapPairs";
-                    assert(it.offset_in_bytes == 56, "ImFont.RemapPairs has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImFont.RemapPairs has unexpected size % instead of 16", it.type.runtime_size);
-                case "Scale";
-                    assert(it.offset_in_bytes == 72, "ImFont.Scale has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImFont.Scale has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImFont) == 80, "ImFont has size % instead of 80", size_of(ImFont));
-    }
-
-    {
-        info := type_info(Viewport);
-        for info.members {
-            if it.name == {
-                case "ID_";
-                    assert(it.offset_in_bytes == 0, "Viewport.ID_ has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Viewport.ID_ has unexpected size % instead of 4", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 4, "Viewport.Flags has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Viewport.Flags has unexpected size % instead of 4", it.type.runtime_size);
-                case "Pos";
-                    assert(it.offset_in_bytes == 8, "Viewport.Pos has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.Pos has unexpected size % instead of 8", it.type.runtime_size);
-                case "Size";
-                    assert(it.offset_in_bytes == 16, "Viewport.Size has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.Size has unexpected size % instead of 8", it.type.runtime_size);
-                case "FramebufferScale";
-                    assert(it.offset_in_bytes == 24, "Viewport.FramebufferScale has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.FramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
-                case "WorkPos";
-                    assert(it.offset_in_bytes == 32, "Viewport.WorkPos has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.WorkPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "WorkSize";
-                    assert(it.offset_in_bytes == 40, "Viewport.WorkSize has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.WorkSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "DpiScale";
-                    assert(it.offset_in_bytes == 48, "Viewport.DpiScale has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Viewport.DpiScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "ParentViewportId";
-                    assert(it.offset_in_bytes == 52, "Viewport.ParentViewportId has unexpected offset % instead of 52", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "Viewport.ParentViewportId has unexpected size % instead of 4", it.type.runtime_size);
-                case "ParentViewport";
-                    assert(it.offset_in_bytes == 56, "Viewport.ParentViewport has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.ParentViewport has unexpected size % instead of 8", it.type.runtime_size);
-                case "DrawData";
-                    assert(it.offset_in_bytes == 64, "Viewport.DrawData has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.DrawData has unexpected size % instead of 8", it.type.runtime_size);
-                case "RendererUserData";
-                    assert(it.offset_in_bytes == 72, "Viewport.RendererUserData has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.RendererUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlatformUserData";
-                    assert(it.offset_in_bytes == 80, "Viewport.PlatformUserData has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.PlatformUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlatformIconData";
-                    assert(it.offset_in_bytes == 88, "Viewport.PlatformIconData has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.PlatformIconData has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlatformHandle";
-                    assert(it.offset_in_bytes == 96, "Viewport.PlatformHandle has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.PlatformHandle has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlatformHandleRaw";
-                    assert(it.offset_in_bytes == 104, "Viewport.PlatformHandleRaw has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "Viewport.PlatformHandleRaw has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlatformWindowCreated";
-                    assert(it.offset_in_bytes == 112, "Viewport.PlatformWindowCreated has unexpected offset % instead of 112", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Viewport.PlatformWindowCreated has unexpected size % instead of 1", it.type.runtime_size);
-                case "PlatformRequestMove";
-                    assert(it.offset_in_bytes == 113, "Viewport.PlatformRequestMove has unexpected offset % instead of 113", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Viewport.PlatformRequestMove has unexpected size % instead of 1", it.type.runtime_size);
-                case "PlatformRequestResize";
-                    assert(it.offset_in_bytes == 114, "Viewport.PlatformRequestResize has unexpected offset % instead of 114", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Viewport.PlatformRequestResize has unexpected size % instead of 1", it.type.runtime_size);
-                case "PlatformRequestClose";
-                    assert(it.offset_in_bytes == 115, "Viewport.PlatformRequestClose has unexpected offset % instead of 115", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "Viewport.PlatformRequestClose has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(Viewport) == 120, "Viewport has size % instead of 120", size_of(Viewport));
-    }
-
-    {
-        info := type_info(PlatformIO);
-        for info.members {
-            if it.name == {
-                case "Platform_GetClipboardTextFn";
-                    assert(it.offset_in_bytes == 0, "PlatformIO.Platform_GetClipboardTextFn has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetClipboardTextFn";
-                    assert(it.offset_in_bytes == 8, "PlatformIO.Platform_SetClipboardTextFn has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetClipboardTextFn has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_ClipboardUserData";
-                    assert(it.offset_in_bytes == 16, "PlatformIO.Platform_ClipboardUserData has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_ClipboardUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_OpenInShellFn";
-                    assert(it.offset_in_bytes == 24, "PlatformIO.Platform_OpenInShellFn has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_OpenInShellFn has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_OpenInShellUserData";
-                    assert(it.offset_in_bytes == 32, "PlatformIO.Platform_OpenInShellUserData has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_OpenInShellUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetImeDataFn";
-                    assert(it.offset_in_bytes == 40, "PlatformIO.Platform_SetImeDataFn has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetImeDataFn has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_ImeUserData";
-                    assert(it.offset_in_bytes == 48, "PlatformIO.Platform_ImeUserData has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_ImeUserData has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_LocaleDecimalPoint";
-                    assert(it.offset_in_bytes == 56, "PlatformIO.Platform_LocaleDecimalPoint has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 2, "PlatformIO.Platform_LocaleDecimalPoint has unexpected size % instead of 2", it.type.runtime_size);
-                case "Platform_SessionDate";
-                    assert(it.offset_in_bytes == 60, "PlatformIO.Platform_SessionDate has unexpected offset % instead of 60", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "PlatformIO.Platform_SessionDate has unexpected size % instead of 4", it.type.runtime_size);
-                case "Renderer_TextureMaxWidth";
-                    assert(it.offset_in_bytes == 64, "PlatformIO.Renderer_TextureMaxWidth has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "PlatformIO.Renderer_TextureMaxWidth has unexpected size % instead of 4", it.type.runtime_size);
-                case "Renderer_TextureMaxHeight";
-                    assert(it.offset_in_bytes == 68, "PlatformIO.Renderer_TextureMaxHeight has unexpected offset % instead of 68", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "PlatformIO.Renderer_TextureMaxHeight has unexpected size % instead of 4", it.type.runtime_size);
-                case "Renderer_RenderState";
-                    assert(it.offset_in_bytes == 72, "PlatformIO.Renderer_RenderState has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_RenderState has unexpected size % instead of 8", it.type.runtime_size);
-                case "DrawCallback_ResetRenderState";
-                    assert(it.offset_in_bytes == 80, "PlatformIO.DrawCallback_ResetRenderState has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.DrawCallback_ResetRenderState has unexpected size % instead of 8", it.type.runtime_size);
-                case "DrawCallback_SetSamplerLinear";
-                    assert(it.offset_in_bytes == 88, "PlatformIO.DrawCallback_SetSamplerLinear has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.DrawCallback_SetSamplerLinear has unexpected size % instead of 8", it.type.runtime_size);
-                case "DrawCallback_SetSamplerNearest";
-                    assert(it.offset_in_bytes == 96, "PlatformIO.DrawCallback_SetSamplerNearest has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.DrawCallback_SetSamplerNearest has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_CreateWindow";
-                    assert(it.offset_in_bytes == 104, "PlatformIO.Platform_CreateWindow has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_CreateWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_DestroyWindow";
-                    assert(it.offset_in_bytes == 112, "PlatformIO.Platform_DestroyWindow has unexpected offset % instead of 112", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_DestroyWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_ShowWindow";
-                    assert(it.offset_in_bytes == 120, "PlatformIO.Platform_ShowWindow has unexpected offset % instead of 120", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_ShowWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetWindowPos";
-                    assert(it.offset_in_bytes == 128, "PlatformIO.Platform_SetWindowPos has unexpected offset % instead of 128", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowPos";
-                    assert(it.offset_in_bytes == 136, "PlatformIO.Platform_GetWindowPos has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetWindowSize";
-                    assert(it.offset_in_bytes == 144, "PlatformIO.Platform_SetWindowSize has unexpected offset % instead of 144", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowSize";
-                    assert(it.offset_in_bytes == 152, "PlatformIO.Platform_GetWindowSize has unexpected offset % instead of 152", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowFramebufferScale";
-                    assert(it.offset_in_bytes == 160, "PlatformIO.Platform_GetWindowFramebufferScale has unexpected offset % instead of 160", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowFramebufferScale has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetWindowFocus";
-                    assert(it.offset_in_bytes == 168, "PlatformIO.Platform_SetWindowFocus has unexpected offset % instead of 168", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowFocus has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowFocus";
-                    assert(it.offset_in_bytes == 176, "PlatformIO.Platform_GetWindowFocus has unexpected offset % instead of 176", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowFocus has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowMinimized";
-                    assert(it.offset_in_bytes == 184, "PlatformIO.Platform_GetWindowMinimized has unexpected offset % instead of 184", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowMinimized has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetWindowTitle";
-                    assert(it.offset_in_bytes == 192, "PlatformIO.Platform_SetWindowTitle has unexpected offset % instead of 192", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowTitle has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SetWindowAlpha";
-                    assert(it.offset_in_bytes == 200, "PlatformIO.Platform_SetWindowAlpha has unexpected offset % instead of 200", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SetWindowAlpha has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_UpdateWindow";
-                    assert(it.offset_in_bytes == 208, "PlatformIO.Platform_UpdateWindow has unexpected offset % instead of 208", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_UpdateWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_RenderWindow";
-                    assert(it.offset_in_bytes == 216, "PlatformIO.Platform_RenderWindow has unexpected offset % instead of 216", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_RenderWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_SwapBuffers";
-                    assert(it.offset_in_bytes == 224, "PlatformIO.Platform_SwapBuffers has unexpected offset % instead of 224", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_SwapBuffers has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowDpiScale";
-                    assert(it.offset_in_bytes == 232, "PlatformIO.Platform_GetWindowDpiScale has unexpected offset % instead of 232", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowDpiScale has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_OnChangedViewport";
-                    assert(it.offset_in_bytes == 240, "PlatformIO.Platform_OnChangedViewport has unexpected offset % instead of 240", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_OnChangedViewport has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_GetWindowWorkAreaInsets";
-                    assert(it.offset_in_bytes == 248, "PlatformIO.Platform_GetWindowWorkAreaInsets has unexpected offset % instead of 248", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_GetWindowWorkAreaInsets has unexpected size % instead of 8", it.type.runtime_size);
-                case "Platform_CreateVkSurface";
-                    assert(it.offset_in_bytes == 256, "PlatformIO.Platform_CreateVkSurface has unexpected offset % instead of 256", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Platform_CreateVkSurface has unexpected size % instead of 8", it.type.runtime_size);
-                case "Renderer_CreateWindow";
-                    assert(it.offset_in_bytes == 264, "PlatformIO.Renderer_CreateWindow has unexpected offset % instead of 264", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_CreateWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Renderer_DestroyWindow";
-                    assert(it.offset_in_bytes == 272, "PlatformIO.Renderer_DestroyWindow has unexpected offset % instead of 272", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_DestroyWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Renderer_SetWindowSize";
-                    assert(it.offset_in_bytes == 280, "PlatformIO.Renderer_SetWindowSize has unexpected offset % instead of 280", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_SetWindowSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "Renderer_RenderWindow";
-                    assert(it.offset_in_bytes == 288, "PlatformIO.Renderer_RenderWindow has unexpected offset % instead of 288", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_RenderWindow has unexpected size % instead of 8", it.type.runtime_size);
-                case "Renderer_SwapBuffers";
-                    assert(it.offset_in_bytes == 296, "PlatformIO.Renderer_SwapBuffers has unexpected offset % instead of 296", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformIO.Renderer_SwapBuffers has unexpected size % instead of 8", it.type.runtime_size);
-                case "Monitors";
-                    assert(it.offset_in_bytes == 304, "PlatformIO.Monitors has unexpected offset % instead of 304", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "PlatformIO.Monitors has unexpected size % instead of 16", it.type.runtime_size);
-                case "Textures";
-                    assert(it.offset_in_bytes == 320, "PlatformIO.Textures has unexpected offset % instead of 320", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "PlatformIO.Textures has unexpected size % instead of 16", it.type.runtime_size);
-                case "Viewports";
-                    assert(it.offset_in_bytes == 336, "PlatformIO.Viewports has unexpected offset % instead of 336", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "PlatformIO.Viewports has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(PlatformIO) == 352, "PlatformIO has size % instead of 352", size_of(PlatformIO));
-    }
-
-    {
-        info := type_info(PlatformMonitor);
-        for info.members {
-            if it.name == {
-                case "MainPos";
-                    assert(it.offset_in_bytes == 0, "PlatformMonitor.MainPos has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformMonitor.MainPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "MainSize";
-                    assert(it.offset_in_bytes == 8, "PlatformMonitor.MainSize has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformMonitor.MainSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "WorkPos";
-                    assert(it.offset_in_bytes == 16, "PlatformMonitor.WorkPos has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformMonitor.WorkPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "WorkSize";
-                    assert(it.offset_in_bytes == 24, "PlatformMonitor.WorkSize has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformMonitor.WorkSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "DpiScale";
-                    assert(it.offset_in_bytes == 32, "PlatformMonitor.DpiScale has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "PlatformMonitor.DpiScale has unexpected size % instead of 4", it.type.runtime_size);
-                case "PlatformHandle";
-                    assert(it.offset_in_bytes == 40, "PlatformMonitor.PlatformHandle has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformMonitor.PlatformHandle has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(PlatformMonitor) == 48, "PlatformMonitor has size % instead of 48", size_of(PlatformMonitor));
-    }
-
-    {
-        info := type_info(PlatformImeData);
-        for info.members {
-            if it.name == {
-                case "WantVisible";
-                    assert(it.offset_in_bytes == 0, "PlatformImeData.WantVisible has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "PlatformImeData.WantVisible has unexpected size % instead of 1", it.type.runtime_size);
-                case "WantTextInput";
-                    assert(it.offset_in_bytes == 1, "PlatformImeData.WantTextInput has unexpected offset % instead of 1", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "PlatformImeData.WantTextInput has unexpected size % instead of 1", it.type.runtime_size);
-                case "InputPos";
-                    assert(it.offset_in_bytes == 4, "PlatformImeData.InputPos has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "PlatformImeData.InputPos has unexpected size % instead of 8", it.type.runtime_size);
-                case "InputLineHeight";
-                    assert(it.offset_in_bytes == 12, "PlatformImeData.InputLineHeight has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "PlatformImeData.InputLineHeight has unexpected size % instead of 4", it.type.runtime_size);
-                case "ViewportId";
-                    assert(it.offset_in_bytes == 16, "PlatformImeData.ViewportId has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "PlatformImeData.ViewportId has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(PlatformImeData) == 20, "PlatformImeData has size % instead of 20", size_of(PlatformImeData));
-    }
-
-    {
-        info := type_info(ImPlotSpec);
-        for info.members {
-            if it.name == {
-                case "LineColor";
-                    assert(it.offset_in_bytes == 0, "ImPlotSpec.LineColor has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImPlotSpec.LineColor has unexpected size % instead of 16", it.type.runtime_size);
-                case "LineColors";
-                    assert(it.offset_in_bytes == 16, "ImPlotSpec.LineColors has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotSpec.LineColors has unexpected size % instead of 8", it.type.runtime_size);
-                case "LineWeight";
-                    assert(it.offset_in_bytes == 24, "ImPlotSpec.LineWeight has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.LineWeight has unexpected size % instead of 4", it.type.runtime_size);
-                case "FillColor";
-                    assert(it.offset_in_bytes == 28, "ImPlotSpec.FillColor has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImPlotSpec.FillColor has unexpected size % instead of 16", it.type.runtime_size);
-                case "FillColors";
-                    assert(it.offset_in_bytes == 48, "ImPlotSpec.FillColors has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotSpec.FillColors has unexpected size % instead of 8", it.type.runtime_size);
-                case "FillAlpha";
-                    assert(it.offset_in_bytes == 56, "ImPlotSpec.FillAlpha has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.FillAlpha has unexpected size % instead of 4", it.type.runtime_size);
-                case "Marker";
-                    assert(it.offset_in_bytes == 60, "ImPlotSpec.Marker has unexpected offset % instead of 60", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.Marker has unexpected size % instead of 4", it.type.runtime_size);
-                case "MarkerSize";
-                    assert(it.offset_in_bytes == 64, "ImPlotSpec.MarkerSize has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.MarkerSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "MarkerSizes";
-                    assert(it.offset_in_bytes == 72, "ImPlotSpec.MarkerSizes has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotSpec.MarkerSizes has unexpected size % instead of 8", it.type.runtime_size);
-                case "MarkerLineColor";
-                    assert(it.offset_in_bytes == 80, "ImPlotSpec.MarkerLineColor has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImPlotSpec.MarkerLineColor has unexpected size % instead of 16", it.type.runtime_size);
-                case "MarkerLineColors";
-                    assert(it.offset_in_bytes == 96, "ImPlotSpec.MarkerLineColors has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotSpec.MarkerLineColors has unexpected size % instead of 8", it.type.runtime_size);
-                case "MarkerFillColor";
-                    assert(it.offset_in_bytes == 104, "ImPlotSpec.MarkerFillColor has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImPlotSpec.MarkerFillColor has unexpected size % instead of 16", it.type.runtime_size);
-                case "MarkerFillColors";
-                    assert(it.offset_in_bytes == 120, "ImPlotSpec.MarkerFillColors has unexpected offset % instead of 120", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotSpec.MarkerFillColors has unexpected size % instead of 8", it.type.runtime_size);
-                case "Size";
-                    assert(it.offset_in_bytes == 128, "ImPlotSpec.Size has unexpected offset % instead of 128", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.Size has unexpected size % instead of 4", it.type.runtime_size);
-                case "Offset";
-                    assert(it.offset_in_bytes == 132, "ImPlotSpec.Offset has unexpected offset % instead of 132", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.Offset has unexpected size % instead of 4", it.type.runtime_size);
-                case "Stride";
-                    assert(it.offset_in_bytes == 136, "ImPlotSpec.Stride has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.Stride has unexpected size % instead of 4", it.type.runtime_size);
-                case "Flags";
-                    assert(it.offset_in_bytes == 140, "ImPlotSpec.Flags has unexpected offset % instead of 140", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotSpec.Flags has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImPlotSpec) == 144, "ImPlotSpec has size % instead of 144", size_of(ImPlotSpec));
-    }
-
-    {
-        info := type_info(ImPlotPoint);
-        for info.members {
-            if it.name == {
-                case "x";
-                    assert(it.offset_in_bytes == 0, "ImPlotPoint.x has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotPoint.x has unexpected size % instead of 8", it.type.runtime_size);
-                case "y";
-                    assert(it.offset_in_bytes == 8, "ImPlotPoint.y has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotPoint.y has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImPlotPoint) == 16, "ImPlotPoint has size % instead of 16", size_of(ImPlotPoint));
-    }
-
-    {
-        info := type_info(ImPlotRange);
-        for info.members {
-            if it.name == {
-                case "Min";
-                    assert(it.offset_in_bytes == 0, "ImPlotRange.Min has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotRange.Min has unexpected size % instead of 8", it.type.runtime_size);
-                case "Max";
-                    assert(it.offset_in_bytes == 8, "ImPlotRange.Max has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotRange.Max has unexpected size % instead of 8", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImPlotRange) == 16, "ImPlotRange has size % instead of 16", size_of(ImPlotRange));
-    }
-
-    {
-        info := type_info(ImPlotRect);
-        for info.members {
-            if it.name == {
-                case "X";
-                    assert(it.offset_in_bytes == 0, "ImPlotRect.X has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImPlotRect.X has unexpected size % instead of 16", it.type.runtime_size);
-                case "Y";
-                    assert(it.offset_in_bytes == 16, "ImPlotRect.Y has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 16, "ImPlotRect.Y has unexpected size % instead of 16", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImPlotRect) == 32, "ImPlotRect has size % instead of 32", size_of(ImPlotRect));
-    }
-
-    {
-        info := type_info(ImPlotStyle);
-        for info.members {
-            if it.name == {
-                case "PlotDefaultSize";
-                    assert(it.offset_in_bytes == 0, "ImPlotStyle.PlotDefaultSize has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.PlotDefaultSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlotMinSize";
-                    assert(it.offset_in_bytes == 8, "ImPlotStyle.PlotMinSize has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.PlotMinSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlotBorderSize";
-                    assert(it.offset_in_bytes == 16, "ImPlotStyle.PlotBorderSize has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotStyle.PlotBorderSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "MinorAlpha";
-                    assert(it.offset_in_bytes == 20, "ImPlotStyle.MinorAlpha has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotStyle.MinorAlpha has unexpected size % instead of 4", it.type.runtime_size);
-                case "MajorTickLen";
-                    assert(it.offset_in_bytes == 24, "ImPlotStyle.MajorTickLen has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MajorTickLen has unexpected size % instead of 8", it.type.runtime_size);
-                case "MinorTickLen";
-                    assert(it.offset_in_bytes == 32, "ImPlotStyle.MinorTickLen has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MinorTickLen has unexpected size % instead of 8", it.type.runtime_size);
-                case "MajorTickSize";
-                    assert(it.offset_in_bytes == 40, "ImPlotStyle.MajorTickSize has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MajorTickSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "MinorTickSize";
-                    assert(it.offset_in_bytes == 48, "ImPlotStyle.MinorTickSize has unexpected offset % instead of 48", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MinorTickSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "MajorGridSize";
-                    assert(it.offset_in_bytes == 56, "ImPlotStyle.MajorGridSize has unexpected offset % instead of 56", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MajorGridSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "MinorGridSize";
-                    assert(it.offset_in_bytes == 64, "ImPlotStyle.MinorGridSize has unexpected offset % instead of 64", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MinorGridSize has unexpected size % instead of 8", it.type.runtime_size);
-                case "PlotPadding";
-                    assert(it.offset_in_bytes == 72, "ImPlotStyle.PlotPadding has unexpected offset % instead of 72", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.PlotPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "LabelPadding";
-                    assert(it.offset_in_bytes == 80, "ImPlotStyle.LabelPadding has unexpected offset % instead of 80", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.LabelPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "LegendPadding";
-                    assert(it.offset_in_bytes == 88, "ImPlotStyle.LegendPadding has unexpected offset % instead of 88", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.LegendPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "LegendInnerPadding";
-                    assert(it.offset_in_bytes == 96, "ImPlotStyle.LegendInnerPadding has unexpected offset % instead of 96", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.LegendInnerPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "LegendSpacing";
-                    assert(it.offset_in_bytes == 104, "ImPlotStyle.LegendSpacing has unexpected offset % instead of 104", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.LegendSpacing has unexpected size % instead of 8", it.type.runtime_size);
-                case "MousePosPadding";
-                    assert(it.offset_in_bytes == 112, "ImPlotStyle.MousePosPadding has unexpected offset % instead of 112", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.MousePosPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "AnnotationPadding";
-                    assert(it.offset_in_bytes == 120, "ImPlotStyle.AnnotationPadding has unexpected offset % instead of 120", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.AnnotationPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "FitPadding";
-                    assert(it.offset_in_bytes == 128, "ImPlotStyle.FitPadding has unexpected offset % instead of 128", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 8, "ImPlotStyle.FitPadding has unexpected size % instead of 8", it.type.runtime_size);
-                case "DigitalPadding";
-                    assert(it.offset_in_bytes == 136, "ImPlotStyle.DigitalPadding has unexpected offset % instead of 136", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotStyle.DigitalPadding has unexpected size % instead of 4", it.type.runtime_size);
-                case "DigitalSpacing";
-                    assert(it.offset_in_bytes == 140, "ImPlotStyle.DigitalSpacing has unexpected offset % instead of 140", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotStyle.DigitalSpacing has unexpected size % instead of 4", it.type.runtime_size);
-                case "Colors";
-                    assert(it.offset_in_bytes == 144, "ImPlotStyle.Colors has unexpected offset % instead of 144", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 256, "ImPlotStyle.Colors has unexpected size % instead of 256", it.type.runtime_size);
-                case "Colormap";
-                    assert(it.offset_in_bytes == 400, "ImPlotStyle.Colormap has unexpected offset % instead of 400", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotStyle.Colormap has unexpected size % instead of 4", it.type.runtime_size);
-                case "UseLocalTime";
-                    assert(it.offset_in_bytes == 404, "ImPlotStyle.UseLocalTime has unexpected offset % instead of 404", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImPlotStyle.UseLocalTime has unexpected size % instead of 1", it.type.runtime_size);
-                case "UseISO8601";
-                    assert(it.offset_in_bytes == 405, "ImPlotStyle.UseISO8601 has unexpected offset % instead of 405", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImPlotStyle.UseISO8601 has unexpected size % instead of 1", it.type.runtime_size);
-                case "Use24HourClock";
-                    assert(it.offset_in_bytes == 406, "ImPlotStyle.Use24HourClock has unexpected offset % instead of 406", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 1, "ImPlotStyle.Use24HourClock has unexpected size % instead of 1", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImPlotStyle) == 408, "ImPlotStyle has size % instead of 408", size_of(ImPlotStyle));
-    }
-
-    {
-        info := type_info(ImPlotInputMap);
-        for info.members {
-            if it.name == {
-                case "Pan";
-                    assert(it.offset_in_bytes == 0, "ImPlotInputMap.Pan has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Pan has unexpected size % instead of 4", it.type.runtime_size);
-                case "PanMod";
-                    assert(it.offset_in_bytes == 4, "ImPlotInputMap.PanMod has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.PanMod has unexpected size % instead of 4", it.type.runtime_size);
-                case "Fit";
-                    assert(it.offset_in_bytes == 8, "ImPlotInputMap.Fit has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Fit has unexpected size % instead of 4", it.type.runtime_size);
-                case "Select";
-                    assert(it.offset_in_bytes == 12, "ImPlotInputMap.Select has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Select has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectCancel";
-                    assert(it.offset_in_bytes == 16, "ImPlotInputMap.SelectCancel has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectCancel has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectMod";
-                    assert(it.offset_in_bytes == 20, "ImPlotInputMap.SelectMod has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectMod has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectHorzMod";
-                    assert(it.offset_in_bytes == 24, "ImPlotInputMap.SelectHorzMod has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectHorzMod has unexpected size % instead of 4", it.type.runtime_size);
-                case "SelectVertMod";
-                    assert(it.offset_in_bytes == 28, "ImPlotInputMap.SelectVertMod has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.SelectVertMod has unexpected size % instead of 4", it.type.runtime_size);
-                case "Menu";
-                    assert(it.offset_in_bytes == 32, "ImPlotInputMap.Menu has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.Menu has unexpected size % instead of 4", it.type.runtime_size);
-                case "OverrideMod";
-                    assert(it.offset_in_bytes == 36, "ImPlotInputMap.OverrideMod has unexpected offset % instead of 36", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.OverrideMod has unexpected size % instead of 4", it.type.runtime_size);
-                case "ZoomMod";
-                    assert(it.offset_in_bytes == 40, "ImPlotInputMap.ZoomMod has unexpected offset % instead of 40", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.ZoomMod has unexpected size % instead of 4", it.type.runtime_size);
-                case "ZoomRate";
-                    assert(it.offset_in_bytes == 44, "ImPlotInputMap.ZoomRate has unexpected offset % instead of 44", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "ImPlotInputMap.ZoomRate has unexpected size % instead of 4", it.type.runtime_size);
-            }
-        }
-        assert(size_of(ImPlotInputMap) == 48, "ImPlotInputMap has size % instead of 48", size_of(ImPlotInputMap));
-    }
-
-    {
-        info := type_info(zmo.Style);
-        for info.members {
-            if it.name == {
-                case "TranslationLineThickness";
-                    assert(it.offset_in_bytes == 0, "zmo.Style.TranslationLineThickness has unexpected offset % instead of 0", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.TranslationLineThickness has unexpected size % instead of 4", it.type.runtime_size);
-                case "TranslationLineArrowSize";
-                    assert(it.offset_in_bytes == 4, "zmo.Style.TranslationLineArrowSize has unexpected offset % instead of 4", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.TranslationLineArrowSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "RotationLineThickness";
-                    assert(it.offset_in_bytes == 8, "zmo.Style.RotationLineThickness has unexpected offset % instead of 8", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.RotationLineThickness has unexpected size % instead of 4", it.type.runtime_size);
-                case "RotationOuterLineThickness";
-                    assert(it.offset_in_bytes == 12, "zmo.Style.RotationOuterLineThickness has unexpected offset % instead of 12", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.RotationOuterLineThickness has unexpected size % instead of 4", it.type.runtime_size);
-                case "ScaleLineThickness";
-                    assert(it.offset_in_bytes == 16, "zmo.Style.ScaleLineThickness has unexpected offset % instead of 16", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.ScaleLineThickness has unexpected size % instead of 4", it.type.runtime_size);
-                case "ScaleLineCircleSize";
-                    assert(it.offset_in_bytes == 20, "zmo.Style.ScaleLineCircleSize has unexpected offset % instead of 20", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.ScaleLineCircleSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "HatchedAxisLineThickness";
-                    assert(it.offset_in_bytes == 24, "zmo.Style.HatchedAxisLineThickness has unexpected offset % instead of 24", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.HatchedAxisLineThickness has unexpected size % instead of 4", it.type.runtime_size);
-                case "CenterCircleSize";
-                    assert(it.offset_in_bytes == 28, "zmo.Style.CenterCircleSize has unexpected offset % instead of 28", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 4, "zmo.Style.CenterCircleSize has unexpected size % instead of 4", it.type.runtime_size);
-                case "Colors";
-                    assert(it.offset_in_bytes == 32, "zmo.Style.Colors has unexpected offset % instead of 32", it.offset_in_bytes);
-                    assert(it.type.runtime_size == 240, "zmo.Style.Colors has unexpected size % instead of 240", it.type.runtime_size);
-            }
-        }
-        assert(size_of(zmo.Style) == 272, "zmo.Style has size % instead of 272", size_of(zmo.Style));
+        #overlay (BackupInt) BackupFloat: [2] float;
     }
 }
+
+//-----------------------------------------------------------------------------
+// [SECTION] Data types support
+//-----------------------------------------------------------------------------
+DataTypeStorage :: struct {
+    Data: [8] ImU8; // Opaque storage to fit any data up to ImGuiDataType_COUNT
+}
+
+// Type information associated to one ImGuiDataType. Retrieve with DataTypeGetInfo().
+DataTypeInfo :: struct {
+    Size:     u64; // Size in bytes
+    Name:     *u8; // Short descriptive name for the type, for debugging
+    PrintFmt: *u8; // Default printf format for the type
+    ScanFmt:  *u8; // Default scanf format for the type
+}
+
+// Extend ImGuiDataType_
+DataTypePrivate_ :: enum u32 {
+    DataType_Pointer :: 12;
+    DataType_ID      :: 13;
+
+    ImGuiDataType_Pointer :: DataType_Pointer;
+    ImGuiDataType_ID      :: DataType_ID;
+}
+
+// Extend ImGuiItemFlags
+// - input: PushItemFlag() manipulates g.CurrentItemFlags, g.NextItemData.ItemFlags, ItemAdd() calls may add extra flags too.
+// - output: stored in g.LastItemData.ItemFlags
+ItemFlagsPrivate_ :: enum u32 {
+    ItemFlags_ReadOnly               :: 2048;
+    ItemFlags_NoWindowHoverableCheck :: 8192;
+    ItemFlags_AllowOverlap           :: 16384;
+    ItemFlags_NoNavDisableMouseHover :: 32768;
+    ItemFlags_NoMarkEdited           :: 65536;
+    ItemFlags_NoFocus                :: 131072;
+
+    ItemFlags_Inputable              :: 1048576;
+    ItemFlags_HasSelectionUserData   :: 2097152;
+    ItemFlags_IsMultiSelect          :: 4194304;
+
+    ItemFlags_Default_               :: 144;
+
+    ImGuiItemFlags_ReadOnly               :: ItemFlags_ReadOnly;
+    ImGuiItemFlags_NoWindowHoverableCheck :: ItemFlags_NoWindowHoverableCheck;
+    ImGuiItemFlags_AllowOverlap           :: ItemFlags_AllowOverlap;
+    ImGuiItemFlags_NoNavDisableMouseHover :: ItemFlags_NoNavDisableMouseHover;
+    ImGuiItemFlags_NoMarkEdited           :: ItemFlags_NoMarkEdited;
+    ImGuiItemFlags_NoFocus                :: ItemFlags_NoFocus;
+
+    ImGuiItemFlags_Inputable              :: ItemFlags_Inputable;
+    ImGuiItemFlags_HasSelectionUserData   :: ItemFlags_HasSelectionUserData;
+    ImGuiItemFlags_IsMultiSelect          :: ItemFlags_IsMultiSelect;
+
+    ImGuiItemFlags_Default_               :: ItemFlags_Default_;
+}
+
+// Status flags for an already submitted item
+// - output: stored in g.LastItemData.StatusFlags
+ItemStatusFlags :: enum_flags u32 {
+    None             :: 0x0;
+    HoveredRect      :: 0x1;
+    HasDisplayRect   :: 0x2;
+    Edited           :: 0x4;
+    ToggledSelection :: 0x8;
+    ToggledOpen      :: 0x10;
+    HasDeactivated   :: 0x20;
+    Deactivated      :: 0x40;
+    HoveredWindow    :: 0x80;
+    Visible          :: 0x100;
+    HasClipRect      :: 0x200;
+    HasShortcut      :: 0x400;
+
+    EditedInternal   :: 0x800;
+
+    ImGuiItemStatusFlags_None             :: None;
+    ImGuiItemStatusFlags_HoveredRect      :: HoveredRect;
+    ImGuiItemStatusFlags_HasDisplayRect   :: HasDisplayRect;
+    ImGuiItemStatusFlags_Edited           :: Edited;
+    ImGuiItemStatusFlags_ToggledSelection :: ToggledSelection;
+    ImGuiItemStatusFlags_ToggledOpen      :: ToggledOpen;
+    ImGuiItemStatusFlags_HasDeactivated   :: HasDeactivated;
+    ImGuiItemStatusFlags_Deactivated      :: Deactivated;
+    ImGuiItemStatusFlags_HoveredWindow    :: HoveredWindow;
+    ImGuiItemStatusFlags_Visible          :: Visible;
+    ImGuiItemStatusFlags_HasClipRect      :: HasClipRect;
+    ImGuiItemStatusFlags_HasShortcut      :: HasShortcut;
+
+    ImGuiItemStatusFlags_EditedInternal   :: EditedInternal;
+}
+
+// Extend ImGuiHoveredFlags_
+HoveredFlagsPrivate_ :: enum u32 {
+    HoveredFlags_DelayMask_                    :: 245760;
+    HoveredFlags_AllowedMaskForIsWindowHovered :: 12479;
+    HoveredFlags_AllowedMaskForIsItemHovered   :: 262048;
+
+    ImGuiHoveredFlags_DelayMask_                    :: HoveredFlags_DelayMask_;
+    ImGuiHoveredFlags_AllowedMaskForIsWindowHovered :: HoveredFlags_AllowedMaskForIsWindowHovered;
+    ImGuiHoveredFlags_AllowedMaskForIsItemHovered   :: HoveredFlags_AllowedMaskForIsItemHovered;
+}
+
+// Extend ImGuiInputTextFlags_
+InputTextFlagsPrivate_ :: enum u32 {
+    InputTextFlags_Multiline            :: 67108864;
+    InputTextFlags_TempInput            :: 134217728;
+    InputTextFlags_LocalizeDecimalPoint :: 268435456;
+
+    ImGuiInputTextFlags_Multiline            :: InputTextFlags_Multiline;
+    ImGuiInputTextFlags_TempInput            :: InputTextFlags_TempInput;
+    ImGuiInputTextFlags_LocalizeDecimalPoint :: InputTextFlags_LocalizeDecimalPoint;
+}
+
+// Extend ImGuiButtonFlags_
+ButtonFlagsPrivate_ :: enum u32 {
+    ButtonFlags_PressedOnClick                :: 16;
+    ButtonFlags_PressedOnClickRelease         :: 32;
+    ButtonFlags_PressedOnClickReleaseAnywhere :: 64;
+    ButtonFlags_PressedOnRelease              :: 128;
+    ButtonFlags_PressedOnDoubleClick          :: 256;
+    ButtonFlags_PressedOnDragDropHold         :: 512;
+
+    ButtonFlags_FlattenChildren               :: 2048;
+
+    ButtonFlags_AlignTextBaseLine             :: 32768;
+    ButtonFlags_NoKeyModsAllowed              :: 65536;
+    ButtonFlags_NoHoldingActiveId             :: 131072;
+    ButtonFlags_NoNavFocus                    :: 262144;
+    ButtonFlags_NoHoveredOnFocus              :: 524288;
+    ButtonFlags_NoSetKeyOwner                 :: 1048576;
+    ButtonFlags_NoTestKeyOwner                :: 2097152;
+    ButtonFlags_NoFocus                       :: 4194304;
+    ButtonFlags_PressedOnMask_                :: 1008;
+    ButtonFlags_PressedOnDefault_             :: 32;
+
+    ImGuiButtonFlags_PressedOnClick                :: ButtonFlags_PressedOnClick;
+    ImGuiButtonFlags_PressedOnClickRelease         :: ButtonFlags_PressedOnClickRelease;
+    ImGuiButtonFlags_PressedOnClickReleaseAnywhere :: ButtonFlags_PressedOnClickReleaseAnywhere;
+    ImGuiButtonFlags_PressedOnRelease              :: ButtonFlags_PressedOnRelease;
+    ImGuiButtonFlags_PressedOnDoubleClick          :: ButtonFlags_PressedOnDoubleClick;
+    ImGuiButtonFlags_PressedOnDragDropHold         :: ButtonFlags_PressedOnDragDropHold;
+
+    ImGuiButtonFlags_FlattenChildren               :: ButtonFlags_FlattenChildren;
+
+    ImGuiButtonFlags_AlignTextBaseLine             :: ButtonFlags_AlignTextBaseLine;
+    ImGuiButtonFlags_NoKeyModsAllowed              :: ButtonFlags_NoKeyModsAllowed;
+    ImGuiButtonFlags_NoHoldingActiveId             :: ButtonFlags_NoHoldingActiveId;
+    ImGuiButtonFlags_NoNavFocus                    :: ButtonFlags_NoNavFocus;
+    ImGuiButtonFlags_NoHoveredOnFocus              :: ButtonFlags_NoHoveredOnFocus;
+    ImGuiButtonFlags_NoSetKeyOwner                 :: ButtonFlags_NoSetKeyOwner;
+    ImGuiButtonFlags_NoTestKeyOwner                :: ButtonFlags_NoTestKeyOwner;
+    ImGuiButtonFlags_NoFocus                       :: ButtonFlags_NoFocus;
+    ImGuiButtonFlags_PressedOnMask_                :: ButtonFlags_PressedOnMask_;
+    ImGuiButtonFlags_PressedOnDefault_             :: ButtonFlags_PressedOnDefault_;
+}
+
+// Extend ImGuiSliderFlags_
+SliderFlagsPrivate_ :: enum u32 {
+    SliderFlags_Vertical :: 1048576;
+    SliderFlags_ReadOnly :: 2097152;
+
+    ImGuiSliderFlags_Vertical :: SliderFlags_Vertical;
+    ImGuiSliderFlags_ReadOnly :: SliderFlags_ReadOnly;
+}
+
+// Extend ImGuiSelectableFlags_
+SelectableFlagsPrivate_ :: enum u32 {
+    SelectableFlags_NoHoldingActiveID    :: 1048576;
+    SelectableFlags_SelectOnClick        :: 4194304;
+    SelectableFlags_SelectOnRelease      :: 8388608;
+    SelectableFlags_SpanAvailWidth       :: 16777216;
+    SelectableFlags_SetNavIdOnHover      :: 33554432;
+    SelectableFlags_NoPadWithHalfSpacing :: 67108864;
+    SelectableFlags_NoSetKeyOwner        :: 134217728;
+
+    ImGuiSelectableFlags_NoHoldingActiveID    :: SelectableFlags_NoHoldingActiveID;
+    ImGuiSelectableFlags_SelectOnClick        :: SelectableFlags_SelectOnClick;
+    ImGuiSelectableFlags_SelectOnRelease      :: SelectableFlags_SelectOnRelease;
+    ImGuiSelectableFlags_SpanAvailWidth       :: SelectableFlags_SpanAvailWidth;
+    ImGuiSelectableFlags_SetNavIdOnHover      :: SelectableFlags_SetNavIdOnHover;
+    ImGuiSelectableFlags_NoPadWithHalfSpacing :: SelectableFlags_NoPadWithHalfSpacing;
+    ImGuiSelectableFlags_NoSetKeyOwner        :: SelectableFlags_NoSetKeyOwner;
+}
+
+// Extend ImGuiTreeNodeFlags_
+TreeNodeFlagsPrivate_ :: enum u32 {
+    TreeNodeFlags_NoNavFocus                 :: 134217728;
+    TreeNodeFlags_ClipLabelForTrailingButton :: 268435456;
+    TreeNodeFlags_UpsideDownArrow            :: 536870912;
+    TreeNodeFlags_OpenOnMask_                :: 192;
+    TreeNodeFlags_DrawLinesMask_             :: 1835008;
+
+    ImGuiTreeNodeFlags_NoNavFocus                 :: TreeNodeFlags_NoNavFocus;
+    ImGuiTreeNodeFlags_ClipLabelForTrailingButton :: TreeNodeFlags_ClipLabelForTrailingButton;
+    ImGuiTreeNodeFlags_UpsideDownArrow            :: TreeNodeFlags_UpsideDownArrow;
+    ImGuiTreeNodeFlags_OpenOnMask_                :: TreeNodeFlags_OpenOnMask_;
+    ImGuiTreeNodeFlags_DrawLinesMask_             :: TreeNodeFlags_DrawLinesMask_;
+}
+
+SeparatorFlags :: enum_flags u32 {
+    None           :: 0x0;
+    Horizontal     :: 0x1;
+    Vertical       :: 0x2;
+    SpanAllColumns :: 0x4;
+
+    ImGuiSeparatorFlags_None           :: None;
+    ImGuiSeparatorFlags_Horizontal     :: Horizontal;
+    ImGuiSeparatorFlags_Vertical       :: Vertical;
+    ImGuiSeparatorFlags_SpanAllColumns :: SpanAllColumns;
+}
+
+// Flags for FocusWindow(). This is not called ImGuiFocusFlags to avoid confusion with public-facing ImGuiFocusedFlags.
+// FIXME: Once we finishing replacing more uses of GetTopMostPopupModal()+IsWindowWithinBeginStackOf()
+// and FindBlockingModal() with this, we may want to change the flag to be opt-out instead of opt-in.
+FocusRequestFlags :: enum_flags u32 {
+    None                :: 0x0;
+    RestoreFocusedChild :: 0x1;
+    UnlessBelowModal    :: 0x2;
+
+    ImGuiFocusRequestFlags_None                :: None;
+    ImGuiFocusRequestFlags_RestoreFocusedChild :: RestoreFocusedChild;
+    ImGuiFocusRequestFlags_UnlessBelowModal    :: UnlessBelowModal;
+}
+
+TextFlags :: enum_flags u32 {
+    None                       :: 0x0;
+    NoWidthForLargeClippedText :: 0x1;
+
+    ImGuiTextFlags_None                       :: None;
+    ImGuiTextFlags_NoWidthForLargeClippedText :: NoWidthForLargeClippedText;
+}
+
+TooltipFlags :: enum_flags u32 {
+    None             :: 0x0;
+    OverridePrevious :: 0x2;
+
+    ImGuiTooltipFlags_None             :: None;
+    ImGuiTooltipFlags_OverridePrevious :: OverridePrevious;
+}
+
+// FIXME: this is in development, not exposed/functional as a generic feature yet.
+// Horizontal/Vertical enums are fixed to 0/1 so they may be used to index ImVec2
+LayoutType :: enum u32 {
+    Horizontal :: 0;
+    Vertical   :: 1;
+
+    ImGuiLayoutType_Horizontal :: Horizontal;
+    ImGuiLayoutType_Vertical   :: Vertical;
+}
+
+// Flags for LogBegin() text capturing function
+LogFlags :: enum_flags u32 {
+    None            :: 0x0;
+
+    OutputTTY       :: 0x1;
+    OutputFile      :: 0x2;
+    OutputBuffer    :: 0x4;
+    OutputClipboard :: 0x8;
+    OutputMask_     :: 0xf;
+
+    ImGuiLogFlags_None            :: None;
+
+    ImGuiLogFlags_OutputTTY       :: OutputTTY;
+    ImGuiLogFlags_OutputFile      :: OutputFile;
+    ImGuiLogFlags_OutputBuffer    :: OutputBuffer;
+    ImGuiLogFlags_OutputClipboard :: OutputClipboard;
+    ImGuiLogFlags_OutputMask_     :: OutputMask_;
+}
+
+// X/Y enums are fixed to 0/1 so they may be used to index ImVec2
+Axis :: enum s32 {
+    None :: -1;
+    X    :: 0;
+    Y    :: 1;
+
+    ImGuiAxis_None :: None;
+    ImGuiAxis_X    :: X;
+    ImGuiAxis_Y    :: Y;
+}
+
+PlotType :: enum u32 {
+    Lines     :: 0;
+    Histogram :: 1;
+
+    ImGuiPlotType_Lines     :: Lines;
+    ImGuiPlotType_Histogram :: Histogram;
+}
+
+// Storage data for BeginComboPreview()/EndComboPreview()
+ComboPreviewData :: struct {
+    PreviewRect:                  ImRect;
+    BackupCursorPos:              ImVec2;
+    BackupCursorMaxPos:           ImVec2;
+    BackupCursorPosPrevLine:      ImVec2;
+    BackupPrevLineTextBaseOffset: float;
+    BackupWorkRectMaxX:           float;
+    BackupContentRectMaxX:        float;
+    __bitfield:                   u16;
+    /* 
+        BackupLayout: LayoutType; /* 8 bits */
+        WithinPreview: s32; /* 2 bits */;
+    */
+}
+
+set_BackupLayout :: (fields: *ComboPreviewData, value: LayoutType) {
+    MASK0: u16 : 0b1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((cast,no_check(u16) value) & MASK0);
+}
+get_BackupLayout :: (fields: ComboPreviewData) -> LayoutType {
+    return (cast,no_check(LayoutType) (fields.__bitfield & 0b1111_1111));
+}
+
+set_WithinPreview :: (fields: *ComboPreviewData, value: s32) {
+    MASK0: u16 : (0b11 << 8);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (((cast,no_check(u16) value) << 8) & MASK0);
+}
+get_WithinPreview :: (fields: ComboPreviewData) -> s32 {
+    return (cast,no_check(s32) ((fields.__bitfield & (0b11 << 8)) >> 8));
+}
+
+
+// Stacked storage data for BeginGroup()/EndGroup()
+GroupData :: struct {
+    WindowID:                          ID;
+    BackupCursorPos:                   ImVec2;
+    BackupCursorMaxPos:                ImVec2;
+    BackupCursorPosPrevLine:           ImVec2;
+    BackupIndent:                      ImVec1;
+    BackupGroupOffset:                 ImVec1;
+    BackupCurrLineSize:                ImVec2;
+    BackupCurrLineTextBaseOffset:      float;
+    BackupActiveIdIsAlive:             ID;
+    BackupAnyIdHasBeenEditedThisFrame: bool;
+    BackupDeactivatedIdIsAlive:        bool;
+    BackupHoveredIdIsAlive:            bool;
+    BackupIsSameLine:                  bool;
+    EmitItem:                          bool;
+}
+
+// Simple column measurement, currently used for MenuItem() only.. This is very short-sighted/throw-away code and NOT a generic helper.
+MenuColumns :: struct {
+    TotalWidth:     ImU32;
+    NextTotalWidth: ImU32;
+    Spacing:        ImU16;
+    OffsetIcon:     ImU16; // Always zero for now
+    OffsetLabel:    ImU16; // Offsets are locked in Update()
+    OffsetShortcut: ImU16;
+    OffsetMark:     ImU16;
+    Widths:         [4] ImU16; // Width of:   Icon, Label, Shortcut, Mark  (accumulators for current frame)
+
+    Update :: (this: *MenuColumns, spacing: float, window_reappearing: bool) -> void #cpp_method #foreign imgui "_ZN16ImGuiMenuColumns6UpdateEfb";
+    DeclColumns :: (this: *MenuColumns, w_icon: float, w_label: float, w_shortcut: float, w_mark: float) -> float #cpp_method #foreign imgui "_ZN16ImGuiMenuColumns11DeclColumnsEffff";
+    CalcNextTotalWidth :: (this: *MenuColumns, update_offsets: bool) -> void #cpp_method #foreign imgui "_ZN16ImGuiMenuColumns18CalcNextTotalWidthEb";
+}
+
+// Internal temporary state for deactivating InputText() instances.
+// Store as part of ImGuiDeactivatedItemData?
+InputTextDeactivatedState :: struct {
+    ID_:         ID; // widget id owning the text state (which just got deactivated)
+    ElapseFrame: s32;
+    TextA:       ImVector(u8); // text buffer
+}
+
+ImStb :: struct {
+    STB_TexteditState :: struct {}
+}
+ImStbTexteditState :: ImStb.STB_TexteditState;
+
+// Internal state of the currently focused/edited text input box
+// For a given item ID, access with ImGui::GetInputTextState()
+InputTextState :: struct {
+    Ctx:                  *ImGuiContext; // parent UI context (needs to be set explicitly by parent).
+    Stb:                  *ImStbTexteditState; // State for stb_textedit.h
+    Flags:                InputTextFlags; // copy of InputText() flags. may be used to check if e.g. ImGuiInputTextFlags_Password is set.
+    ID_:                  ID; // widget id owning the text state
+
+    TextLen:              s32; // UTF-8 length of the string in TextA (in bytes)
+    TextSrc:              *u8; // == TextA.Data unless read-only, in which case == buf passed to InputText(). For _ReadOnly fields, pointer will be null outside the InputText() call.
+    TextA:                ImVector(u8); // main UTF8 buffer. TextA.Size is a buffer size! Should always be >= buf_size passed by user (and of course >= CurLenA + 1).
+    TextToRevertTo:       ImVector(u8); // value to revert to when pressing Escape = backup of end-user buffer at the time of focus (in UTF-8, unaltered)
+    CallbackTextBackup:   ImVector(u8); // temporary storage for callback to support automatic reconcile of undo-stack
+    BufCapacity:          s32; // end-user buffer capacity (include zero terminator)
+    Scroll:               ImVec2; // horizontal offset (managed manually) + vertical scrolling (pulled from child window's own Scroll.y)
+    LineCount:            s32; // last line count (solely for debugging)
+    WrapWidth:            float; // word-wrapping width
+    CursorAnim:           float; // timer for cursor blink, reset on every user action so the cursor reappears immediately
+    CursorFollow:         bool; // set when we want scrolling to follow the current cursor position (not always!)
+    CursorCenterY:        bool; // set when we want scrolling to be centered over the cursor position (while resizing a word-wrapping field)
+    SelectedAllMouseLock: bool; // after a double-click to select all, we ignore further mouse drags to update selection
+    EditedBefore:         bool; // edited since activated
+    EditedThisFrame:      bool; // edited this frame
+    ValidatedThisFrame:   bool;
+    WantReloadUserBuf:    bool; // force a reload of user buf so it may be modified externally. may be automatic in future version.
+    LastMoveDirectionLR:  ImS8; // ImGuiDir_Left or ImGuiDir_Right. track last movement direction so when cursor cross over a word-wrapping boundaries we can display it on either line depending on last move.s
+    ReloadSelectionStart: s32;
+    ReloadSelectionEnd:   s32;
+
+    Constructor :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextStateC1Ev";
+    Destructor_Base :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextStateD2Ev";
+    Destructor :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextStateD1Ev";
+
+    OnKeyPressed :: (this: *InputTextState, key: s32) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState12OnKeyPressedEi";
+    OnCharPressed :: (this: *InputTextState, c: u32) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState13OnCharPressedEj";
+    GetPreferredOffsetX :: (this: *InputTextState) -> float #cpp_method #foreign imgui "_ZNK19ImGuiInputTextState19GetPreferredOffsetXEv";
+
+    // Cursor & Selection
+    CursorAnimReset :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState15CursorAnimResetEv";
+    CursorClamp :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState11CursorClampEv";
+    HasSelection :: (this: *InputTextState) -> bool #cpp_method #foreign imgui "_ZNK19ImGuiInputTextState12HasSelectionEv";
+    ClearSelection :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState14ClearSelectionEv";
+    GetCursorPos :: (this: *InputTextState) -> s32 #cpp_method #foreign imgui "_ZNK19ImGuiInputTextState12GetCursorPosEv";
+    GetSelectionStart :: (this: *InputTextState) -> s32 #cpp_method #foreign imgui "_ZNK19ImGuiInputTextState17GetSelectionStartEv";
+    GetSelectionEnd :: (this: *InputTextState) -> s32 #cpp_method #foreign imgui "_ZNK19ImGuiInputTextState15GetSelectionEndEv";
+    SetSelection :: (this: *InputTextState, start: s32, end: s32) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState12SetSelectionEii";
+    SelectAll :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState9SelectAllEv";
+
+    // Reload user buf (WIP #2890)
+    // If you modify underlying user-passed const char* while active you need to call this (InputText V2 may lift this)
+    //   strcpy(my_buf, "hello");
+    //   if (ImGuiInputTextState* state = ImGui::GetInputTextState(id)) // id may be ImGui::GetItemID() is last item
+    //       state->ReloadUserBufAndSelectAll();
+    ReloadUserBufAndSelectAll :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState25ReloadUserBufAndSelectAllEv";
+    ReloadUserBufAndKeepSelection :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState29ReloadUserBufAndKeepSelectionEv";
+    ReloadUserBufAndMoveToEnd :: (this: *InputTextState) -> void #cpp_method #foreign imgui "_ZN19ImGuiInputTextState25ReloadUserBufAndMoveToEndEv";
+}
+
+WindowRefreshFlags :: enum_flags u32 {
+    None              :: 0x0;
+    TryToAvoidRefresh :: 0x1;
+    RefreshOnHover    :: 0x2;
+    RefreshOnFocus    :: 0x4;
+
+    ImGuiWindowRefreshFlags_None              :: None;
+    ImGuiWindowRefreshFlags_TryToAvoidRefresh :: TryToAvoidRefresh;
+    ImGuiWindowRefreshFlags_RefreshOnHover    :: RefreshOnHover;
+    ImGuiWindowRefreshFlags_RefreshOnFocus    :: RefreshOnFocus;
+}
+
+WindowBgClickFlags :: enum_flags u32 {
+    None :: 0x0;
+    Move :: 0x1;
+
+    ImGuiWindowBgClickFlags_None :: None;
+    ImGuiWindowBgClickFlags_Move :: Move;
+}
+
+NextWindowDataFlags :: enum_flags u32 {
+    None              :: 0x0;
+    HasPos            :: 0x1;
+    HasSize           :: 0x2;
+    HasContentSize    :: 0x4;
+    HasCollapsed      :: 0x8;
+    HasSizeConstraint :: 0x10;
+    HasFocus          :: 0x20;
+    HasBgAlpha        :: 0x40;
+    HasScroll         :: 0x80;
+    HasWindowFlags    :: 0x100;
+    HasChildFlags     :: 0x200;
+    HasRefreshPolicy  :: 0x400;
+    HasViewport       :: 0x800;
+    HasDock           :: 0x1000;
+    HasWindowClass    :: 0x2000;
+
+    ImGuiNextWindowDataFlags_None              :: None;
+    ImGuiNextWindowDataFlags_HasPos            :: HasPos;
+    ImGuiNextWindowDataFlags_HasSize           :: HasSize;
+    ImGuiNextWindowDataFlags_HasContentSize    :: HasContentSize;
+    ImGuiNextWindowDataFlags_HasCollapsed      :: HasCollapsed;
+    ImGuiNextWindowDataFlags_HasSizeConstraint :: HasSizeConstraint;
+    ImGuiNextWindowDataFlags_HasFocus          :: HasFocus;
+    ImGuiNextWindowDataFlags_HasBgAlpha        :: HasBgAlpha;
+    ImGuiNextWindowDataFlags_HasScroll         :: HasScroll;
+    ImGuiNextWindowDataFlags_HasWindowFlags    :: HasWindowFlags;
+    ImGuiNextWindowDataFlags_HasChildFlags     :: HasChildFlags;
+    ImGuiNextWindowDataFlags_HasRefreshPolicy  :: HasRefreshPolicy;
+    ImGuiNextWindowDataFlags_HasViewport       :: HasViewport;
+    ImGuiNextWindowDataFlags_HasDock           :: HasDock;
+    ImGuiNextWindowDataFlags_HasWindowClass    :: HasWindowClass;
+}
+
+// Storage for SetNexWindow** functions
+NextWindowData :: struct {
+    HasFlags:             NextWindowDataFlags;
+
+    // Members below are NOT cleared. Always rely on HasFlags.
+    PosCond:              Cond;
+    SizeCond:             Cond;
+    CollapsedCond:        Cond;
+    DockCond:             Cond;
+    PosVal:               ImVec2;
+    PosPivotVal:          ImVec2;
+    SizeVal:              ImVec2;
+    ContentSizeVal:       ImVec2;
+    ScrollVal:            ImVec2;
+    WindowFlagsSet:       WindowFlags; // Flags to set. Use SetNextWindowFlags()!
+    WindowFlagsClear:     WindowFlags;
+    ChildFlagsSet:        ChildFlags; // Flags to set. Use SetNextWindowChildFlags().
+    ChildFlagsClear:      ChildFlags;
+    PosUndock:            bool;
+    CollapsedVal:         bool;
+    SizeConstraintRect:   ImRect;
+    SizeCallback_:        SizeCallback;
+    SizeCallbackUserData: *void;
+    BgAlphaVal:           float; // Override background alpha
+    ViewportId:           ID;
+    DockId:               ID;
+    WindowClass_:         WindowClass;
+    MenuBarOffsetMinVal:  ImVec2; // (Always on) This is not exposed publicly, so we don't clear it and it doesn't have a corresponding flag (could we? for consistency?)
+    RefreshFlagsVal:      WindowRefreshFlags;
+}
+
+NextItemDataFlags :: enum_flags u32 {
+    None           :: 0x0;
+    HasWidth       :: 0x1;
+    HasOpen        :: 0x2;
+    HasShortcut    :: 0x4;
+    HasRefVal      :: 0x8;
+    HasStorageID   :: 0x10;
+    HasColorMarker :: 0x20;
+
+    ImGuiNextItemDataFlags_None           :: None;
+    ImGuiNextItemDataFlags_HasWidth       :: HasWidth;
+    ImGuiNextItemDataFlags_HasOpen        :: HasOpen;
+    ImGuiNextItemDataFlags_HasShortcut    :: HasShortcut;
+    ImGuiNextItemDataFlags_HasRefVal      :: HasRefVal;
+    ImGuiNextItemDataFlags_HasStorageID   :: HasStorageID;
+    ImGuiNextItemDataFlags_HasColorMarker :: HasColorMarker;
+}
+
+NextItemData :: struct {
+    HasFlags:           NextItemDataFlags; // Called HasFlags instead of Flags to avoid mistaking this
+    ItemFlagsSet:       ItemFlags; // Currently only tested/used for ImGuiItemFlags_AllowOverlap and ImGuiItemFlags_HasSelectionUserData.
+
+    FocusScopeId:       ID; // Set by SetNextItemSelectionUserData()
+    SelectionUserData_: SelectionUserData; // Set by SetNextItemSelectionUserData() (note that NULL/0 is a valid value, we use -1 == ImGuiSelectionUserData_Invalid to mark invalid values)
+    Width:              float; // Set by SetNextItemWidth()
+    Shortcut:           KeyChord; // Set by SetNextItemShortcut()
+    ShortcutFlags:      InputFlags; // Set by SetNextItemShortcut()
+    OpenVal:            bool; // Set by SetNextItemOpen()
+    OpenCond:           ImU8; // Set by SetNextItemOpen()
+    RefVal:             DataTypeStorage; // Not exposed yet, for ImGuiInputTextFlags_ParseEmptyAsRefVal
+    StorageId:          ID; // Set by SetNextItemStorageID()
+    ColorMarker:        ImU32; // Set by SetNextItemColorMarker(). Not exposed yet, supported by DragScalar,SliderScalar and for ImGuiSliderFlags_ColorMarkers.
+}
+
+// Status storage for the last submitted item
+LastItemData :: struct {
+    ID_:         ID;
+    ItemFlags_:  ItemFlags; // See ImGuiItemFlags_ (called 'InFlags' before v1.91.4).
+    StatusFlags: ItemStatusFlags; // See ImGuiItemStatusFlags_
+    Rect:        ImRect; // Full rectangle
+    NavRect:     ImRect; // Navigation scoring rectangle (not displayed)
+
+    DisplayRect: ImRect; // Display rectangle. ONLY VALID IF (StatusFlags & ImGuiItemStatusFlags_HasDisplayRect) is set.
+    ClipRect:    ImRect; // Clip rectangle at the time of submitting item. ONLY VALID IF (StatusFlags & ImGuiItemStatusFlags_HasClipRect) is set..
+    Shortcut:    KeyChord; // Shortcut at the time of submitting item. ONLY VALID IF (StatusFlags & ImGuiItemStatusFlags_HasShortcut) is set..
+}
+
+// Store data emitted by TreeNode() for usage by TreePop()
+// - To implement ImGuiTreeNodeFlags_NavLeftJumpsToParent: store the minimum amount of data
+//   which we can't infer in TreePop(), to perform the equivalent of NavApplyItemToResult().
+//   Only stored when the node is a potential candidate for landing on a Left arrow jump.
+TreeNodeStackData :: struct {
+    ID_:                  ID;
+    TreeFlags:            TreeNodeFlags;
+    ItemFlags_:           ItemFlags; // Used for nav landing
+    NavRect:              ImRect; // Used for nav landing
+    DrawLinesX1:          float;
+    DrawLinesToNodesY2:   float;
+    DrawLinesTableColumn: TableColumnIdx;
+}
+
+// sizeof() = 20
+ErrorRecoveryState :: struct {
+    SizeOfWindowStack:     s16;
+    SizeOfIDStack:         s16;
+    SizeOfTreeStack:       s16;
+    SizeOfColorStack:      s16;
+    SizeOfStyleVarStack:   s16;
+    SizeOfFontStack:       s16;
+    SizeOfFocusScopeStack: s16;
+    SizeOfGroupStack:      s16;
+    SizeOfItemFlagsStack:  s16;
+    SizeOfBeginPopupStack: s16;
+    SizeOfDisabledStack:   s16;
+}
+
+// Storage for each window pushed into the stack.
+WindowStackData :: struct {
+    Window_:                             *Window;
+    ParentLastItemDataBackup:            LastItemData;
+    StackSizesInBegin:                   ErrorRecoveryState; // Store size of various stacks for asserting
+    DisabledOverrideReenable:            bool; // Non-child window override disabled flag
+    DisabledOverrideReenableAlphaBackup: float;
+    ParentLastComboPreviewRect:          ImRect;
+}
+
+ShrinkWidthItem :: struct {
+    Index:        s32;
+    Width:        float;
+    InitialWidth: float;
+}
+
+PtrOrIndex :: struct {
+    Ptr:   *void; // Either field can be set, not both. e.g. Dock node tab bars are loose while BeginTabBar() ones are in a pool.
+    Index: s32; // Usually index in a main pool.
+}
+
+// Data used by IsItemDeactivated()/IsItemDeactivatedAfterEdit() functions
+// Also see ImGuiInputTextDeactivatedState which is an extension for this for InputText()
+DeactivatedItemData :: struct {
+    ID_:                 ID;
+    ElapseFrame:         s32;
+    HasBeenEditedBefore: bool;
+    IsAlive:             bool;
+}
+
+//-----------------------------------------------------------------------------
+// [SECTION] Popup support
+//-----------------------------------------------------------------------------
+PopupPositionPolicy :: enum u32 {
+    Default  :: 0;
+    ComboBox :: 1;
+    Tooltip  :: 2;
+
+    ImGuiPopupPositionPolicy_Default  :: Default;
+    ImGuiPopupPositionPolicy_ComboBox :: ComboBox;
+    ImGuiPopupPositionPolicy_Tooltip  :: Tooltip;
+}
+
+// Storage for popup stacks (g.OpenPopupStack and g.BeginPopupStack)
+PopupData :: struct {
+    PopupId:          ID; // Set on OpenPopup()
+    Window_:          *Window; // Resolved on BeginPopup() - may stay unresolved if user never calls OpenPopup()
+    RestoreNavWindow: *Window; // Set on OpenPopup(), a NavWindow that will be restored on popup close
+    ParentNavLayer:   s32; // Resolved on BeginPopup(). Actually a ImGuiNavLayer type (declared down below), initialized to -1 which is not part of an enum, but serves well-enough as "not any of layers" value
+    OpenFrameCount:   s32; // Set on OpenPopup()
+    OpenParentId:     ID; // Set on OpenPopup(), we need this to differentiate multiple menu sets from each others (e.g. inside menu bar vs loose menu items)
+    OpenPopupPos:     ImVec2; // Set on OpenPopup(), preferred popup position (typically == OpenMousePos when using mouse)
+    OpenMousePos:     ImVec2; // Set on OpenPopup(), copy of mouse position at the time of opening popup
+}
+
+// Bit array for named keys
+ImBitArrayForNamedKeys :: ImBitArray(xx Key.NamedKey_COUNT, -Key.NamedKey_BEGIN.(s32));
+
+InputEventType :: enum u32 {
+    None          :: 0;
+    MousePos      :: 1;
+    MouseWheel    :: 2;
+    MouseButton   :: 3;
+    MouseViewport :: 4;
+    Key           :: 5;
+    Text          :: 6;
+    Focus         :: 7;
+    COUNT         :: 8;
+
+    ImGuiInputEventType_None          :: None;
+    ImGuiInputEventType_MousePos      :: MousePos;
+    ImGuiInputEventType_MouseWheel    :: MouseWheel;
+    ImGuiInputEventType_MouseButton   :: MouseButton;
+    ImGuiInputEventType_MouseViewport :: MouseViewport;
+    ImGuiInputEventType_Key           :: Key;
+    ImGuiInputEventType_Text          :: Text;
+    ImGuiInputEventType_Focus         :: Focus;
+    ImGuiInputEventType_COUNT         :: COUNT;
+}
+
+InputSource :: enum s32 {
+    None     :: 0;
+    Mouse    :: 1;
+    Keyboard :: 2;
+    Gamepad  :: 3;
+    COUNT    :: 4;
+
+    ImGuiInputSource_None     :: None;
+    ImGuiInputSource_Mouse    :: Mouse;
+    ImGuiInputSource_Keyboard :: Keyboard;
+    ImGuiInputSource_Gamepad  :: Gamepad;
+    ImGuiInputSource_COUNT    :: COUNT;
+}
+
+// FIXME: Structures in the union below need to be declared as anonymous unions appears to be an extension?
+// Using ImVec2() would fail on Clang 'union member 'MousePos' has a non-trivial default constructor'
+InputEventMousePos :: struct {
+    PosX:         float;
+    PosY:         float;
+    MouseSource_: MouseSource;
+}
+InputEventMouseWheel :: struct {
+    WheelX:       float;
+    WheelY:       float;
+    MouseSource_: MouseSource;
+}
+InputEventMouseButton :: struct {
+    Button:       s32;
+    Down:         bool;
+    MouseSource_: MouseSource;
+}
+InputEventMouseViewport :: struct {
+    HoveredViewportID: ID;
+}
+InputEventKey :: struct {
+    Key_:        Key;
+    Down:        bool;
+    AnalogValue: float;
+}
+InputEventText :: struct {
+    Char: u32;
+}
+InputEventAppFocused :: struct {
+    Focused: bool;
+}
+
+InputEvent :: struct {
+    Type:              InputEventType;
+    Source:            InputSource;
+    EventId:           ImU32; // Unique, sequential increasing integer to identify an event (if you need to correlate them to other data).
+    struct {
+        MousePos: InputEventMousePos; // if Type == ImGuiInputEventType_MousePos
+
+        #overlay (MousePos) MouseWheel:    InputEventMouseWheel; // if Type == ImGuiInputEventType_MouseWheel
+        #overlay (MousePos) MouseButton:   InputEventMouseButton; // if Type == ImGuiInputEventType_MouseButton
+        #overlay (MousePos) MouseViewport: InputEventMouseViewport; // if Type == ImGuiInputEventType_MouseViewport
+        #overlay (MousePos) Key:           InputEventKey; // if Type == ImGuiInputEventType_Key
+        #overlay (MousePos) Text:          InputEventText; // if Type == ImGuiInputEventType_Text
+        #overlay (MousePos) AppFocused:    InputEventAppFocused; // if Type == ImGuiInputEventType_Focus
+    }
+
+    AddedByTestEngine: bool;
+}
+
+//#define ImGuiKeyOwner_None ImGuiKeyOwner_NoOwner  // We previously called this 'ImGuiKeyOwner_None' but it was inconsistent with our pattern that _None values == 0 and quite dangerous. Also using _NoOwner makes the IsKeyPressed() calls more explicit.
+KeyRoutingIndex :: ImS16;
+
+// Routing table entry (sizeof() == 16 bytes)
+KeyRoutingData :: struct {
+    NextEntryIndex:   KeyRoutingIndex;
+    Mods:             ImU16; // Technically we'd only need 4-bits but for simplify we store ImGuiMod_ values which need 16-bits.
+    RoutingCurrScore: ImU16; // [DEBUG] For debug display
+    RoutingNextScore: ImU16; // Lower is better (0: perfect score)
+    RoutingCurr:      ID;
+    RoutingNext:      ID;
+}
+
+// Routing table: maintain a desired owner for each possible key-chord (key + mods), and setup owner in NewFrame() when mods are matching.
+// Stored in main context (1 instance)
+KeyRoutingTable :: struct {
+    Index:       [155] KeyRoutingIndex; // Index of first entry in Entries[]
+    Entries:     ImVector(KeyRoutingData);
+    EntriesNext: ImVector(KeyRoutingData); // Double-buffer to avoid reallocation (could use a shared buffer)
+}
+
+// This extends ImGuiKeyData but only for named keys (legacy keys don't support the new features)
+// Stored in main context (1 per named key). In the future it might be merged into ImGuiKeyData.
+KeyOwnerData :: struct {
+    OwnerCurr:        ID;
+    OwnerNext:        ID;
+    LockThisFrame:    bool; // Reading this key requires explicit owner id (until end of frame). Set by ImGuiInputFlags_LockThisFrame.
+    LockUntilRelease: bool; // Reading this key requires explicit owner id (until key is released). Set by ImGuiInputFlags_LockUntilRelease. When this is true LockThisFrame is always true as well.
+}
+
+// Extend ImGuiInputFlags_
+// Flags for extended versions of IsKeyPressed(), IsMouseClicked(), Shortcut(), SetKeyOwner(), SetItemKeyOwner()
+// Don't mistake with ImGuiInputTextFlags! (which is for ImGui::InputText() function)
+InputFlagsPrivate_ :: enum u32 {
+    InputFlags_RepeatRateDefault                :: 2;
+    InputFlags_RepeatRateNavMove                :: 4;
+    InputFlags_RepeatRateNavTweak               :: 8;
+
+    InputFlags_RepeatUntilRelease               :: 16;
+    InputFlags_RepeatUntilKeyModsChange         :: 32;
+    InputFlags_RepeatUntilKeyModsChangeFromNone :: 64;
+    InputFlags_RepeatUntilOtherKeyPress         :: 128;
+
+    InputFlags_LockThisFrame                    :: 1048576;
+    InputFlags_LockUntilRelease                 :: 2097152;
+
+    InputFlags_CondHovered                      :: 4194304;
+    InputFlags_CondActive                       :: 8388608;
+    InputFlags_CondDefault_                     :: 12582912;
+
+    InputFlags_RepeatRateMask_                  :: 14;
+    InputFlags_RepeatUntilMask_                 :: 240;
+    InputFlags_RepeatMask_                      :: 255;
+    InputFlags_CondMask_                        :: 12582912;
+    InputFlags_RouteTypeMask_                   :: 15360;
+    InputFlags_RouteOptionsMask_                :: 245760;
+    InputFlags_SupportedByIsKeyPressed          :: 255;
+    InputFlags_SupportedByIsMouseClicked        :: 1;
+    InputFlags_SupportedByShortcut              :: 261375;
+    InputFlags_SupportedBySetNextItemShortcut   :: 523519;
+    InputFlags_SupportedBySetKeyOwner           :: 3145728;
+    InputFlags_SupportedBySetItemKeyOwner       :: 15728640;
+
+    ImGuiInputFlags_RepeatRateDefault                :: InputFlags_RepeatRateDefault;
+    ImGuiInputFlags_RepeatRateNavMove                :: InputFlags_RepeatRateNavMove;
+    ImGuiInputFlags_RepeatRateNavTweak               :: InputFlags_RepeatRateNavTweak;
+
+    ImGuiInputFlags_RepeatUntilRelease               :: InputFlags_RepeatUntilRelease;
+    ImGuiInputFlags_RepeatUntilKeyModsChange         :: InputFlags_RepeatUntilKeyModsChange;
+    ImGuiInputFlags_RepeatUntilKeyModsChangeFromNone :: InputFlags_RepeatUntilKeyModsChangeFromNone;
+    ImGuiInputFlags_RepeatUntilOtherKeyPress         :: InputFlags_RepeatUntilOtherKeyPress;
+
+    ImGuiInputFlags_LockThisFrame                    :: InputFlags_LockThisFrame;
+    ImGuiInputFlags_LockUntilRelease                 :: InputFlags_LockUntilRelease;
+
+    ImGuiInputFlags_CondHovered                      :: InputFlags_CondHovered;
+    ImGuiInputFlags_CondActive                       :: InputFlags_CondActive;
+    ImGuiInputFlags_CondDefault_                     :: InputFlags_CondDefault_;
+
+    ImGuiInputFlags_RepeatRateMask_                  :: InputFlags_RepeatRateMask_;
+    ImGuiInputFlags_RepeatUntilMask_                 :: InputFlags_RepeatUntilMask_;
+    ImGuiInputFlags_RepeatMask_                      :: InputFlags_RepeatMask_;
+    ImGuiInputFlags_CondMask_                        :: InputFlags_CondMask_;
+    ImGuiInputFlags_RouteTypeMask_                   :: InputFlags_RouteTypeMask_;
+    ImGuiInputFlags_RouteOptionsMask_                :: InputFlags_RouteOptionsMask_;
+    ImGuiInputFlags_SupportedByIsKeyPressed          :: InputFlags_SupportedByIsKeyPressed;
+    ImGuiInputFlags_SupportedByIsMouseClicked        :: InputFlags_SupportedByIsMouseClicked;
+    ImGuiInputFlags_SupportedByShortcut              :: InputFlags_SupportedByShortcut;
+    ImGuiInputFlags_SupportedBySetNextItemShortcut   :: InputFlags_SupportedBySetNextItemShortcut;
+    ImGuiInputFlags_SupportedBySetKeyOwner           :: InputFlags_SupportedBySetKeyOwner;
+    ImGuiInputFlags_SupportedBySetItemKeyOwner       :: InputFlags_SupportedBySetItemKeyOwner;
+}
+
+// Note that Max is exclusive, so perhaps should be using a Begin/End convention.
+ListClipperRange :: struct {
+    Min:                 s32;
+    Max:                 s32;
+    PosToIndexConvert:   bool; // Begin/End are absolute position (will be converted to indices later)
+    PosToIndexOffsetMin: ImS8; // Add to Min after converting to indices
+    PosToIndexOffsetMax: ImS8; // Add to Min after converting to indices
+}
+
+// Temporary clipper data, buffers shared/reused between instances
+ListClipperData :: struct {
+    ListClipper_:    *ListClipper;
+    LossynessOffset: float;
+    StepNo:          s32;
+    ItemsFrozen:     s32;
+    Ranges:          ImVector(ListClipperRange);
+}
+
+//-----------------------------------------------------------------------------
+// [SECTION] Navigation support
+//-----------------------------------------------------------------------------
+ActivateFlags :: enum_flags u32 {
+    None               :: 0x0;
+    PreferInput        :: 0x1;
+    PreferTweak        :: 0x2;
+    TryToPreserveState :: 0x4;
+    FromTabbing        :: 0x8;
+    FromShortcut       :: 0x10;
+    FromFocusApi       :: 0x20;
+
+    ImGuiActivateFlags_None               :: None;
+    ImGuiActivateFlags_PreferInput        :: PreferInput;
+    ImGuiActivateFlags_PreferTweak        :: PreferTweak;
+    ImGuiActivateFlags_TryToPreserveState :: TryToPreserveState;
+    ImGuiActivateFlags_FromTabbing        :: FromTabbing;
+    ImGuiActivateFlags_FromShortcut       :: FromShortcut;
+    ImGuiActivateFlags_FromFocusApi       :: FromFocusApi;
+}
+
+// Early work-in-progress API for ScrollToItem()
+// FIXME: Missing flags to request making both edges visible when possible.
+ScrollFlags :: enum_flags u32 {
+    None               :: 0x0;
+    KeepVisibleEdgeX   :: 0x1;
+    KeepVisibleEdgeY   :: 0x2;
+    KeepVisibleCenterX :: 0x4;
+    KeepVisibleCenterY :: 0x8;
+    AlwaysCenterX      :: 0x10;
+    AlwaysCenterY      :: 0x20;
+    NoScrollParent     :: 0x40;
+    MaskX_             :: 0x15;
+    MaskY_             :: 0x2a;
+
+    ImGuiScrollFlags_None               :: None;
+    ImGuiScrollFlags_KeepVisibleEdgeX   :: KeepVisibleEdgeX;
+    ImGuiScrollFlags_KeepVisibleEdgeY   :: KeepVisibleEdgeY;
+    ImGuiScrollFlags_KeepVisibleCenterX :: KeepVisibleCenterX;
+    ImGuiScrollFlags_KeepVisibleCenterY :: KeepVisibleCenterY;
+    ImGuiScrollFlags_AlwaysCenterX      :: AlwaysCenterX;
+    ImGuiScrollFlags_AlwaysCenterY      :: AlwaysCenterY;
+    ImGuiScrollFlags_NoScrollParent     :: NoScrollParent;
+    ImGuiScrollFlags_MaskX_             :: MaskX_;
+    ImGuiScrollFlags_MaskY_             :: MaskY_;
+}
+
+NavRenderCursorFlags :: enum_flags u32 {
+    None       :: 0x0;
+    Compact    :: 0x2;
+    AlwaysDraw :: 0x4;
+
+    ImGuiNavRenderCursorFlags_None       :: None;
+    ImGuiNavRenderCursorFlags_Compact    :: Compact;
+    ImGuiNavRenderCursorFlags_AlwaysDraw :: AlwaysDraw;
+}
+
+NavMoveFlags :: enum_flags u32 {
+    None                  :: 0x0;
+    LoopX                 :: 0x1;
+    LoopY                 :: 0x2;
+    WrapX                 :: 0x4;
+    WrapY                 :: 0x8;
+    WrapMask_             :: 0xf;
+    AllowCurrentNavId     :: 0x10;
+    AlsoScoreVisibleSet   :: 0x20;
+    ScrollToEdgeY         :: 0x40;
+    Forwarded             :: 0x80;
+    DebugNoResult         :: 0x100;
+    FocusApi              :: 0x200;
+    IsTabbing             :: 0x400;
+    IsPageMove            :: 0x800;
+    Activate              :: 0x1000;
+    NoSelect              :: 0x2000;
+    NoSetNavCursorVisible :: 0x4000;
+    NoClearActiveId       :: 0x8000;
+
+    ImGuiNavMoveFlags_None                  :: None;
+    ImGuiNavMoveFlags_LoopX                 :: LoopX;
+    ImGuiNavMoveFlags_LoopY                 :: LoopY;
+    ImGuiNavMoveFlags_WrapX                 :: WrapX;
+    ImGuiNavMoveFlags_WrapY                 :: WrapY;
+    ImGuiNavMoveFlags_WrapMask_             :: WrapMask_;
+    ImGuiNavMoveFlags_AllowCurrentNavId     :: AllowCurrentNavId;
+    ImGuiNavMoveFlags_AlsoScoreVisibleSet   :: AlsoScoreVisibleSet;
+    ImGuiNavMoveFlags_ScrollToEdgeY         :: ScrollToEdgeY;
+    ImGuiNavMoveFlags_Forwarded             :: Forwarded;
+    ImGuiNavMoveFlags_DebugNoResult         :: DebugNoResult;
+    ImGuiNavMoveFlags_FocusApi              :: FocusApi;
+    ImGuiNavMoveFlags_IsTabbing             :: IsTabbing;
+    ImGuiNavMoveFlags_IsPageMove            :: IsPageMove;
+    ImGuiNavMoveFlags_Activate              :: Activate;
+    ImGuiNavMoveFlags_NoSelect              :: NoSelect;
+    ImGuiNavMoveFlags_NoSetNavCursorVisible :: NoSetNavCursorVisible;
+    ImGuiNavMoveFlags_NoClearActiveId       :: NoClearActiveId;
+}
+
+NavLayer :: enum u32 {
+    Main  :: 0;
+    Menu  :: 1;
+    COUNT :: 2;
+
+    ImGuiNavLayer_Main  :: Main;
+    ImGuiNavLayer_Menu  :: Menu;
+    ImGuiNavLayer_COUNT :: COUNT;
+}
+
+// Storage for navigation query/results
+NavItemData :: struct {
+    Window_:            *Window; // Init,Move    // Best candidate window (result->ItemWindow->RootWindowForNav == request->Window)
+    ID_:                ID; // Init,Move    // Best candidate item ID
+    FocusScopeId:       ID; // Init,Move    // Best candidate focus scope ID
+    RectRel:            ImRect; // Init,Move    // Best candidate bounding box in window relative space
+    ItemFlags_:         ItemFlags; // ????,Move    // Best candidate item flags
+    DistBox:            float; //      Move    // Best candidate box distance to current NavId
+    DistCenter:         float; //      Move    // Best candidate center distance to current NavId
+    DistAxial:          float; //      Move    // Best candidate axial distance to current NavId
+    SelectionUserData_: SelectionUserData; //I+Mov    // Best candidate SetNextItemSelectionUserData() value. Valid if (ItemFlags & ImGuiItemFlags_HasSelectionUserData)
+}
+
+// Storage for PushFocusScope(), g.FocusScopeStack[], g.NavFocusRoute[]
+FocusScopeData :: struct {
+    ID_:      ID;
+    WindowID: ID;
+}
+
+// Flags for GetTypingSelectRequest()
+TypingSelectFlags :: enum_flags u32 {
+    None                :: 0x0;
+    AllowBackspace      :: 0x1;
+    AllowSingleCharMode :: 0x2;
+
+    ImGuiTypingSelectFlags_None                :: None;
+    ImGuiTypingSelectFlags_AllowBackspace      :: AllowBackspace;
+    ImGuiTypingSelectFlags_AllowSingleCharMode :: AllowSingleCharMode;
+}
+
+// Returned by GetTypingSelectRequest(), designed to eventually be public.
+TypingSelectRequest :: struct {
+    Flags:           TypingSelectFlags; // Flags passed to GetTypingSelectRequest()
+    SearchBufferLen: s32;
+    SearchBuffer:    *u8; // Search buffer contents (use full string. unless SingleCharMode is set, in which case use SingleCharSize).
+    SelectRequest:   bool; // Set when buffer was modified this frame, requesting a selection.
+    SingleCharMode:  bool; // Notify when buffer contains same character repeated, to implement special mode. In this situation it preferred to not display any on-screen search indication.
+    SingleCharSize:  ImS8; // Length in bytes of first letter codepoint (1 for ascii, 2-4 for UTF-8). If (SearchBufferLen==RepeatCharSize) only 1 letter has been input.
+}
+
+// Storage for GetTypingSelectRequest()
+TypingSelectState :: struct {
+    Request:            TypingSelectRequest; // User-facing data
+    SearchBuffer:       [64] u8; // Search buffer: no need to make dynamic as this search is very transient.
+    FocusScope:         ID;
+    LastRequestFrame:   s32 = 0;
+    LastRequestTime:    float = 0.0;
+    SingleCharModeLock  := false; // After a certain single char repeat count we lock into SingleCharMode. Two benefits: 1) buffer never fill, 2) we can provide an immediate SingleChar mode without timer elapsing.
+}
+
+// Flags for internal's BeginColumns(). This is an obsolete API. Prefer using BeginTable() nowadays!
+OldColumnFlags :: enum_flags u32 {
+    None                   :: 0x0;
+    NoBorder               :: 0x1;
+    NoResize               :: 0x2;
+    NoPreserveWidths       :: 0x4;
+    NoForceWithinWindow    :: 0x8;
+    GrowParentContentsSize :: 0x10;
+
+    ImGuiOldColumnFlags_None                   :: None;
+    ImGuiOldColumnFlags_NoBorder               :: NoBorder;
+    ImGuiOldColumnFlags_NoResize               :: NoResize;
+    ImGuiOldColumnFlags_NoPreserveWidths       :: NoPreserveWidths;
+    ImGuiOldColumnFlags_NoForceWithinWindow    :: NoForceWithinWindow;
+    ImGuiOldColumnFlags_GrowParentContentsSize :: GrowParentContentsSize;
+}
+
+OldColumnData :: struct {
+    OffsetNorm:             float; // Column start offset, normalized 0.0 (far left) -> 1.0 (far right)
+    OffsetNormBeforeResize: float;
+    Flags:                  OldColumnFlags; // Not exposed
+    ClipRect:               ImRect;
+}
+
+OldColumns :: struct {
+    ID_:                      ID;
+    Flags:                    OldColumnFlags;
+    IsFirstFrame:             bool;
+    IsBeingResized:           bool;
+    Current:                  s32;
+    Count:                    s32;
+    OffMinX:                  float; // Offsets from HostWorkRect.Min.x
+    OffMaxX:                  float; // Offsets from HostWorkRect.Min.x
+    LineMinY:                 float;
+    LineMaxY:                 float;
+    HostCursorPosY:           float; // Backup of CursorPos at the time of BeginColumns()
+    HostCursorMaxPosX:        float; // Backup of CursorMaxPos at the time of BeginColumns()
+    HostInitialClipRect:      ImRect; // Backup of ClipRect at the time of BeginColumns()
+    HostBackupClipRect:       ImRect; // Backup of ClipRect during PushColumnsBackground()/PopColumnsBackground()
+    HostBackupParentWorkRect: ImRect; //Backup of WorkRect at the time of BeginColumns()
+    Columns:                  ImVector(OldColumnData);
+    Splitter:                 ImDrawListSplitter;
+}
+
+// ImGui
+BoxSelectState :: struct {
+    // Active box-selection data (persistent, 1 active at a time)
+    ID_:                   ID;
+    IsActive:              bool;
+    IsStarting:            bool;
+    IsStartedFromVoid:     bool; // Starting click was not from an item.
+    IsStartedSetNavIdOnce: bool;
+    RequestClear:          bool;
+    KeyMods:               u16 #align 1; /* 16 bits */ // Latched key-mods for box-select logic.
+    StartPosRel:           ImVec2; // Start position in window-contents relative space (to support scrolling)
+    EndPosRel:             ImVec2; // End position in window-contents relative space
+    ScrollAccum:           ImVec2; // Scrolling accumulator (to behave at high-frame spaces)
+    Window_:               *Window;
+
+    UnclipMode:            bool; // (Temp/Transient, here in hot area). Set/cleared by the BeginMultiSelect()/EndMultiSelect() owning active box-select.
+    UnclipRect:            ImRect; // Rectangle where ItemAdd() clipping may be temporarily disabled. Need support by multi-select supporting widgets.
+    UnclipRects:           [2] ImRect; // Per-axis versions.
+    BoxSelectRectPrev:     ImRect; // Selection rectangle in absolute coordinates (derived every frame from BoxSelectStartPosRel and MousePos)
+    BoxSelectRectCurr:     ImRect;
+}
+
+// Temporary storage for multi-select
+MultiSelectTempData :: struct {
+    IO:                           MultiSelectIO; // MUST BE FIRST FIELD. Requests are set and returned by BeginMultiSelect()/EndMultiSelect() + written to by user during the loop.
+    Storage:                      *MultiSelectState;
+    FocusScopeId:                 ID; // Copied from g.CurrentFocusScopeId (unless another selection scope was pushed manually)
+    Flags:                        MultiSelectFlags;
+    ScopeRectMin:                 ImVec2;
+    BackupCursorMaxPos:           ImVec2;
+
+    //ImGuiSelectionUserData CurrSubmittedItem; // Copy of last submitted item data, used to merge output ranges.
+    //ImGuiSelectionUserData PrevSubmittedItem; // Copy of previous submitted item data, used to merge output ranges.
+    BoxSelectId:                  ID;
+    KeyMods:                      KeyChord;
+    LoopRequestSetAll:            ImS8; // -1: no operation, 0: clear all, 1: select all.
+    IsEndIO:                      bool; // Set when switching IO from BeginMultiSelect() to EndMultiSelect() state.
+    IsFocused:                    bool; // Set if currently focusing the selection scope (any item of the selection). May be used if you have custom shortcut associated to selection.
+    IsKeyboardSetRange:           bool; // Set by BeginMultiSelect() when using Shift+Navigation. Because scrolling may be affected we can't afford a frame of lag with Shift+Navigation.
+    NavIdPassedBy:                bool;
+    RangeSrcPassedBy:             bool; // Set by the item that matches RangeSrcItem.
+    RangeDstPassedBy:             bool; // Set by the item that matches NavJustMovedToId when IsSetRange is set.
+    IsSoleOrUnknownSelectionSize: bool;
+}
+
+// Persistent storage for multi-select (as long as selection is alive)
+MultiSelectState :: struct {
+    Window_:           *Window;
+    ID_:               ID;
+    LastFrameActive:   s32; // Last used frame-count, for GC.
+    LastSelectionSize: s32; // Set by BeginMultiSelect() based on optional info provided by user. May be -1 if unknown.
+    RangeSelected:     ImS8; // -1 (don't have) or true/false
+    NavIdSelected:     ImS8; // -1 (don't have) or true/false
+    RangeSrcItem:      SelectionUserData; //
+    NavIdItem:         SelectionUserData; // SetNextItemSelectionUserData() value for NavId (if part of submitted items)
+}
+
+// Extend ImGuiDockNodeFlags_
+DockNodeFlagsPrivate_ :: enum s32 {
+    DockNodeFlags_DockSpace                 :: 1024;
+    DockNodeFlags_CentralNode               :: 2048;
+    DockNodeFlags_NoTabBar                  :: 4096;
+    DockNodeFlags_HiddenTabBar              :: 8192;
+    DockNodeFlags_NoWindowMenuButton        :: 16384;
+    DockNodeFlags_NoCloseButton             :: 32768;
+    DockNodeFlags_NoResizeX                 :: 65536;
+    DockNodeFlags_NoResizeY                 :: 131072;
+    DockNodeFlags_DockedWindowsInFocusRoute :: 262144;
+
+    DockNodeFlags_NoDockingSplitOther       :: 524288;
+    DockNodeFlags_NoDockingOverMe           :: 1048576;
+    DockNodeFlags_NoDockingOverOther        :: 2097152;
+    DockNodeFlags_NoDockingOverEmpty        :: 4194304;
+    DockNodeFlags_NoDocking                 :: 7864336;
+
+    DockNodeFlags_SharedFlagsInheritMask_   :: -1;
+    DockNodeFlags_NoResizeFlagsMask_        :: 196640;
+
+    DockNodeFlags_LocalFlagsTransferMask_   :: 260208;
+    DockNodeFlags_SavedFlagsMask_           :: 261152;
+
+    ImGuiDockNodeFlags_DockSpace                 :: DockNodeFlags_DockSpace;
+    ImGuiDockNodeFlags_CentralNode               :: DockNodeFlags_CentralNode;
+    ImGuiDockNodeFlags_NoTabBar                  :: DockNodeFlags_NoTabBar;
+    ImGuiDockNodeFlags_HiddenTabBar              :: DockNodeFlags_HiddenTabBar;
+    ImGuiDockNodeFlags_NoWindowMenuButton        :: DockNodeFlags_NoWindowMenuButton;
+    ImGuiDockNodeFlags_NoCloseButton             :: DockNodeFlags_NoCloseButton;
+    ImGuiDockNodeFlags_NoResizeX                 :: DockNodeFlags_NoResizeX;
+    ImGuiDockNodeFlags_NoResizeY                 :: DockNodeFlags_NoResizeY;
+    ImGuiDockNodeFlags_DockedWindowsInFocusRoute :: DockNodeFlags_DockedWindowsInFocusRoute;
+
+    ImGuiDockNodeFlags_NoDockingSplitOther       :: DockNodeFlags_NoDockingSplitOther;
+    ImGuiDockNodeFlags_NoDockingOverMe           :: DockNodeFlags_NoDockingOverMe;
+    ImGuiDockNodeFlags_NoDockingOverOther        :: DockNodeFlags_NoDockingOverOther;
+    ImGuiDockNodeFlags_NoDockingOverEmpty        :: DockNodeFlags_NoDockingOverEmpty;
+    ImGuiDockNodeFlags_NoDocking                 :: DockNodeFlags_NoDocking;
+
+    ImGuiDockNodeFlags_SharedFlagsInheritMask_   :: DockNodeFlags_SharedFlagsInheritMask_;
+    ImGuiDockNodeFlags_NoResizeFlagsMask_        :: DockNodeFlags_NoResizeFlagsMask_;
+
+    ImGuiDockNodeFlags_LocalFlagsTransferMask_   :: DockNodeFlags_LocalFlagsTransferMask_;
+    ImGuiDockNodeFlags_SavedFlagsMask_           :: DockNodeFlags_SavedFlagsMask_;
+}
+
+// Store the source authority (dock node vs window) of a field
+DataAuthority :: enum u32 {
+    Auto     :: 0;
+    DockNode :: 1;
+    Window   :: 2;
+
+    ImGuiDataAuthority_Auto     :: Auto;
+    ImGuiDataAuthority_DockNode :: DockNode;
+    ImGuiDataAuthority_Window   :: Window;
+}
+
+DockNodeState :: enum u32 {
+    Unknown                                   :: 0;
+    HostWindowHiddenBecauseSingleWindow       :: 1;
+    HostWindowHiddenBecauseWindowsAreResizing :: 2;
+    HostWindowVisible                         :: 3;
+
+    ImGuiDockNodeState_Unknown                                   :: Unknown;
+    ImGuiDockNodeState_HostWindowHiddenBecauseSingleWindow       :: HostWindowHiddenBecauseSingleWindow;
+    ImGuiDockNodeState_HostWindowHiddenBecauseWindowsAreResizing :: HostWindowHiddenBecauseWindowsAreResizing;
+    ImGuiDockNodeState_HostWindowVisible                         :: HostWindowVisible;
+}
+
+// sizeof() 176~216
+DockNode :: struct {
+    ID_:                    ID;
+    SharedFlags:            DockNodeFlags; // (Write) Flags shared by all nodes of a same dockspace hierarchy (inherited from the root node)
+    LocalFlags:             DockNodeFlags; // (Write) Flags specific to this node
+    LocalFlagsInWindows:    DockNodeFlags; // (Write) Flags specific to this node, applied from windows
+    MergedFlags:            DockNodeFlags; // (Read)  Effective flags (== SharedFlags | LocalFlagsInNode | LocalFlagsInWindows)
+    State:                  DockNodeState;
+    ParentNode:             *DockNode;
+    ChildNodes:             [2] *DockNode; // [Split node only] Child nodes (left/right or top/bottom). Consider switching to an array.
+    Windows:                ImVector(*Window); // Note: unordered list! Iterate TabBar->Tabs for user-order.
+    TabBar_:                *TabBar;
+    Pos:                    ImVec2; // Current position
+    Size:                   ImVec2; // Current size
+    SizeRef:                ImVec2; // [Split node only] Last explicitly written-to size (overridden when using a splitter affecting the node), used to calculate Size.
+    SplitAxis:              Axis; // [Split node only] Split axis (X or Y)
+    LastBgColor:            ImU32;
+    WindowClass_:           WindowClass; // [Root node only]
+
+    HostWindow:             *Window;
+    VisibleWindow:          *Window; // Generally point to window which is ID is == SelectedTabID, but when CTRL+Tabbing this can be a different window.
+    CentralNode:            *DockNode; // [Root node only] Pointer to central node.
+    OnlyNodeWithWindows:    *DockNode; // [Root node only] Set when there is a single visible node within the hierarchy.
+    CountNodeWithWindows:   s32; // [Root node only]
+    LastFrameAlive:         s32; // Last frame number the node was updated or kept alive explicitly with DockSpace() + ImGuiDockNodeFlags_KeepAliveOnly
+    LastFrameActive:        s32; // Last frame number the node was updated.
+    LastFrameFocused:       s32; // Last frame number the node was focused.
+    LastFocusedNodeId:      ID; // [Root node only] Which of our child docking node (any ancestor in the hierarchy) was last focused.
+    SelectedTabId:          ID; // [Leaf node only] Which of our tab/window is selected.
+    WantCloseTabId:         ID; // [Leaf node only] Set when closing a specific tab/window.
+    RefViewportId:          ID; // Reference viewport ID from visible window when HostWindow == NULL.
+    __bitfield:             [2] u8;
+    /* 
+        AuthorityForPos: ImU8; /* 3 bits */ // ImGuiDataAuthority
+        AuthorityForSize: ImU8; /* 3 bits */
+        AuthorityForViewport: ImU8; /* 3 bits */;
+    */
+
+    IsVisible:              bool #align 1; /* 1 bits */ // Set to false when the node is hidden (usually disabled as it has no active window)
+    IsFocused:              bool #align 1; /* 1 bits */
+    IsBgDrawnThisFrame:     bool #align 1; /* 1 bits */
+    HasCloseButton:         bool #align 1; /* 1 bits */ // Provide space for a close button (if any of the docked window has one). Note that button may be hidden on window without one.
+    HasWindowMenuButton:    bool #align 1; /* 1 bits */
+    HasCentralNodeChild:    bool; /* 1 bits */
+    WantCloseAll:           bool #align 1; /* 1 bits */ // Set when closing all tabs at once.
+    WantLockSizeOnce:       bool #align 1; /* 1 bits */
+    WantMouseMove:          bool #align 1; /* 1 bits */ // After a node extraction we need to transition toward moving the newly created host window
+    WantHiddenTabBarUpdate: bool #align 1; /* 1 bits */
+    WantHiddenTabBarToggle: bool #align 1; /* 1 bits */
+
+    Constructor :: (this: *DockNode, id: ID) -> void #cpp_method #foreign imgui "_ZN13ImGuiDockNodeC1Ej";
+    Destructor_Base :: (this: *DockNode) -> void #cpp_method #foreign imgui "_ZN13ImGuiDockNodeD2Ev";
+    Destructor :: (this: *DockNode) -> void #cpp_method #foreign imgui "_ZN13ImGuiDockNodeD1Ev";
+
+    _:                      [0] u64; // Force ImGuiDockNode alignment to match the C/C++ equivalent
+}
+
+set_AuthorityForPos :: (fields: *DockNode, value: ImU8) {
+    MASK0: u8 : 0b111;
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | (value & MASK0);
+}
+get_AuthorityForPos :: (fields: DockNode) -> ImU8 {
+    return (fields.__bitfield[0] & 0b111);
+}
+
+set_AuthorityForSize :: (fields: *DockNode, value: ImU8) {
+    MASK0: u8 : (0b111 << 3);
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | ((value << 3) & MASK0);
+}
+get_AuthorityForSize :: (fields: DockNode) -> ImU8 {
+    return ((fields.__bitfield[0] & (0b111 << 3)) >> 3);
+}
+
+set_AuthorityForViewport :: (fields: *DockNode, value: ImU8) {
+    MASK0: u8 : 0b111;
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK0) | (value & MASK0);
+}
+get_AuthorityForViewport :: (fields: DockNode) -> ImU8 {
+    return (fields.__bitfield[1] & 0b111);
+}
+
+
+// List of colors that are stored at the time of Begin() into Docked Windows.
+// We currently store the packed colors in a simple array window->DockStyle.Colors[].
+// A better solution may involve appending into a log of colors in ImGuiContext + store offsets into those arrays in ImGuiWindow,
+// but it would be more complex as we'd need to double-buffer both as e.g. drop target may refer to window from last frame.
+WindowDockStyleCol :: enum u32 {
+    Text                      :: 0;
+    TabHovered                :: 1;
+    TabFocused                :: 2;
+    TabSelected               :: 3;
+    TabSelectedOverline       :: 4;
+    TabDimmed                 :: 5;
+    TabDimmedSelected         :: 6;
+    TabDimmedSelectedOverline :: 7;
+    UnsavedMarker             :: 8;
+    COUNT                     :: 9;
+
+    ImGuiWindowDockStyleCol_Text                      :: Text;
+    ImGuiWindowDockStyleCol_TabHovered                :: TabHovered;
+    ImGuiWindowDockStyleCol_TabFocused                :: TabFocused;
+    ImGuiWindowDockStyleCol_TabSelected               :: TabSelected;
+    ImGuiWindowDockStyleCol_TabSelectedOverline       :: TabSelectedOverline;
+    ImGuiWindowDockStyleCol_TabDimmed                 :: TabDimmed;
+    ImGuiWindowDockStyleCol_TabDimmedSelected         :: TabDimmedSelected;
+    ImGuiWindowDockStyleCol_TabDimmedSelectedOverline :: TabDimmedSelectedOverline;
+    ImGuiWindowDockStyleCol_UnsavedMarker             :: UnsavedMarker;
+    ImGuiWindowDockStyleCol_COUNT                     :: COUNT;
+}
+
+// We don't store style.Alpha: dock_node->LastBgColor embeds it and otherwise it would only affect the docking tab, which intuitively I would say we don't want to.
+WindowDockStyle :: struct {
+    Colors: [9] ImU32;
+}
+
+DockContext :: struct {
+    Nodes:           Storage; // Map ID -> ImGuiDockNode*: Active nodes
+    Requests:        ImVector(DockRequest);
+    NodesSettings:   ImVector(DockNodeSettings);
+    WantFullRebuild: bool;
+}
+
+// ImGuiViewport Private/Internals fields (cardinal sin: we are using inheritance!)
+// Every instance of ImGuiViewport is in fact a ImGuiViewportP.
+ViewportP :: struct {
+    using viewport__raw:          Viewport__RAW;
+
+    Window_:                      *Window; // Set when the viewport is owned by a window (and ImGuiViewportFlags_CanHostOtherWindows is NOT set)
+    Idx:                          s32;
+    LastFrameActive:              s32; // Last frame number this viewport was activated by a window
+    LastFocusedStampCount:        s32; // Last stamp number from when a window hosted by this viewport was focused (by comparing this value between two viewport we have an implicit viewport z-order we use as fallback)
+    LastNameHash:                 ID;
+    LastPos:                      ImVec2;
+    LastSize:                     ImVec2;
+    Alpha:                        float; // Window opacity (when dragging dockable windows/viewports we make them transparent)
+    LastAlpha:                    float;
+    LastFocusedHadNavWindow:      bool; // Instead of maintaining a LastFocusedWindow (which may harder to correctly maintain), we merely store weither NavWindow != NULL last time the viewport was focused.
+    PlatformMonitor:              s16;
+    BgFgDrawLists:                [2] *ImDrawList; // Convenience background (0) and foreground (1) draw lists. We use them to draw software mouser cursor when io.MouseDrawCursor is set and to draw most debug overlays.
+    BgFgDrawListsLastFrameActive: [2] s32; // Last frame the background (0) and foreground (1) draw lists were used.
+    BgFgDrawListsLastTimeActive:  [2] float; // Timestamps for Gc.
+    DrawDataP:                    ImDrawData;
+    DrawDataBuilder:              ImDrawDataBuilder; // Temporary data while building final ImDrawData
+    LastPlatformPos:              ImVec2;
+    LastPlatformSize:             ImVec2;
+    LastRendererSize:             ImVec2;
+
+    WorkInsetMin:                 ImVec2; // Work Area inset locked for the frame. GetWorkRect() always fits within GetMainRect().
+    WorkInsetMax:                 ImVec2; // "
+    BuildWorkInsetMin:            ImVec2; // Work Area inset accumulator for current frame, to become next frame's WorkInset
+    BuildWorkInsetMax:            ImVec2; // "
+
+    #overlay (viewport__raw) #as imguiviewport: Viewport; // Support cast to Viewport
+}
+
+// Windows data saved in imgui.ini file
+// Because we never destroy or rename ImGuiWindowSettings, we can store the names in a separate buffer easily.
+// (this is designed to be stored in a ImChunkStream buffer, with the variable-length Name following our structure)
+WindowSettings :: struct {
+    ID_:          ID;
+    Pos:          ImVec2ih; // NB: Settings position are stored RELATIVE to the viewport! Whereas runtime ones are absolute positions.
+    Size:         ImVec2ih;
+    ViewportPos:  ImVec2ih;
+    ViewportId:   ID;
+    DockId:       ID; // ID of last known DockNode (even if the DockNode is invisible because it has only 1 active window), or 0 if none.
+    ClassId:      ID; // ID of window class if specified
+    DockOrder:    s16; // Order of the last time the window was visible within its DockNode. This is used to reorder windows that are reappearing on the same frame. Same value between windows that were active and windows that were none are possible.
+    LastUsedDate: PackedDate;
+    Collapsed:    bool; /* 1 bits */
+    IsChild:      bool #align 1; /* 1 bits */
+    WantApply:    bool #align 1; /* 1 bits */ // Set when loaded from .ini data (to enable merging/loading .ini data into an already running context)
+    WantDelete:   bool #align 1; /* 1 bits */ // Set to invalidate/delete the settings entry
+}
+
+SettingsCleanupArgs :: struct {
+    TypeHashFilter:                       ID = 0; // Set to restrict cleanup to a given .ini type, e.g. == ImHashStr("Window"), ImHashStr("Table"). Otherwise every types supporting Cleanup will be affected.
+    DiscardOlderThanMonths:               s32 = 0; // Enable to discard entries older than XX months.
+    DiscardWhenMissingDate                := false; // Enable to discard entries missing a date.
+    DiscardAll                            := false; // Enable to discard all entries = same as calling ClearIniSettings() except it may be filtered.
+    SetCurrentSessionDateToAll            := false; // Enable to write current SessionDate to all supporting entries. // Let us know in #9460 if you use this.
+    SetCurrentSessionDateWhenMissingDate  := false; // Enable to write current SessionDate to all supporting entries missing a date. // Let us know in #9460 if you use this.
+    _DiscardOlderThanDate:                s32 = 0; // [Internal]
+}
+
+SettingsHandler :: struct {
+    TypeName:   *u8; // Short description stored in .ini file. Disallowed characters: '[' ']'
+    TypeHash:   ID; // == ImHashStr(TypeName)
+    ClearAllFn: #type (ctx: *ImGuiContext, handler: *SettingsHandler) -> void #c_call; // Clear all settings data
+    ReadInitFn: #type (ctx: *ImGuiContext, handler: *SettingsHandler) -> void #c_call; // Read: Called before reading (in registration order)
+    ReadOpenFn: #type (ctx: *ImGuiContext, handler: *SettingsHandler, name: *u8) -> *void #c_call; // Read: Called when entering into a new ini entry e.g. "[Window][Name]"
+    ReadLineFn: #type (ctx: *ImGuiContext, handler: *SettingsHandler, entry: *void, line: *u8) -> void #c_call; // Read: Called for every line of text within an ini entry
+    ApplyAllFn: #type (ctx: *ImGuiContext, handler: *SettingsHandler) -> void #c_call; // Read: Called after reading (in registration order)
+    WriteAllFn: #type (ctx: *ImGuiContext, handler: *SettingsHandler, out_buf: *TextBuffer) -> void #c_call; // Write: Output every entries into 'out_buf'
+    CleanupFn:  #type (ctx: *ImGuiContext, handler: *SettingsHandler, args: *SettingsCleanupArgs) -> void #c_call; // Cleanup/patch settings
+    UserData:   *void;
+}
+
+LocEntry :: struct {
+    Key:  LocKey;
+    Text: *u8;
+}
+
+// The error callback is currently not public, as it is expected that only advanced users will rely on it.
+ErrorCallback :: #type (ctx: *ImGuiContext, user_data: *void, msg: *u8) -> void #c_call;
+
+// See IMGUI_DEBUG_LOG() and IMGUI_DEBUG_LOG_XXX() macros.
+DebugLogFlags :: enum_flags u32 {
+    None               :: 0x0;
+    EventError         :: 0x1;
+    EventActiveId      :: 0x2;
+    EventFocus         :: 0x4;
+    EventPopup         :: 0x8;
+    EventNav           :: 0x10;
+    EventClipper       :: 0x20;
+    EventSelection     :: 0x40;
+    EventIO            :: 0x80;
+    EventFont          :: 0x100;
+    EventInputRouting  :: 0x200;
+    EventDocking       :: 0x400;
+    EventViewport      :: 0x800;
+    EventTable         :: 0x1000;
+
+    EventMask_         :: 0x1fff;
+    OutputToTTY        :: 0x100000;
+    OutputToDebugger   :: 0x200000;
+    OutputToTestEngine :: 0x400000;
+
+    ImGuiDebugLogFlags_None               :: None;
+    ImGuiDebugLogFlags_EventError         :: EventError;
+    ImGuiDebugLogFlags_EventActiveId      :: EventActiveId;
+    ImGuiDebugLogFlags_EventFocus         :: EventFocus;
+    ImGuiDebugLogFlags_EventPopup         :: EventPopup;
+    ImGuiDebugLogFlags_EventNav           :: EventNav;
+    ImGuiDebugLogFlags_EventClipper       :: EventClipper;
+    ImGuiDebugLogFlags_EventSelection     :: EventSelection;
+    ImGuiDebugLogFlags_EventIO            :: EventIO;
+    ImGuiDebugLogFlags_EventFont          :: EventFont;
+    ImGuiDebugLogFlags_EventInputRouting  :: EventInputRouting;
+    ImGuiDebugLogFlags_EventDocking       :: EventDocking;
+    ImGuiDebugLogFlags_EventViewport      :: EventViewport;
+    ImGuiDebugLogFlags_EventTable         :: EventTable;
+
+    ImGuiDebugLogFlags_EventMask_         :: EventMask_;
+    ImGuiDebugLogFlags_OutputToTTY        :: OutputToTTY;
+    ImGuiDebugLogFlags_OutputToDebugger   :: OutputToDebugger;
+    ImGuiDebugLogFlags_OutputToTestEngine :: OutputToTestEngine;
+}
+
+DebugAllocEntry :: struct {
+    FrameCount: s32;
+    AllocCount: ImS16;
+    FreeCount:  ImS16;
+}
+
+DebugAllocInfo :: struct {
+    TotalAllocCount: s32; // Number of call to MemAlloc().
+    TotalFreeCount:  s32;
+    LastEntriesIdx:  ImS16; // Current index in buffer
+    LastEntriesBuf:  [6] DebugAllocEntry; // Track last 6 frames that had allocations
+}
+
+MetricsConfig :: struct {
+    ShowDebugLog                 := false;
+    ShowIDStackTool              := false;
+    ShowWindowsRects             := false;
+    ShowWindowsBeginOrder        := false;
+    ShowTablesRects              := false;
+    ShowDrawCmdMesh              := true;
+    ShowDrawCmdBoundingBoxes     := true;
+    ShowTextEncodingViewer       := false;
+    ShowTextureUsedRect          := false;
+    ShowDockingNodes             := false;
+    ShowWindowsRectsType:        s32 = -1;
+    ShowTablesRectsType:         s32 = -1;
+    HighlightMonitorIdx:         s32 = -1;
+    HighlightViewportID:         ID = 0;
+    SettingsDiscardMonths:       s32 = 6;
+    SettingsHighlightOldEntries  := false;
+    ShowFontPreview              := true;
+}
+
+StackLevelInfo :: struct {
+    ID_:             ID;
+    QueryFrameCount: ImS8; // >= 1: Sub-query in progress
+    QuerySuccess:    bool; // Sub-query obtained result from DebugHookIdInfo()
+    DataType:        ImS8; // ImGuiDataType
+    DescOffset:      s32; // -1 or offset into parent's ResultsPathsBuf
+}
+
+DebugItemPathQuery :: struct {
+    MainID:         ID; // ID to query details for.
+    Active:         bool; // Used to disambiguate the case when ID == 0 and e.g. some code calls PushOverrideID(0).
+    Complete:       bool; // All sub-queries are finished (some may have failed).
+    Step:           ImS8; // -1: query stack + init Results, >= 0: filling individual stack level.
+    Results:        ImVector(StackLevelInfo);
+    ResultsDescBuf: TextBuffer;
+    ResultPathBuf:  TextBuffer;
+}
+
+// State for ID Stack tool queries
+IDStackTool :: struct {
+    OptHexEncodeNonAsciiChars: bool;
+    OptCopyToClipboardOnCtrlC: bool;
+    LastActiveFrame:           s32;
+    CopyToClipboardLastTime:   float;
+}
+
+//-----------------------------------------------------------------------------
+// [SECTION] Generic context hooks
+//-----------------------------------------------------------------------------
+ContextHookCallback :: #type (ctx: *ImGuiContext, hook: *ContextHook) -> void #c_call;
+ContextHookType :: enum u32 {
+    NewFramePre     :: 0;
+    NewFramePost    :: 1;
+    EndFramePre     :: 2;
+    EndFramePost    :: 3;
+    RenderPre       :: 4;
+    RenderPost      :: 5;
+    Shutdown        :: 6;
+    PendingRemoval_ :: 7;
+    ImGuiContextHookType_NewFramePre     :: NewFramePre;
+    ImGuiContextHookType_NewFramePost    :: NewFramePost;
+    ImGuiContextHookType_EndFramePre     :: EndFramePre;
+    ImGuiContextHookType_EndFramePost    :: EndFramePost;
+    ImGuiContextHookType_RenderPre       :: RenderPre;
+    ImGuiContextHookType_RenderPost      :: RenderPost;
+    ImGuiContextHookType_Shutdown        :: Shutdown;
+    ImGuiContextHookType_PendingRemoval_ :: PendingRemoval_;
+}
+
+ContextHook :: struct {
+    HookId:   ID; // A unique ID assigned by AddContextHook()
+    Type:     ContextHookType;
+    Owner:    ID;
+    Callback: ContextHookCallback;
+    UserData: *void;
+}
+
+DemoMarkerCallback :: #type (file: *u8, line: s32, section: *u8) -> void #c_call;
+
+/* Tell ImGui to put its normally global context into thread local storage. This ensures that
+our game and render threads can have totally independent imgui render pipelines */
+ImGuiContext :: struct #type_info_none {
+    Initialized:                        bool;
+    WithinFrameScope:                   bool; // Set by NewFrame(), cleared by EndFrame()
+    WithinFrameScopeWithImplicitWindow: bool; // Set by NewFrame(), cleared by EndFrame() when the implicit debug window has been pushed
+    TestEngineHookItems:                bool; // Will call test engine hooks: ImGuiTestEngineHook_ItemAdd(), ImGuiTestEngineHook_ItemInfo(), ImGuiTestEngineHook_Log()
+    FrameCount:                         s32;
+    FrameCountEnded:                    s32;
+    FrameCountPlatformEnded:            s32;
+    FrameCountRendered:                 s32;
+    Time:                               float64;
+    ContextName:                        [16] u8; // Storage for a context name (to facilitate debugging multi-context setups)
+    IO_:                                IO;
+    PlatformIO_:                        PlatformIO;
+    Style_:                             Style;
+    ConfigFlagsCurrFrame:               ConfigFlags; // = g.IO.ConfigFlags at the time of NewFrame()
+    ConfigFlagsLastFrame:               ConfigFlags;
+    FontAtlases:                        ImVector(*ImFontAtlas); // List of font atlases used by the context (generally only contains g.IO.Fonts aka the main font atlas)
+    Font:                               *ImFont; // Currently bound font. (== FontStack.back().Font)
+    FontBaked:                          *ImFontBaked; // Currently bound font at currently bound size. (== Font->GetFontBaked(FontSize))
+    FontSize:                           float; // Currently bound font size == line height (== FontSizeBase + externals scales applied in the UpdateCurrentFontSize() function).
+    FontSizeBase:                       float; // Font size before scaling == style.FontSizeBase == value passed to PushFont() when specified.
+    FontBakedScale:                     float; // == FontBaked->Size / FontSize. Scale factor over baked size. Rarely used nowadays, very often == 1.0f.
+    CurrentPixelDensity:                float; // Current font density. Used by all calls to GetFontBaked().
+    CurrentDpiScale:                    float; // Current window/viewport DpiScale == CurrentViewport->DpiScale
+    DrawListSharedData:                 ImDrawListSharedData;
+    WithinEndChildID:                   ID; // Set within EndChild()
+    WithinEndPopupID:                   ID; // Set within EndPopup()
+    TestEngine:                         *void; // Test engine user data
+
+    InputEventsQueue:                   ImVector(InputEvent); // Input events which will be trickled/written into IO structure.
+    InputEventsTrail:                   ImVector(InputEvent); // Past input events processed in NewFrame(). This is to allow domain-specific application to access e.g mouse/pen trail.
+    InputEventsNextMouseSource:         MouseSource;
+    InputEventsNextEventId:             ImU32;
+
+    Windows:                            ImVector(*Window); // Windows, sorted in display order, back to front
+    WindowsFocusOrder:                  ImVector(*Window); // Root windows, sorted in focus order, back to front.
+    WindowsTempSortBuffer:              ImVector(*Window); // Temporary buffer used in EndFrame() to reorder windows so parents are kept before their child
+    CurrentWindowStack:                 ImVector(WindowStackData);
+    WindowsById:                        Storage; // Map window's ImGuiID to ImGuiWindow*
+    WindowsActiveCount:                 s32; // Number of unique windows submitted by frame
+    WindowsBorderHoverPadding:          float; // Padding around resizable windows for which hovering on counts as hovering the window == ImMax(style.TouchExtraPadding, style.WindowBorderHoverPadding). This isn't so multi-dpi friendly.
+    DebugBreakInWindow:                 ID; // Set to break in Begin() call.
+    CurrentWindow:                      *Window; // Window being drawn into
+    HoveredWindow:                      *Window; // Window the mouse is hovering. Will typically catch mouse inputs.
+    HoveredWindowUnderMovingWindow:     *Window; // Hovered window ignoring MovingWindow. Only set if MovingWindow is set.
+    HoveredWindowBeforeClear:           *Window; // Window the mouse is hovering. Filled even with _NoMouse. This is currently useful for multi-context compositors.
+    MovingWindow:                       *Window; // Track the window we clicked on (in order to preserve focus). The actual window that is moved is generally MovingWindow->RootWindowDockTree.
+    WheelingWindow:                     *Window; // Track the window we started mouse-wheeling on. Until a timer elapse or mouse has moved, generally keep scrolling the same window even if during the course of scrolling the mouse ends up hovering a child window.
+    WheelingWindowRefMousePos:          ImVec2;
+    WheelingWindowStartFrame:           s32; // This may be set one frame before WheelingWindow is != NULL
+    WheelingWindowScrolledFrame:        s32;
+    WheelingWindowReleaseTimer:         float;
+    WheelingWindowWheelRemainder:       ImVec2;
+    WheelingAxisAvg:                    ImVec2;
+
+    MixedValueLabel:                    *u8; // Value replacement when displaying a mixed value. Default to "-" (Unreal uses "Multiple values", Unity uses "---"). May be interpreted as a format: must not contain single %. Set to NULL to display original value.
+    DebugDrawIdConflictsId:             ID; // Set when we detect multiple items with the same identifier
+    DebugHookIdInfoId:                  ID; // Will call core hooks: DebugHookIdInfo() from GetID functions, used by ID Stack Tool [next HoveredId/ActiveId to not pull in an extra cache-line]
+    HoveredId:                          ID; // Hovered widget, filled during the frame
+    HoveredIdPreviousFrame:             ID;
+    HoveredIdPreviousFrameItemCount:    s32; // Count numbers of items using the same ID as last frame's hovered id
+    HoveredIdTimer:                     float; // Measure contiguous hovering time
+    HoveredIdNotActiveTimer:            float; // Measure contiguous hovering time where the item has not been active
+    HoveredIdAllowOverlap:              bool;
+    HoveredIdIsDisabled:                bool; // At least one widget passed the rect test, but has been discarded by disabled flag or popup inhibit. May be true even if HoveredId == 0.
+    ItemUnclipByLog:                    bool; // Disable ItemAdd() clipping, essentially a memory-locality friendly copy of LogEnabled
+    AnyIdHasBeenEditedThisFrame:        bool;
+    ActiveId:                           ID; // Active widget
+    ActiveIdIsAlive:                    ID; // Active widget has been seen this frame (we can't use a bool as the ActiveId may change within the frame)
+    ActiveIdTimer:                      float;
+    ActiveIdIsJustActivated:            bool; // Set at the time of activation for one frame
+    ActiveIdWasSelected:                bool; // Active ID was selected at the time of activating
+    ActiveIdWasSoleSelected:            bool; // Active ID was sole selection at the time of activating
+    ActiveIdAllowOverlap:               bool; // Active widget allows another widget to steal active id (generally for overlapping widgets, but not always)
+    ActiveIdNoClearOnFocusLoss:         bool; // Disable losing active id if the active id window gets unfocused.
+    ActiveIdHasBeenPressedBefore:       bool; // Track whether the active id led to a press (this is to allow changing between PressOnClick and PressOnRelease without pressing twice). Used by range_select branch.
+    ActiveIdHasBeenEditedBefore:        bool; // Was the value associated to the widget Edited over the course of the Active state.
+    ActiveIdHasBeenEditedThisFrame:     bool;
+    ActiveIdFromShortcut:               bool;
+    ActiveIdMouseButton:                ImS8;
+    ActiveIdDisabledId:                 ID; // When clicking a disabled item we set ActiveId=window->MoveId to avoid interference with widget code. Actual item ID is stored here.
+    ActiveIdClickOffset:                ImVec2; // Clicked offset from upper-left corner, if applicable (currently only set by ButtonBehavior)
+    ActiveIdSource:                     InputSource; // Activating source: ImGuiInputSource_Mouse OR ImGuiInputSource_Keyboard OR ImGuiInputSource_Gamepad
+    ActiveIdWindow:                     *Window;
+    ActiveIdPreviousFrame:              ID;
+    DeactivatedItemData_:               DeactivatedItemData;
+    ActiveIdValueOnActivation:          DataTypeStorage; // Backup of initial value at the time of activation. ONLY SET BY SPECIFIC WIDGETS: DragXXX and SliderXXX.
+    LastActiveId:                       ID; // Store the last non-zero ActiveId, useful for animation.
+    LastActiveIdTimer:                  float; // Store the last non-zero ActiveId timer since the beginning of activation, useful for animation.
+    LastActiveIdWasSelected:            bool;
+    LastActiveIdWasSoleSelected:        bool;
+
+    LastKeyModsChangeTime:              float64; // Record the last time key mods changed (affect repeat delay when using shortcut logic)
+    LastKeyModsChangeFromNoneTime:      float64; // Record the last time key mods changed away from being 0 (affect repeat delay when using shortcut logic)
+    LastKeyboardKeyPressTime:           float64; // Record the last time a keyboard key (ignore mouse/gamepad ones) was pressed.
+    KeysMayBeCharInput:                 ImBitArrayForNamedKeys; // Lookup to tell if a key can emit char input, see IsKeyChordPotentiallyCharInput(). sizeof() = 20 bytes
+    KeysOwnerData:                      [155] KeyOwnerData;
+    KeysRoutingTable:                   KeyRoutingTable;
+    ActiveIdUsingNavDirMask:            ImU32; // Active widget will want to read those nav move requests (e.g. can activate a button and move away from it)
+    ActiveIdUsingAllKeyboardKeys:       bool; // Active widget will want to read all keyboard keys inputs. (this is a shortcut for not taking ownership of 100+ keys, frequently used by drag operations)
+    DebugBreakInShortcutRouting:        KeyChord; // Set to break in SetShortcutRouting()/Shortcut() calls.
+
+    CurrentFocusScopeId:                ID; // Value for currently appending items == g.FocusScopeStack.back(). Not to be mistaken with g.NavFocusScopeId.
+    CurrentItemFlags:                   ItemFlags; // Value for currently appending items == g.ItemFlagsStack.back()
+    DebugLocateId:                      ID; // Storage for DebugLocateItemOnHover() feature: this is read by ItemAdd() so we keep it in a hot/cached location
+    NextItemData_:                      NextItemData; // Storage for SetNextItem** functions
+    LastItemData_:                      LastItemData; // Storage for last submitted item (setup by ItemAdd)
+    NextWindowData_:                    NextWindowData; // Storage for SetNextWindow** functions
+    DebugShowGroupRects:                bool;
+    GcCompactAll:                       bool; // Request full GC
+
+    DebugFlashStyleColorIdx:            Col; // (Keep close to ColorStack to share cache line)
+    ColorStack:                         ImVector(ColorMod); // Stack for PushStyleColor()/PopStyleColor() - inherited by Begin()
+    StyleVarStack:                      ImVector(StyleMod); // Stack for PushStyleVar()/PopStyleVar() - inherited by Begin()
+    FontStack:                          ImVector(ImFontStackData); // Stack for PushFont()/PopFont() - inherited by Begin()
+    FocusScopeStack:                    ImVector(FocusScopeData); // Stack for PushFocusScope()/PopFocusScope() - inherited by BeginChild(), pushed into by Begin()
+    ItemFlagsStack:                     ImVector(ItemFlags); // Stack for PushItemFlag()/PopItemFlag() - inherited by Begin()
+    GroupStack:                         ImVector(GroupData); // Stack for BeginGroup()/EndGroup() - not inherited by Begin()
+    OpenPopupStack:                     ImVector(PopupData); // Which popups are open (persistent)
+    BeginPopupStack:                    ImVector(PopupData); // Which level of BeginPopup() we are in (reset every frame)
+    TreeNodeStack:                      ImVector(TreeNodeStackData); // Stack for TreeNode()
+
+    Viewports:                          ImVector(*ViewportP); // Active viewports (always 1+, and generally 1 unless multi-viewports are enabled). Each viewports hold their copy of ImDrawData.
+    CurrentViewport:                    *ViewportP; // We track changes of viewport (happening in Begin) so we can call Platform_OnChangedViewport()
+    MouseViewport:                      *ViewportP;
+    MouseLastHoveredViewport:           *ViewportP; // Last known viewport that was hovered by mouse (even if we are not hovering any viewport any more) + honoring the _NoInputs flag.
+    PlatformLastFocusedViewportId:      ID;
+    FallbackMonitor:                    PlatformMonitor; // Virtual monitor used as fallback if backend doesn't provide monitor information.
+    PlatformMonitorsFullWorkRect:       ImRect; // Bounding box of all platform monitors
+    ViewportCreatedCount:               s32; // Unique sequential creation counter (mostly for testing/debugging)
+    PlatformWindowsCreatedCount:        s32; // Unique sequential creation counter (mostly for testing/debugging)
+    ViewportFocusedStampCount:          s32; // Every time the front-most window changes, we stamp its viewport with an incrementing counter
+
+    NavCursorVisible:                   bool; // Nav focus cursor/rectangle is visible? We hide it after a mouse click. We show it after a nav move.
+    NavHighlightItemUnderNav:           bool; // Disable mouse hovering highlight. Highlight navigation focused item instead of mouse hovered item.
+
+    NavMousePosDirty:                   bool; // When set we will update mouse position if io.ConfigNavMoveSetMousePos is set (not enabled by default)
+    NavIdIsAlive:                       bool; // Nav widget has been seen this frame ~~ NavRectRel is valid
+    NavId:                              ID; // Focused item for navigation
+    NavWindow:                          *Window; // Focused window for navigation. Could be called 'FocusedWindow'
+    NavFocusScopeId:                    ID; // Focused focus scope (e.g. selection code often wants to "clear other items" when landing on an item of the same scope)
+    NavLayer_:                          NavLayer; // Focused layer (main scrolling layer, or menu/title bar layer)
+    NavIdItemFlags:                     ItemFlags;
+    NavActivateId:                      ID; // ~~ (g.ActiveId == 0) && (IsKeyPressed(ImGuiKey_Space) || IsKeyDown(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_NavGamepadActivate)) ? NavId : 0, also set when calling ActivateItemByID()
+    NavActivateDownId:                  ID; // ~~ IsKeyDown(ImGuiKey_Space) || IsKeyDown(ImGuiKey_Enter) || IsKeyDown(ImGuiKey_NavGamepadActivate) ? NavId : 0
+    NavActivatePressedId:               ID; // ~~ IsKeyPressed(ImGuiKey_Space) || IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_NavGamepadActivate) ? NavId : 0 (no repeat)
+    NavActivateFlags:                   ActivateFlags;
+    NavFocusRoute:                      ImVector(FocusScopeData); // Reversed copy focus scope stack for NavId (should contains NavFocusScopeId). This essentially follow the window->ParentWindowForFocusRoute chain.
+    NavHighlightActivatedId:            ID;
+    NavHighlightActivatedTimer:         float;
+    NavOpenContextMenuItemId:           ID;
+    NavOpenContextMenuWindowId:         ID;
+    NavNextActivateId:                  ID; // Set by ActivateItemByID(), queued until next frame.
+    NavNextActivateFlags:               ActivateFlags;
+    NavInputSource:                     InputSource; // Keyboard or Gamepad mode? THIS CAN ONLY BE ImGuiInputSource_Keyboard or ImGuiInputSource_Gamepad
+    NavLastValidSelectionUserData:      SelectionUserData; // Last valid data passed to SetNextItemSelectionUser(), or -1. For current window. Not reset when focusing an item that doesn't have selection data.
+    NavCursorHideFrames:                ImS8;
+
+    NavAnyRequest:                      bool; // ~~ NavMoveRequest || NavInitRequest this is to perform early out in ItemAdd()
+    NavInitRequest:                     bool; // Init request for appearing window to select first item
+    NavInitRequestFromMove:             bool;
+    NavInitResult:                      NavItemData; // Init request result (first item of the window, or one for which SetItemDefaultFocus() was called)
+    NavMoveSubmitted:                   bool; // Move request submitted, will process result on next NewFrame()
+    NavMoveScoringItems:                bool; // Move request submitted, still scoring incoming items
+    NavMoveForwardToNextFrame:          bool;
+    NavMoveFlags_:                      NavMoveFlags;
+    NavMoveScrollFlags:                 ScrollFlags;
+    NavMoveKeyMods:                     KeyChord;
+    NavMoveDir:                         Dir; // Direction of the move request (left/right/up/down)
+    NavMoveDirForDebug:                 Dir;
+    NavMoveClipDir:                     Dir; // FIXME-NAV: Describe the purpose of this better. Might want to rename?
+    NavScoringRect:                     ImRect; // Rectangle used for scoring, in screen space. Based of window->NavRectRel[], modified for directional navigation scoring.
+    NavScoringNoClipRect:               ImRect; // Some nav operations (such as PageUp/PageDown) enforce a region which clipper will attempt to always keep submitted. Unset/invalid if inverted.
+    NavScoringDebugCount:               s32; // Metrics for debugging
+    NavTabbingDir:                      s32; // Generally -1 or +1, 0 when tabbing without a nav id
+    NavTabbingCounter:                  s32; // >0 when counting items for tabbing
+    NavMoveResultLocal:                 NavItemData; // Best move request candidate within NavWindow
+    NavMoveResultLocalVisible:          NavItemData; // Best move request candidate within NavWindow that are mostly visible (when using ImGuiNavMoveFlags_AlsoScoreVisibleSet flag)
+    NavMoveResultOther:                 NavItemData; // Best move request candidate within NavWindow's flattened hierarchy (when using ImGuiWindowFlags_NavFlattened flag)
+    NavTabbingResultFirst:              NavItemData; // First tabbing request candidate within NavWindow and flattened hierarchy
+
+    NavJustMovedFromFocusScopeId:       ID; // Just navigated from this focus scope id (result of a successfully MoveRequest).
+    NavJustMovedToId:                   ID; // Just navigated to this id (result of a successfully MoveRequest).
+    NavJustMovedToFocusScopeId:         ID; // Just navigated to this focus scope id (result of a successfully MoveRequest).
+    NavJustMovedToKeyMods:              KeyChord;
+    NavJustMovedToIsTabbing:            bool; // Copy of ImGuiNavMoveFlags_IsTabbing. Maybe we should store whole flags.
+    NavJustMovedToIsInit:               bool; // Copy of ImGuiNavMoveFlags_IsTabbing. Maybe we should store whole flags.
+    NavJustMovedToHasSelectionData:     bool; // Copy of move result's ItemFlags & ImGuiItemFlags_HasSelectionUserData). Maybe we should just store ImGuiNavItemData.
+
+    ConfigNavEnableTabbing:             bool; // = true. Enable tabbing (Tab, Shift+Tab). PLEASE LET ME KNOW IF YOU USE THIS.
+    ConfigNavWindowingWithGamepad:      bool; // = true. Enable Ctrl+Tab by holding ImGuiKey_GamepadFaceLeft (== ImGuiKey_NavGamepadMenu). When false, the button may still be used to toggle Menu layer.
+    ConfigNavWindowingKeyNext:          KeyChord; // = ImGuiMod_Ctrl | ImGuiKey_Tab (or ImGuiMod_Super | ImGuiKey_Tab on OS X). Set to 0 to disable. For reconfiguration (see #4828)
+    ConfigNavWindowingKeyPrev:          KeyChord; // = ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_Tab (or ImGuiMod_Super | ImGuiMod_Shift | ImGuiKey_Tab on OS X)
+
+    NavWindowingTarget:                 *Window; // Target window when doing Ctrl+Tab (or Pad Menu + FocusPrev/Next), this window is temporarily displayed top-most!
+    NavWindowingTargetAnim:             *Window; // Record of last valid NavWindowingTarget until DimBgRatio and NavWindowingHighlightAlpha becomes 0.0f, so the fade-out can stay on it.
+    NavWindowingListWindow:             *Window; // Internal window actually listing the Ctrl+Tab contents
+    NavWindowingTimer:                  float;
+    NavWindowingHighlightAlpha:         float;
+    NavWindowingInputSource:            InputSource;
+    NavWindowingToggleLayer:            bool; // Set while Alt or GamepadMenu is held, may be cleared by other operations, and processed when releasing the key.
+    NavWindowingToggleKey:              Key; // Keyboard/gamepad key used when toggling to menu layer.
+    NavWindowingAccumDeltaPos:          ImVec2;
+    NavWindowingAccumDeltaSize:         ImVec2;
+
+    DimBgRatio:                         float; // 0.0..1.0 animation when fading in a dimming background (for modal window and Ctrl+Tab list)
+
+    // Drag and Drop
+    DragDropActive:                     bool;
+    DragDropWithinSource:               bool; // Set when within a BeginDragDropXXX/EndDragDropXXX block for a drag source.
+    DragDropWithinTarget:               bool; // Set when within a BeginDragDropXXX/EndDragDropXXX block for a drag target.
+    DragDropSourceFlags:                DragDropFlags;
+    DragDropSourceFrameCount:           s32;
+    DragDropMouseButton:                s32;
+    DragDropPayload:                    Payload;
+    DragDropTargetRect:                 ImRect; // Store rectangle of current target candidate (we favor small targets when overlapping)
+    DragDropTargetClipRect:             ImRect; // Store ClipRect at the time of item's drawing
+    DragDropTargetId:                   ID;
+    DragDropTargetFullViewport:         ID;
+    DragDropAcceptFlagsCurr:            DragDropFlags;
+    DragDropAcceptFlagsPrev:            DragDropFlags;
+    DragDropAcceptIdCurrRectSurface:    float; // Target item surface (we resolve overlapping targets by prioritizing the smaller surface)
+    DragDropAcceptIdCurr:               ID; // Target item id (set at the time of accepting the payload)
+    DragDropAcceptIdPrev:               ID; // Target item id from previous frame (we need to store this to allow for overlapping drag and drop targets)
+    DragDropAcceptFrameCount:           s32; // Last time a target expressed a desire to accept the source
+    DragDropHoldJustPressedId:          ID; // Set when holding a payload just made ButtonBehavior() return a press.
+    DragDropPayloadBufHeap:             ImVector(u8); // We don't expose the ImVector<> directly, ImGuiPayload only holds pointer+size
+    DragDropPayloadBufLocal:            [16] u8; // Local buffer for small payloads
+
+    // Clipper
+    ClipperTempDataStacked:             s32;
+    ClipperTempData:                    ImVector(ListClipperData);
+
+    // Tables
+    CurrentTable:                       *Table;
+    DebugBreakInTable:                  ID; // Set to break in BeginTable() call.
+    TablesTempDataStacked:              s32; // Temporary table data size (because we leave previous instances undestructed, we generally don't use TablesTempData.Size)
+    TablesTempData:                     ImVector(TableTempData); // Temporary table data (buffers reused/shared across instances, support nesting)
+    Tables:                             ImPool(Table); // Persistent table data
+    TablesLastTimeActive:               ImVector(float); // Last used timestamp of each tables (SOA, for efficient GC)
+    DrawChannelsTempMergeBuffer:        ImVector(ImDrawChannel);
+
+    // Tab bars
+    CurrentTabBar:                      *TabBar;
+    TabBars:                            ImPool(TabBar);
+    CurrentTabBarStack:                 ImVector(PtrOrIndex);
+    ShrinkWidthBuffer:                  ImVector(ShrinkWidthItem);
+
+    // Multi-Select state
+    BoxSelectState_:                    BoxSelectState;
+    CurrentMultiSelect:                 *MultiSelectTempData;
+    MultiSelectTempDataStacked:         s32; // Temporary multi-select data size (because we leave previous instances undestructed, we generally don't use MultiSelectTempData.Size)
+    MultiSelectTempData_:               ImVector(MultiSelectTempData);
+    MultiSelectStorage:                 ImPool(MultiSelectState);
+
+    // Hover Delay system
+    HoverItemDelayId:                   ID;
+    HoverItemDelayIdPreviousFrame:      ID;
+    HoverItemDelayTimer:                float; // Currently used by IsItemHovered()
+    HoverItemDelayClearTimer:           float; // Currently used by IsItemHovered(): grace time before g.TooltipHoverTimer gets cleared.
+    HoverItemUnlockedStationaryId:      ID; // Mouse has once been stationary on this item. Only reset after departing the item.
+    HoverWindowUnlockedStationaryId:    ID; // Mouse has once been stationary on this window. Only reset after departing the window.
+
+    // Mouse state
+    MouseCursor_:                       MouseCursor;
+    MouseStationaryTimer:               float; // Time the mouse has been stationary (with some loose heuristic)
+    MouseLastValidPos:                  ImVec2;
+
+    // Widget state
+    InputTextState_:                    InputTextState;
+    InputTextLineIndex:                 TextIndex; // Temporary storage
+    InputTextDeactivatedState_:         InputTextDeactivatedState;
+    InputTextPasswordFontBackupBaked:   ImFontBaked;
+    InputTextPasswordFontBackupFlags:   ImFontFlags;
+    InputTextReactivateId:              ID; // ID of InputText to reactivate on next frame (for io.ConfigInputTextEnterKeepActive behavior)
+    TempInputId:                        ID; // Temporary text input when using Ctrl+Click on a slider, etc.
+    DataTypeZeroValue:                  DataTypeStorage; // 0 for all data types
+    BeginMenuDepth:                     s32;
+    BeginComboDepth:                    s32;
+    ColorEditCurrentID:                 ID; // Set temporarily while inside of the parent-most ColorEdit4/ColorPicker4 (because they call each others).
+    ColorEditSavedID:                   ID; // ID we are saving/restoring HS for
+    ColorEditSavedHue:                  float; // Backup of last Hue associated to LastColor, so we can restore Hue in lossy RGB<>HSV round trips
+    ColorEditSavedSat:                  float; // Backup of last Saturation associated to LastColor, so we can restore Saturation in lossy RGB<>HSV round trips
+    ColorEditSavedColor:                ImU32; // RGB value with alpha set to 0.
+    ColorPickerRef:                     ImVec4; // Initial/reference color at the time of opening the color picker.
+    ComboPreviewData_:                  ComboPreviewData;
+    WindowResizeBorderExpectedRect:     ImRect; // Expected border rect, switch to relative edit if moving
+    WindowResizeRelativeMode:           bool;
+    ScrollbarSeekMode:                  s16; // 0: scroll to clicked location, -1/+1: prev/next page.
+    ScrollbarClickDeltaToGrabCenter:    float; // When scrolling to mouse location: distance between mouse and center of grab box, normalized in parent space.
+    SliderGrabClickOffset:              float;
+    SliderCurrentAccum:                 float; // Accumulated slider delta when using navigation controls.
+    SliderCurrentAccumDirty:            bool; // Has the accumulated slider delta changed since last time we tried to apply it?
+    DragCurrentAccumDirty:              bool;
+    DragCurrentAccum:                   float; // Accumulator for dragging modification. Always high-precision, not rounded by end-user precision settings
+    DragSpeedDefaultRatio:              float; // If speed == 0.0f, uses (max-min) * DragSpeedDefaultRatio
+    DisabledAlphaBackup:                float; // Backup for style.Alpha for BeginDisabled()
+    DisabledStackSize:                  s16;
+    TooltipOverrideCount:               s16;
+    TooltipPreviousWindow:              *Window; // Window of last tooltip submitted during the frame
+    ClipboardHandlerData:               ImVector(u8); // If no custom clipboard handler is defined
+    MenusIdSubmittedThisFrame:          ImVector(ID); // A list of menu IDs that were rendered at least once
+    TypingSelectState_:                 TypingSelectState; // State for GetTypingSelectRequest()
+
+    PlatformImeData_:                   PlatformImeData; // Data updated by current frame. Will be applied at end of the frame. For some backends, this is required to have WantVisible=true in order to receive text message.
+    PlatformImeDataPrev:                PlatformImeData; // Previous frame data. When changed we call the platform_io.Platform_SetImeDataFn() handler.
+
+    UserTextures:                       ImVector(*ImTextureData); // List of textures created/managed by user or third-party extension. Automatically appended into platform_io.Textures[].
+    DockContext_:                       DockContext;
+    DockNodeWindowMenuHandler:          #type (ctx: *ImGuiContext, node: *DockNode, tab_bar: *TabBar) -> void #c_call;
+
+    SessionDate:                        PackedDate; // Packed copy of platform_io.Platform_SessionDate, when valid.
+    SettingsLoaded:                     bool;
+    SettingsDirtyTimer:                 float; // Save .ini Settings to memory when time reaches zero
+    SettingsIniData:                    TextBuffer; // In memory .ini settings
+    SettingsHandlers:                   ImVector(SettingsHandler); // List of .ini settings handlers
+    SettingsWindows:                    ImChunkStream(WindowSettings); // ImGuiWindow .ini settings entries
+    SettingsTables:                     ImChunkStream(TableSettings); // ImGuiTable .ini settings entries
+
+    Hooks:                              ImVector(ContextHook); // Hooks for extensions (e.g. test engine)
+    HookIdNext:                         ID; // Next available HookId
+    DemoMarkerCallback_:                DemoMarkerCallback;
+
+    // Localization
+    LocalizationTable:                  [15] *u8;
+
+    LogEnabled:                         bool; // Currently capturing
+    LogLineFirstItem:                   bool;
+    LogFlags_:                          LogFlags; // Capture flags/type
+    LogWindow:                          *Window;
+    LogFile:                            ImFileHandle; // If != NULL log to stdout/ file
+    LogBuffer:                          TextBuffer; // Accumulation buffer when log to clipboard. This is pointer so our GImGui static constructor doesn't call heap allocators.
+    LogNextPrefix:                      *u8; // See comment in LogSetNextTextDecoration(): doesn't copy underlying data, use carefully!
+    LogNextSuffix:                      *u8;
+    LogLinePosY:                        float;
+    LogDepthRef:                        s32;
+    LogDepthToExpand:                   s32;
+    LogDepthToExpandDefault:            s32; // Default/stored value for LogDepthMaxExpand if not specified in the LogXXX function call.
+
+    ErrorCallback_:                     ErrorCallback; // = NULL. May be exposed in public API eventually.
+    ErrorCallbackUserData:              *void; // = NULL
+    ErrorTooltipLockedPos:              ImVec2;
+    ErrorFirst:                         bool;
+    ErrorCountCurrentFrame:             s32; // [Internal] Number of errors submitted this frame.
+    StackSizesInNewFrame:               ErrorRecoveryState; // [Internal]
+    StackSizesInBeginForCurrentWindow:  *ErrorRecoveryState; // [Internal]
+
+    DebugDrawIdConflictsCount:          s32; // Locked count (preserved when holding Ctrl)
+    DebugLogFlags_:                     DebugLogFlags;
+    DebugLogBuf:                        TextBuffer;
+    DebugLogIndex:                      TextIndex;
+    DebugLogSkippedErrors:              s32;
+    DebugLogAutoDisableFlags:           DebugLogFlags;
+    DebugLogAutoDisableFrames:          ImU8;
+    DebugLocateFrames:                  ImU8; // For DebugLocateItemOnHover(). This is used together with DebugLocateId which is in a hot/cached spot above.
+    DebugBreakInLocateId:               bool; // Debug break in ItemAdd() call for g.DebugLocateId.
+    DebugBreakKeyChord:                 KeyChord; // = ImGuiKey_Pause
+    DebugBeginReturnValueCullDepth:     ImS8; // Cycle between 0..9 then wrap around.
+    DebugItemPickerActive:              bool; // Item picker is active (started with DebugStartItemPicker())
+    DebugItemPickerMouseButton:         ImU8;
+    DebugItemPickerBreakId:             ID; // Will call IM_DEBUG_BREAK() when encountering this ID
+    DebugFlashStyleColorTime:           float;
+    DebugFlashStyleColorBackup:         ImVec4;
+    DebugMetricsConfig:                 MetricsConfig;
+    DebugItemPathQuery_:                DebugItemPathQuery;
+    DebugIDStackTool:                   IDStackTool;
+    DebugAllocInfo_:                    DebugAllocInfo;
+    DebugHoveredDockNode:               *DockNode; // Hovered dock node.
+
+    FramerateSecPerFrame:               [60] float; // Calculate estimate of framerate for user over the last 60 frames..
+    FramerateSecPerFrameIdx:            s32;
+    FramerateSecPerFrameCount:          s32;
+    FramerateSecPerFrameAccum:          float;
+    WantCaptureMouseNextFrame:          s32; // Explicit capture override via SetNextFrameWantCaptureMouse()/SetNextFrameWantCaptureKeyboard(). Default to -1.
+    WantCaptureKeyboardNextFrame:       s32; // "
+    WantTextInputNextFrame:             s32; // Copied in EndFrame() from g.PlatformImeData.WantTextInput. Needs to be set for some backends (SDL3) to emit character inputs.
+    TempBuffer:                         ImVector(u8); // Temporary text buffer
+    TempKeychordName:                   [64] u8;
+
+    Constructor :: (this: *ImGuiContext, shared_font_atlas: *ImFontAtlas) -> void #cpp_method #foreign imgui "_ZN12ImGuiContextC1EP11ImFontAtlas";
+    Destructor_Base :: (this: *ImGuiContext) -> void #cpp_method #foreign imgui "_ZN12ImGuiContextD2Ev";
+    Destructor :: (this: *ImGuiContext) -> void #cpp_method #foreign imgui "_ZN12ImGuiContextD1Ev";
+}
+
+// Transient per-window data, reset at the beginning of the frame. This used to be called ImGuiDrawContext, hence the DC variable name in ImGuiWindow.
+// (That's theory, in practice the delimitation between ImGuiWindow and ImGuiWindowTempData is quite tenuous and could be reconsidered..)
+// (This doesn't need a constructor because we zero-clear it as part of ImGuiWindow and all frame-temporary data are setup on Begin)
+WindowTempData :: struct {
+    CursorPos:                     ImVec2; // Current emitting position, in absolute coordinates.
+    CursorPosPrevLine:             ImVec2;
+    CursorStartPos:                ImVec2; // Initial position after Begin(), generally ~ window position + WindowPadding.
+    CursorMaxPos:                  ImVec2; // Used to implicitly calculate ContentSize at the beginning of next frame, for scrolling range and auto-resize. Always growing during the frame.
+    IdealMaxPos:                   ImVec2; // Used to implicitly calculate ContentSizeIdeal at the beginning of next frame, for auto-resize only. Always growing during the frame.
+    CurrLineSize:                  ImVec2;
+    PrevLineSize:                  ImVec2;
+    CurrLineTextBaseOffset:        float; // Baseline offset (0.0f by default on a new line, generally == style.FramePadding.y when a framed item has been added).
+    PrevLineTextBaseOffset:        float;
+    IsSameLine:                    bool;
+    IsSetPos:                      bool;
+    Indent:                        ImVec1; // Indentation / start position from left of window (increased by TreePush/TreePop, etc.)
+    ColumnsOffset:                 ImVec1; // Offset to the current column (if ColumnsCurrent > 0). FIXME: This and the above should be a stack to allow use cases like Tree->Column->Tree. Need revamp columns API.
+    GroupOffset:                   ImVec1;
+    CursorStartPosLossyness:       ImVec2; // Record the loss of precision of CursorStartPos due to really large scrolling amount. This is used by clipper to compensate and fix the most common use case of large scroll area.
+
+    NavLayerCurrent:               NavLayer; // Current layer, 0..31 (we currently only use 0..1)
+    NavLayersActiveMask:           s16; // Which layers have been written to (result from previous frame)
+    NavLayersActiveMaskNext:       s16; // Which layers have been written to (accumulator for current frame)
+    NavIsScrollPushableX:          bool; // Set when current work location may be scrolled horizontally when moving left / right. This is generally always true UNLESS within a column.
+    NavHideHighlightOneFrame:      bool;
+    NavWindowHasScrollY:           bool; // Set per window when scrolling can be used (== ScrollMax.y > 0.0f)
+
+    MenuBarAppending:              bool; // FIXME: Remove this
+    MenuBarOffset:                 ImVec2; // MenuBarOffset.x is sort of equivalent of a per-layer CursorPos.x, saved/restored as we switch to the menu bar. The only situation when MenuBarOffset.y is > 0 if when (SafeAreaPadding.y > FramePadding.y), often used on TVs.
+    MenuColumns_:                  MenuColumns; // Simplified columns storage for menu items measurement
+    TreeDepth:                     s32; // Current tree depth.
+    TreeHasStackDataDepthMask:     ImU32; // Store whether given depth has ImGuiTreeNodeStackData data. Could be turned into a ImU64 if necessary. Sync any changes with TREE_NODE_MAX_DEPTH/TREE_NODE_GET_DEPTH_MASK!
+    TreeRecordsClippedNodesY2Mask: ImU32; // Store whether we should keep recording Y2. Cleared when passing clip max. Equivalent TreeHasStackDataDepthMask value should always be set.
+    ChildWindows:                  ImVector(*Window);
+    StateStorage:                  *Storage; // Current persistent per-window storage (store e.g. tree node open/close state)
+    CurrentColumns:                *OldColumns; // Current columns set
+    CurrentTableIdx:               s32; // Current table index (into g.Tables)
+    LayoutType_:                   LayoutType;
+    ParentLayoutType:              LayoutType; // Layout type of parent window at the time of Begin()
+    ModalDimBgColor:               ImU32;
+
+    // Status flags
+    WindowItemStatusFlags:         ItemStatusFlags;
+    ChildItemStatusFlags:          ItemStatusFlags;
+    DockTabItemStatusFlags:        ItemStatusFlags;
+    DockTabItemRect:               ImRect;
+
+    ItemWidth:                     float; // Current item width (>0.0: width in pixels, <0.0: align xx pixels to the right of window).
+    ItemWidthDefault:              float;
+    TextWrapPos:                   float; // Current text wrap pos.
+    ItemWidthStack:                ImVector(float); // Store item widths to restore (attention: .back() is not == ItemWidth)
+    TextWrapPosStack:              ImVector(float); // Store text wrap pos to restore (attention: .back() is not == TextWrapPos)
+}
+
+// Storage for one window
+Window :: struct {
+    Ctx:                                *ImGuiContext; // Parent UI context (needs to be set explicitly by parent).
+    Name:                               *u8; // Window name, owned by the window.
+    ID_:                                ID; // == ImHashStr(Name)
+    Flags:                              WindowFlags; // See enum ImGuiWindowFlags_
+    FlagsPreviousFrame:                 WindowFlags; // See enum ImGuiWindowFlags_
+    ChildFlags_:                        ChildFlags; // Set when window is a child window. See enum ImGuiChildFlags_
+    WindowClass_:                       WindowClass; // Advanced users only. Set with SetNextWindowClass()
+    Viewport:                           *ViewportP; // Always set in Begin(). Inactive windows may have a NULL value here if their viewport was discarded.
+    ViewportId:                         ID; // We backup the viewport id (since the viewport may disappear or never be created if the window is inactive)
+    ViewportPos:                        ImVec2; // We backup the viewport position (since the viewport may disappear or never be created if the window is inactive)
+    ViewportAllowPlatformMonitorExtend: s32; // Reset to -1 every frame (index is guaranteed to be valid between NewFrame..EndFrame), only used in the Appearing frame of a tooltip/popup to enforce clamping to a given monitor
+    Pos:                                ImVec2; // Position (always rounded-up to nearest pixel)
+    Size:                               ImVec2; // Current size (==SizeFull or collapsed title bar size)
+    SizeFull:                           ImVec2; // Size when non collapsed
+    ContentSize:                        ImVec2; // Size of contents/scrollable client area (calculated from the extents reach of the cursor) from previous frame. Does not include window decoration or window padding.
+    ContentSizeIdeal:                   ImVec2;
+    ContentSizeExplicit:                ImVec2; // Size of contents/scrollable client area explicitly request by the user via SetNextWindowContentSize().
+    WindowPadding:                      ImVec2; // Window padding at the time of Begin().
+    WindowRounding:                     float; // Window rounding at the time of Begin(). May be clamped lower to avoid rendering artifacts with title bar, menu bar etc.
+    WindowBorderSize:                   float; // Window border size at the time of Begin().
+    TitleBarHeight:                     float; // Note that those used to be function before 2024/05/28. If you have old code calling TitleBarHeight() you can change it to TitleBarHeight.
+    MenuBarHeight:                      float; // Note that those used to be function before 2024/05/28. If you have old code calling TitleBarHeight() you can change it to TitleBarHeight.
+    DecoOuterSizeX1:                    float; // Left/Up offsets. Sum of non-scrolling outer decorations (X1 generally == 0.0f. Y1 generally = TitleBarHeight + MenuBarHeight). Locked during Begin().
+    DecoOuterSizeY1:                    float; // Left/Up offsets. Sum of non-scrolling outer decorations (X1 generally == 0.0f. Y1 generally = TitleBarHeight + MenuBarHeight). Locked during Begin().
+    DecoOuterSizeX2:                    float; // Right/Down offsets (X2 generally == ScrollbarSize.x, Y2 == ScrollbarSizes.y).
+    DecoOuterSizeY2:                    float; // Right/Down offsets (X2 generally == ScrollbarSize.x, Y2 == ScrollbarSizes.y).
+    DecoInnerSizeX1:                    float; // Applied AFTER/OVER InnerRect. Specialized for Tables as they use specialized form of clipping and frozen rows/columns are inside InnerRect (and not part of regular decoration sizes).
+    DecoInnerSizeY1:                    float; // Applied AFTER/OVER InnerRect. Specialized for Tables as they use specialized form of clipping and frozen rows/columns are inside InnerRect (and not part of regular decoration sizes).
+    NameBufLen:                         s32; // Size of buffer storing Name. May be larger than strlen(Name)!
+    MoveId:                             ID; // == window->GetID("#MOVE")
+    TabId:                              ID; // == window->GetID("#TAB")
+    ChildId:                            ID; // ID of corresponding item in parent window (for navigation to return from child window to parent window)
+    PopupId:                            ID; // ID in the popup stack when this window is used as a popup/menu (because we use generic Name/ID for recycling)
+    Scroll:                             ImVec2;
+    ScrollMax:                          ImVec2;
+    ScrollTarget:                       ImVec2; // target scroll position. stored as cursor position with scrolling canceled out, so the highest point is always 0.0f. (FLT_MAX for no change)
+    ScrollTargetCenterRatio:            ImVec2; // 0.0f = scroll so that target position is at top, 0.5f = scroll so that target position is centered
+    ScrollTargetEdgeSnapDist:           ImVec2; // 0.0f = no snapping, >0.0f snapping threshold
+    ScrollbarSizes:                     ImVec2; // Size taken by each scrollbars on their smaller axis. Pay attention! ScrollbarSizes.x == width of the vertical scrollbar, ScrollbarSizes.y = height of the horizontal scrollbar.
+    ScrollbarX:                         bool; // Are scrollbars visible?
+    ScrollbarY:                         bool; // Are scrollbars visible?
+    ScrollbarXStabilizeEnabled:         bool; // Was ScrollbarX previously auto-stabilized?
+    ScrollbarXStabilizeToggledHistory:  ImU8; // Used to stabilize scrollbar visibility in case of feedback loops
+    ViewportOwned:                      bool;
+    Active:                             bool; // Set to true on Begin(), unless Collapsed
+    WasActive:                          bool;
+    WriteAccessed:                      bool; // Set to true when any widget access the current window
+    Collapsed:                          bool; // Set when collapsing window to become only title-bar
+    WantCollapseToggle:                 bool;
+    SkipItems:                          bool; // Set when items can safely be all clipped (e.g. window not visible or collapsed)
+    SkipRefresh:                        bool; // [EXPERIMENTAL] Reuse previous frame drawn contents, Begin() returns false.
+    Appearing:                          bool; // Set during the frame where the window is appearing (or re-appearing)
+    Hidden:                             bool; // Do not display (== HiddenFrames*** > 0)
+    IsFallbackWindow:                   bool; // Set on the "Debug##Default" window.
+    IsExplicitChild:                    bool; // Set when passed _ChildWindow, left to false by BeginDocked()
+    HasCloseButton:                     bool; // Set when the window has a close button (p_open != NULL)
+    ResizeBorderHovered:                s8; // Current border being hovered for resize (-1: none, otherwise 0-3)
+    ResizeBorderHeld:                   s8; // Current border being held for resize (-1: none, otherwise 0-3)
+    BeginCount:                         s16; // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/End pairs)
+    BeginCountPreviousFrame:            s16; // Number of Begin() during the previous frame
+    BeginOrderWithinParent:             s16; // Begin() order within immediate parent window, if we are a child window. Otherwise 0.
+    BeginOrderWithinContext:            s16; // Begin() order within entire imgui context. This is mostly used for debugging submission order related issues.
+    FocusOrder:                         s16; // Order within WindowsFocusOrder[], altered when windows are focused.
+    AutoPosLastDirection:               Dir;
+    AutoFitFramesX:                     ImS8;
+    AutoFitFramesY:                     ImS8;
+    AutoFitOnlyGrows:                   bool;
+    HiddenFramesCanSkipItems:           ImS8; // Hide the window for N frames
+    HiddenFramesCannotSkipItems:        ImS8; // Hide the window for N frames while allowing items to be submitted so we can measure their size
+    HiddenFramesForRenderOnly:          ImS8; // Hide the window until frame N at Render() time only
+    DisableInputsFrames:                ImS8; // Disable window interactions for N frames
+    __bitfield:                         [5] u8;
+    /* 
+        BgClickFlags: WindowBgClickFlags; /* 8 bits */ // Configure behavior of click+dragging on window bg/void or over items. Default sets by io.ConfigWindowsMoveFromTitleBarOnly. If you use this please report in #3379.
+        SetWindowPosAllowFlags: Cond; /* 8 bits */ // store acceptable condition flags for SetNextWindowPos() use.
+        SetWindowSizeAllowFlags: Cond; /* 8 bits */ // store acceptable condition flags for SetNextWindowSize() use.
+        SetWindowCollapsedAllowFlags: Cond; /* 8 bits */ // store acceptable condition flags for SetNextWindowCollapsed() use.
+        SetWindowDockAllowFlags: Cond; /* 8 bits */ // store acceptable condition flags for SetNextWindowDock() use.;
+    */
+
+    SetWindowPosVal:                    ImVec2; // store window position when using a non-zero Pivot (position set needs to be processed when we know the window size)
+    SetWindowPosPivot:                  ImVec2; // store window pivot for positioning. ImVec2(0, 0) when positioning from top-left corner; ImVec2(0.5f, 0.5f) for centering; ImVec2(1, 1) for bottom right.
+
+    IDStack:                            ImVector(ID); // ID stack. ID are hashes seeded with the value at the top of the stack. (In theory this should be in the TempData structure)
+    DC:                                 WindowTempData; // Temporary per-window data, reset at the beginning of the frame. This used to be called ImGuiDrawContext, hence the "DC" variable name.
+
+    OuterRectClipped:                   ImRect; // == Window->Rect() just after setup in Begin(). == window->Rect() for root window.
+    InnerRect:                          ImRect; // Inner rectangle (omit title bar, menu bar, scroll bar)
+    InnerClipRect:                      ImRect; // == InnerRect shrunk by WindowPadding*0.5f on each side, clipped within viewport or parent clip rect.
+    WorkRect:                           ImRect; // Initially covers the whole scrolling region. Reduced by containers e.g columns/tables when active. Shrunk by WindowPadding*1.0f on each side. This is meant to replace ContentRegionRect over time (from 1.71+ onward).
+    ParentWorkRect:                     ImRect; // Backup of WorkRect before entering a container such as columns/tables. Used by e.g. SpanAllColumns functions to easily access. Stacked containers are responsible for maintaining this. // FIXME-WORKRECT: Could be a stack?
+    ClipRect:                           ImRect; // Current clipping/scissoring rectangle, evolve as we are using PushClipRect(), etc. == DrawList->clip_rect_stack.back().
+    ContentRegionRect:                  ImRect; // FIXME: This is currently confusing/misleading. It is essentially WorkRect but not handling of scrolling. We currently rely on it as right/bottom aligned sizing operation need some size to rely on.
+    HitTestHoleSize:                    ImVec2ih; // Define an optional rectangular hole where mouse will pass-through the window.
+    HitTestHoleOffset:                  ImVec2ih;
+
+    LastFrameActive:                    s32; // Last frame number the window was Active.
+    LastFrameJustFocused:               s32; // Last frame number the window was made Focused.
+    LastTimeActive:                     float; // Last timestamp the window was Active (using float as we don't need high precision there)
+    StateStorage:                       Storage;
+    ColumnsStorage:                     ImVector(OldColumns);
+    FontWindowScale:                    float; // User scale multiplier per-window, via SetWindowFontScale()
+    FontWindowScaleParents:             float;
+    FontRefSize:                        float; // This is a copy of window->CalcFontSize() at the time of Begin(), trying to phase out CalcFontSize() especially as it may be called on non-current window.
+    SettingsOffset:                     s32; // Offset into SettingsWindows[] (offsets are always valid as we only grow the array from the back)
+
+    DrawList:                           *ImDrawList; // == &DrawListInst (for backward compatibility reason with code using imgui_internal.h we keep this a pointer)
+    DrawListInst:                       ImDrawList;
+    ParentWindow:                       *Window; // If we are a child _or_ popup _or_ docked window, this is pointing to our parent. Otherwise NULL.
+    ParentWindowInBeginStack:           *Window;
+    RootWindow:                         *Window; // Point to ourself or first ancestor that is not a child window. Doesn't cross through popups/dock nodes.
+    RootWindowPopupTree:                *Window; // Point to ourself or first ancestor that is not a child window. Cross through popups parent<>child.
+    RootWindowDockTree:                 *Window; // Point to ourself or first ancestor that is not a child window. Cross through dock nodes.
+    RootWindowForTitleBarHighlight:     *Window; // Point to ourself or first ancestor which will display TitleBgActive color when this window is active.
+    RootWindowForNav:                   *Window; // Point to ourself or first ancestor which doesn't have the NavFlattened flag.
+    ParentWindowForFocusRoute:          *Window; // Set to manual link a window to its logical parent so that Shortcut() chain are honored (e.g. Tool linked to Document)
+
+    NavLastChildNavWindow:              *Window; // When going to the menu bar, we remember the child window we came from. (This could probably be made implicit if we kept g.Windows sorted by last focused including child window.)
+    NavLastIds:                         [2] ID; // Last known NavId for this window, per layer (0/1)
+    NavRectRel:                         [2] ImRect; // Reference rectangle, in window relative space
+    NavPreferredScoringPosRel:          [2] ImVec2; // Preferred X/Y position updated when moving on a given axis, reset to FLT_MAX.
+    NavRootFocusScopeId:                ID; // Focus Scope ID at the time of Begin()
+
+    MemoryDrawListIdxCapacity:          s32; // Backup of last idx/vtx count, so when waking up the window we can preallocate and avoid iterative alloc/copy
+    MemoryDrawListVtxCapacity:          s32;
+    MemoryCompacted:                    bool; // Set when window extraneous data have been garbage collected
+
+    DockIsActive:                       bool; /* 1 bits */ // When docking artifacts are actually visible. When this is set, DockNode is guaranteed to be != NULL. ~~ (DockNode != NULL) && (DockNode->Windows.Size > 1).
+    DockNodeIsVisible:                  bool #align 1; /* 1 bits */
+    DockTabIsVisible:                   bool #align 1; /* 1 bits */ // Is our window visible this frame? ~~ is the corresponding tab selected?
+    DockTabWantClose:                   bool #align 1; /* 1 bits */
+    DockOrder:                          s16; // Order of the last time the window was visible within its DockNode. This is used to reorder windows that are reappearing on the same frame. Same value between windows that were active and windows that were none are possible.
+    DockStyle:                          WindowDockStyle;
+    DockNode_:                          *DockNode; // Which node are we docked into. Important: Prefer testing DockIsActive in many cases as this will still be set when the dock node is hidden.
+    DockNodeAsHost:                     *DockNode; // Which node are we owning (for parent windows)
+    DockId:                             ID; // Backup of last valid DockNode->ID, so single window remember their dock node id even when they are not bound any more
+
+    Constructor :: (this: *Window, _context: *ImGuiContext, name: *u8) -> void #cpp_method #foreign imgui "_ZN11ImGuiWindowC1EP12ImGuiContextPKc";
+    Destructor_Base :: (this: *Window) -> void #cpp_method #foreign imgui "_ZN11ImGuiWindowD2Ev";
+    Destructor :: (this: *Window) -> void #cpp_method #foreign imgui "_ZN11ImGuiWindowD1Ev";
+
+    GetID :: (this: *Window, str: *u8, str_end: *u8 = null) -> ID #cpp_method #foreign imgui "_ZN11ImGuiWindow5GetIDEPKcS1_";
+    GetID :: (this: *Window, str: string) -> ID #no_context {
+        return GetID(this, str.data, str.data + str.count);
+    }
+    GetID :: (this: *Window, ptr: *void) -> ID #cpp_method #foreign imgui "_ZN11ImGuiWindow5GetIDEPKv";
+    GetID :: (this: *Window, n: s32) -> ID #cpp_method #foreign imgui "_ZN11ImGuiWindow5GetIDEi";
+    GetIDFromPos :: (this: *Window, p_abs: *ImVec2) -> ID #cpp_method #foreign imgui "_ZN11ImGuiWindow12GetIDFromPosERK6ImVec2";
+    GetIDFromPos :: (this: *Window, p_abs: ImVec2) -> ID #no_context {
+        return GetIDFromPos(this, *p_abs);
+    }
+    GetIDFromRectangle :: (this: *Window, r_abs: *ImRect) -> ID #cpp_method #foreign imgui "_ZN11ImGuiWindow18GetIDFromRectangleERK6ImRect";
+    GetIDFromRectangle :: (this: *Window, r_abs: ImRect) -> ID #no_context {
+        return GetIDFromRectangle(this, *r_abs);
+    }
+
+    _:                                  [0] u64; // Force ImGuiWindow alignment to match the C/C++ equivalent
+}
+
+set_BgClickFlags :: (fields: *Window, value: WindowBgClickFlags) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_BgClickFlags :: (fields: Window) -> WindowBgClickFlags {
+    return (cast,no_check(WindowBgClickFlags) (fields.__bitfield[0] & 0b1111_1111));
+}
+
+set_SetWindowPosAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_SetWindowPosAllowFlags :: (fields: Window) -> Cond {
+    return (cast,no_check(Cond) (fields.__bitfield[1] & 0b1111_1111));
+}
+
+set_SetWindowSizeAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[2] = (fields.__bitfield[2] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_SetWindowSizeAllowFlags :: (fields: Window) -> Cond {
+    return (cast,no_check(Cond) (fields.__bitfield[2] & 0b1111_1111));
+}
+
+set_SetWindowCollapsedAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[3] = (fields.__bitfield[3] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_SetWindowCollapsedAllowFlags :: (fields: Window) -> Cond {
+    return (cast,no_check(Cond) (fields.__bitfield[3] & 0b1111_1111));
+}
+
+set_SetWindowDockAllowFlags :: (fields: *Window, value: Cond) {
+    MASK0: u8 : 0b1111_1111;
+    fields.__bitfield[4] = (fields.__bitfield[4] & ~MASK0) | ((cast,no_check(u8) value) & MASK0);
+}
+get_SetWindowDockAllowFlags :: (fields: Window) -> Cond {
+    return (cast,no_check(Cond) (fields.__bitfield[4] & 0b1111_1111));
+}
+
+
+// Extend ImGuiTabBarFlags_
+TabBarFlagsPrivate_ :: enum u32 {
+    TabBarFlags_DockNode     :: 1048576;
+    TabBarFlags_IsFocused    :: 2097152;
+    TabBarFlags_SaveSettings :: 4194304;
+
+    ImGuiTabBarFlags_DockNode     :: TabBarFlags_DockNode;
+    ImGuiTabBarFlags_IsFocused    :: TabBarFlags_IsFocused;
+    ImGuiTabBarFlags_SaveSettings :: TabBarFlags_SaveSettings;
+}
+
+// Extend ImGuiTabItemFlags_
+TabItemFlagsPrivate_ :: enum u32 {
+    TabItemFlags_SectionMask_  :: 192;
+    TabItemFlags_NoCloseButton :: 1048576;
+    TabItemFlags_Button        :: 2097152;
+    TabItemFlags_Invisible     :: 4194304;
+    TabItemFlags_Unsorted      :: 8388608;
+
+    ImGuiTabItemFlags_SectionMask_  :: TabItemFlags_SectionMask_;
+    ImGuiTabItemFlags_NoCloseButton :: TabItemFlags_NoCloseButton;
+    ImGuiTabItemFlags_Button        :: TabItemFlags_Button;
+    ImGuiTabItemFlags_Invisible     :: TabItemFlags_Invisible;
+    ImGuiTabItemFlags_Unsorted      :: TabItemFlags_Unsorted;
+}
+
+// Storage for one active tab item (sizeof() 48 bytes)
+TabItem :: struct {
+    ID_:               ID;
+    Flags:             TabItemFlags;
+    Window_:           *Window; // When TabItem is part of a DockNode's TabBar, we hold on to a window.
+    LastFrameVisible:  s32;
+    LastFrameSelected: s32; // This allows us to infer an ordered list of the last activated tabs with little maintenance
+    Offset:            float; // Position relative to beginning of tab bar
+    Width:             float; // Width currently displayed
+    ContentWidth:      float; // Width of label + padding, stored during BeginTabItem() call (misnamed as "Content" would normally imply width of label only)
+    RequestedWidth:    float; // Width optionally requested by caller, -1.0f is unused
+    NameOffset:        ImS32; // When Window==NULL, offset to name within parent ImGuiTabBar::TabsNames
+    BeginOrder:        ImS16; // BeginTabItem() order, used to re-order tabs after toggling ImGuiTabBarFlags_Reorderable
+    IndexDuringLayout: ImS16; // Index only used during TabBarLayout(). Tabs gets reordered so 'Tabs[n].IndexDuringLayout == n' but may mismatch during additions.
+    WantClose:         bool; // Marked as closed by SetTabItemClosed()
+}
+
+// Storage for a tab bar (sizeof() 160 bytes)
+TabBar :: struct {
+    Window_:                         *Window;
+    Tabs:                            ImVector(TabItem);
+    Flags:                           TabBarFlags;
+    ID_:                             ID; // Zero for tab-bars used by docking
+    SelectedTabId:                   ID; // Selected tab/window
+    NextSelectedTabId:               ID; // Next selected tab/window. Will also trigger a scrolling animation
+    NextScrollToTabId:               ID;
+    VisibleTabId:                    ID; // Can occasionally be != SelectedTabId (e.g. when previewing contents for Ctrl+Tab preview)
+    CurrFrameVisible:                s32;
+    PrevFrameVisible:                s32;
+    BarRect:                         ImRect;
+    BarRectPrevWidth:                float; // Backup of previous width. When width change we enforce keep horizontal scroll on focused tab.
+    CurrTabsContentsHeight:          float;
+    PrevTabsContentsHeight:          float; // Record the height of contents submitted below the tab bar
+    WidthAllTabs:                    float; // Actual width of all tabs (locked during layout)
+    WidthAllTabsIdeal:               float; // Ideal width if all tabs were visible and not clipped
+    ScrollingAnim:                   float;
+    ScrollingTarget:                 float;
+    ScrollingTargetDistToVisibility: float;
+    ScrollingSpeed:                  float;
+    ScrollingRectMinX:               float;
+    ScrollingRectMaxX:               float;
+    SeparatorMinX:                   float;
+    SeparatorMaxX:                   float;
+    ReorderRequestTabId:             ID;
+    ReorderRequestOffset:            ImS16;
+    BeginCount:                      ImS8;
+    WantLayout:                      bool;
+    VisibleTabWasSubmitted:          bool;
+    TabsAddedNew:                    bool; // Set to true when a new tab item or button has been added to the tab bar during last frame
+    ScrollButtonEnabled:             bool;
+    TabsActiveCount:                 ImS16; // Number of tabs submitted this frame.
+    LastTabItemIdx:                  ImS16; // Index of last BeginTabItem() tab for use by EndTabItem()
+    ItemSpacingY:                    float;
+    FramePadding:                    ImVec2; // style.FramePadding locked at the time of BeginTabBar()
+    BackupCursorPos:                 ImVec2;
+    TabsNames:                       TextBuffer; // For non-docking tab bar we re-append names in a contiguous buffer.
+
+    Constructor :: (this: *TabBar) -> void #cpp_method #foreign imgui "_ZN11ImGuiTabBarC1Ev";
+}
+
+// [Internal] sizeof() ~ 120
+// We use the terminology "Enabled" to refer to a column that is not Hidden by user/api.
+// We use the terminology "Clipped" to refer to a column that is out of sight because of scrolling/clipping.
+// This is in contrast with some user-facing api such as IsItemVisible() / IsRectVisible() which use "Visible" to mean "not clipped".
+TableColumn :: struct {
+    Flags:                    TableColumnFlags; // Flags after some patching (not directly same as provided by user). See ImGuiTableColumnFlags_
+    WidthGiven:               float; // Final/actual width visible == (MaxX - MinX), locked in TableUpdateLayout(). May be > WidthRequest to honor minimum width, may be < WidthRequest to honor shrinking columns down in tight space.
+    MinX:                     float; // Absolute positions
+    MaxX:                     float;
+    WidthRequest:             float; // Master width absolute value when !(Flags & _WidthStretch). When Stretch this is derived every frame from StretchWeight in TableUpdateLayout()
+    WidthAuto:                float; // Automatic width
+    WidthMax:                 float; // Maximum width (FIXME: overwritten by each instance)
+    StretchWeight:            float; // Master width weight when (Flags & _WidthStretch). Often around ~1.0f initially.
+    InitStretchWeightOrWidth: float; // Value passed to TableSetupColumn(). For Width it is a content width (_without padding_).
+    ClipRect:                 ImRect; // Clipping rectangle for the column
+    ID_:                      ID; // Hash of column name (ignoring top of ID stack), used for .ini persistence when available.
+    UserData:                 ID; // (Optional) User data value passed to TableSetupColumn()
+    WorkMinX:                 float; // Contents region min ~(MinX + CellPaddingX + CellSpacingX1) == cursor start position when entering column
+    WorkMaxX:                 float; // Contents region max ~(MaxX - CellPaddingX - CellSpacingX2)
+    ItemWidth:                float; // Current item width for the column, preserved across rows
+    ContentMaxXFrozen:        float; // Contents maximum position for frozen rows (apart from headers), from which we can infer content width.
+    ContentMaxXUnfrozen:      float;
+    ContentMaxXHeadersUsed:   float; // Contents maximum position for headers rows (regardless of freezing). TableHeader() automatically softclip itself + report ideal desired size, to avoid creating extraneous draw calls
+    ContentMaxXHeadersIdeal:  float;
+    NameOffset:               ImS16; // Offset into parent ColumnsNames[]
+    DisplayOrder:             TableColumnIdx; // Index within Table's IndexToDisplayOrder[] (column may be reordered by users)
+    IndexWithinEnabledSet:    TableColumnIdx; // Index within enabled/visible set (<= IndexToDisplayOrder)
+    PrevEnabledColumn:        TableColumnIdx; // Index of prev enabled/visible column within Columns[], -1 if first enabled/visible column
+    NextEnabledColumn:        TableColumnIdx; // Index of next enabled/visible column within Columns[], -1 if last enabled/visible column
+    SortOrder:                TableColumnIdx; // Index of this column within sort specs, -1 if not sorting on this column, 0 for single-sort, may be >0 on multi-sort
+    DrawChannelCurrent:       TableDrawChannelIdx; // Index within DrawSplitter.Channels[]
+    DrawChannelFrozen:        TableDrawChannelIdx; // Draw channels for frozen rows (often headers)
+    DrawChannelUnfrozen:      TableDrawChannelIdx; // Draw channels for unfrozen rows
+    IsEnabled:                bool; // IsUserEnabled && (Flags & ImGuiTableColumnFlags_Disabled) == 0
+    IsUserEnabled:            bool; // Is the column not marked Hidden by the user? (unrelated to being off view, e.g. clipped by scrolling).
+    IsUserEnabledNextFrame:   bool;
+    IsVisibleX:               bool; // Is actually in view (e.g. overlapping the host window clipping rectangle, not scrolled).
+    IsVisibleY:               bool;
+    IsRequestOutput:          bool; // Return value for TableSetColumnIndex() / TableNextColumn(): whether we request user to output contents or not.
+    IsSkipItems:              bool; // Do we want item submissions to this column to be completely ignored (no layout will happen).
+    IsPreserveWidthAuto:      bool; /* 1 bits */
+    IsJustCreated:            bool #align 1; /* 1 bits */
+    IsLoadedSettings:         bool #align 1; /* 1 bits */
+    IsNeedReconcileSrc:       bool #align 1; /* 1 bits */
+    IsNeedReconcileDst:       bool #align 1; /* 1 bits */
+    NavLayerCurrent:          ImS8; // ImGuiNavLayer in 1 byte
+    __bitfield:               [2] u8;
+    /* 
+        AutoFitQueue: ImU8; /* 4 bits */ // Queue of 4 values for the next 4 frames to request auto-fit
+        CannotSkipItemsQueue: ImU8; /* 4 bits */ // Queue of 4 values for the next 4 frames to disable Clipped/SkipItem
+        SortDirection: ImU8; /* 2 bits */ // ImGuiSortDirection_Ascending or ImGuiSortDirection_Descending
+        SortDirectionsAvailCount: ImU8; /* 2 bits */ // Number of available sort directions (0 to 3)
+        SortDirectionsAvailMask: ImU8; /* 4 bits */ // Mask of available sort directions (1-bit each);
+    */
+
+    SortDirectionsAvailList:  ImU8; // Ordered list of available sort directions (2-bits each, total 8-bits)
+}
+
+set_AutoFitQueue :: (fields: *TableColumn, value: ImU8) {
+    MASK0: u8 : 0b1111;
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | (value & MASK0);
+}
+get_AutoFitQueue :: (fields: TableColumn) -> ImU8 {
+    return (fields.__bitfield[0] & 0b1111);
+}
+
+set_CannotSkipItemsQueue :: (fields: *TableColumn, value: ImU8) {
+    MASK0: u8 : (0b1111 << 4);
+    fields.__bitfield[0] = (fields.__bitfield[0] & ~MASK0) | ((value << 4) & MASK0);
+}
+get_CannotSkipItemsQueue :: (fields: TableColumn) -> ImU8 {
+    return ((fields.__bitfield[0] & (0b1111 << 4)) >> 4);
+}
+
+set_SortDirection :: (fields: *TableColumn, value: ImU8) {
+    MASK0: u8 : 0b11;
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK0) | (value & MASK0);
+}
+get_SortDirection :: (fields: TableColumn) -> ImU8 {
+    return (fields.__bitfield[1] & 0b11);
+}
+
+set_SortDirectionsAvailCount :: (fields: *TableColumn, value: ImU8) {
+    MASK0: u8 : (0b11 << 2);
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK0) | ((value << 2) & MASK0);
+}
+get_SortDirectionsAvailCount :: (fields: TableColumn) -> ImU8 {
+    return ((fields.__bitfield[1] & (0b11 << 2)) >> 2);
+}
+
+set_SortDirectionsAvailMask :: (fields: *TableColumn, value: ImU8) {
+    MASK0: u8 : (0b1111 << 4);
+    fields.__bitfield[1] = (fields.__bitfield[1] & ~MASK0) | ((value << 4) & MASK0);
+}
+get_SortDirectionsAvailMask :: (fields: TableColumn) -> ImU8 {
+    return ((fields.__bitfield[1] & (0b1111 << 4)) >> 4);
+}
+
+
+// Passed to TableSetupColumn()
+// sizeof() ~ 24+120 bytes
+TableReconcileColumnData :: struct {
+    // Setup data
+    ID_:               ID;
+    NameOffset:        ImS16;
+    Flags:             TableColumnFlags;
+    InitWidthOrWeight: float;
+    UserData:          ID;
+
+    ColumnNewIdx:      TableColumnIdx; // Index in the current table.
+    ColumnOldIdx:      TableColumnIdx; // Index in the previous frame table.
+    ColumnOldData:     TableColumn; // Full backup of the column. Could be avoided by storing 1 of them and applying reconcile in the right order. Not worth bothering.
+}
+
+// Transient cell data stored per row.
+// sizeof() ~ 6 bytes
+TableCellData :: struct {
+    BgColor: ImU32; // Actual color
+    Column:  TableColumnIdx; // Column number
+}
+
+// Parameters for TableAngledHeadersRowEx()
+// This may end up being refactored for more general purpose.
+// sizeof() ~ 12 bytes
+TableHeaderData :: struct {
+    Index:     TableColumnIdx; // Column index
+    TextColor: ImU32;
+    BgColor0:  ImU32;
+    BgColor1:  ImU32;
+}
+
+// Per-instance data that needs preserving across frames (seemingly most others do not need to be preserved aside from debug needs. Does that means they could be moved to ImGuiTableTempData?)
+// sizeof() ~ 24 bytes
+TableInstanceData :: struct {
+    TableInstanceID:         ID;
+    LastOuterHeight:         float; // Outer height from last frame
+    LastTopHeadersRowHeight: float; // Height of first consecutive header rows from last frame (FIXME: this is used assuming consecutive headers are in same frozen set)
+    LastFrozenHeight:        float; // Height of frozen section from last frame
+    HoveredRowLast:          s32; // Index of row which was hovered last frame.
+    HoveredRowNext:          s32; // Index of row hovered this frame, set after encountering it.
+}
+
+// sizeof() ~ 592 bytes + heap allocs described in TableBeginInitMemory()
+Table :: struct {
+    ID_:                        ID;
+    Flags:                      TableFlags;
+    RawData:                    *void; // Single allocation to hold Columns[], DisplayOrderToIndex[], and RowCellData[]
+    TempData:                   *TableTempData; // Transient data while table is active. Point within g.CurrentTableStack[]
+    Columns:                    ImSpan(TableColumn); // Point within RawData[]
+    DisplayOrderToIndex:        ImSpan(TableColumnIdx); // Point within RawData[]. Store display order of columns (when not reordered, the values are 0...Count-1)
+    RowCellData:                ImSpan(TableCellData); // Point within RawData[]. Store cells background requests for current row.
+    EnabledMaskByDisplayOrder:  ImBitArrayPtr; // Column DisplayOrder -> IsEnabled map
+    EnabledMaskByIndex:         ImBitArrayPtr; // Column Index -> IsEnabled map (== not hidden by user/api) in a format adequate for iterating column without touching cold data
+    VisibleMaskByIndex:         ImBitArrayPtr; // Column Index -> IsVisibleX|IsVisibleY map (== not hidden by user/api && not hidden by scrolling/cliprect)
+    SettingsLoadedFlags:        TableFlags; // Which data were loaded from the .ini file (e.g. when order is not altered we won't save order)
+    SettingsOffset:             s32; // Offset in g.SettingsTables
+    LastFrameActive:            s32;
+    ColumnsCount:               s32; // Number of columns declared in BeginTable()
+    CurrentRow:                 s32;
+    CurrentColumn:              s32;
+    InstanceCurrent:            ImS16; // Count of BeginTable() calls with same ID in the same frame (generally 0). This is a little bit similar to BeginCount for a window, but multiple tables with the same ID are multiple tables, they are just synced.
+    InstanceInteracted:         ImS16; // Mark which instance (generally 0) of the same ID is being interacted with
+    RowPosY1:                   float;
+    RowPosY2:                   float;
+    RowMinHeight:               float; // Height submitted to TableNextRow()
+    RowCellPaddingY:            float; // Top and bottom padding. Reloaded during row change.
+    RowTextBaseline:            float;
+    RowIndentOffsetX:           float;
+    __bitfield:                 TableRowFlags;
+    /* 
+        RowFlags: TableRowFlags; /* 16 bits */ // Current row flags, see ImGuiTableRowFlags_
+        LastRowFlags: TableRowFlags; /* 16 bits */;
+    */
+
+    RowBgColorCounter:          s32; // Counter for alternating background colors (can be fast-forwarded by e.g clipper), not same as CurrentRow because header rows typically don't increase this.
+    RowBgColor:                 [2] ImU32; // Background color override for current row.
+    BorderColorStrong:          ImU32;
+    BorderColorLight:           ImU32;
+    BorderX1:                   float;
+    BorderX2:                   float;
+    HostIndentX:                float;
+    MinColumnWidth:             float;
+    OuterPaddingX:              float;
+    CellPaddingX:               float; // Padding from each borders. Locked in BeginTable()/Layout.
+    CellSpacingX1:              float; // Spacing between non-bordered cells. Locked in BeginTable()/Layout.
+    CellSpacingX2:              float;
+    InnerWidth:                 float; // User value passed to BeginTable(), see comments at the top of BeginTable() for details.
+    ColumnsGivenWidth:          float; // Sum of current column width
+    ColumnsAutoFitWidth:        float; // Sum of ideal column width in order nothing to be clipped, used for auto-fitting and content width submission in outer window
+    ColumnsStretchSumWeights:   float; // Sum of weight of all enabled stretching columns
+    ResizedColumnNextWidth:     float;
+    ResizeLockMinContentsX2:    float; // Lock minimum contents width while resizing down in order to not create feedback loops. But we allow growing the table.
+    RefScale:                   float; // Reference scale to be able to rescale columns on font/dpi changes.
+    AngledHeadersHeight:        float; // Set by TableAngledHeadersRow(), used in TableUpdateLayout()
+    AngledHeadersSlope:         float; // Set by TableAngledHeadersRow(), used in TableUpdateLayout()
+    OuterRect:                  ImRect; // Note: for non-scrolling table, OuterRect.Max.y is often FLT_MAX until EndTable(), unless a height has been specified in BeginTable().
+    InnerRect:                  ImRect; // InnerRect but without decoration. As with OuterRect, for non-scrolling tables, InnerRect.Max.y is "
+    WorkRect:                   ImRect;
+    InnerClipRect:              ImRect;
+    BgClipRect:                 ImRect; // We use this to cpu-clip cell background color fill, evolve during the frame as we cross frozen rows boundaries
+    Bg0ClipRectForDrawCmd:      ImRect; // Actual ImDrawCmd clip rect for BG0/1 channel. This tends to be == OuterWindow->ClipRect at BeginTable() because output in BG0/BG1 is cpu-clipped
+    Bg2ClipRectForDrawCmd:      ImRect; // Actual ImDrawCmd clip rect for BG2 channel. This tends to be a correct, tight-fit, because output to BG2 are done by widgets relying on regular ClipRect.
+    HostClipRect:               ImRect; // This is used to check if we can eventually merge our columns draw calls into the current draw call of the current window.
+    HostBackupInnerClipRect:    ImRect; // Backup of InnerWindow->ClipRect during PushTableBackground()/PopTableBackground()
+    OuterWindow:                *Window; // Parent window for the table
+    InnerWindow:                *Window; // Window holding the table data (== OuterWindow or a child window)
+    ColumnsNames:               TextBuffer; // Contiguous buffer holding columns names
+    DrawSplitter:               *ImDrawListSplitter; // Shortcut to TempData->DrawSplitter while in table. Isolate draw commands per columns to avoid switching clip rect constantly
+    InstanceDataFirst:          TableInstanceData;
+    InstanceDataExtra:          ImVector(TableInstanceData); // FIXME-OPT: Using a small-vector pattern would be good.
+    SortSpecs:                  TableSortSpecs; // Public facing sorts specs, this is what we return in TableGetSortSpecs()
+    SortSpecsMulti:             ImVector(TableColumnSortSpecs); // FIXME-OPT: Using a small-vector pattern would be good.
+    SortSpecsSingle:            TableColumnSortSpecs;
+    SortSpecsCount:             TableColumnIdx;
+    ColumnsEnabledCount:        TableColumnIdx; // Number of enabled columns (<= ColumnsCount)
+    ColumnsEnabledFixedCount:   TableColumnIdx; // Number of enabled columns using fixed width (<= ColumnsCount)
+    DeclColumnsCount:           TableColumnIdx; // Count calls to TableSetupColumn()
+    AngledHeadersCount:         TableColumnIdx; // Count columns with angled headers
+    HoveredColumnBody:          TableColumnIdx; // Index of column whose visible region is being hovered. Important: == ColumnsCount when hovering empty region after the right-most column!
+    HoveredColumnBorder:        TableColumnIdx; // Index of column whose right-border is being hovered (for resizing).
+    HighlightColumnHeader:      TableColumnIdx; // Index of column which should be highlighted.
+    AutoFitSingleColumn:        TableColumnIdx; // Index of single column requesting auto-fit.
+    ResizedColumn:              TableColumnIdx; // Index of column being resized. Reset when InstanceCurrent==0.
+    LastResizedColumn:          TableColumnIdx; // Index of column being resized from previous frame.
+    HeldHeaderColumn:           TableColumnIdx; // Index of column header being held.
+    LastHeldHeaderColumn:       TableColumnIdx; // Index of column header being held from previous frame.
+    ReorderColumn:              TableColumnIdx; // Index of column being reordered. (not cleared)
+    ReorderColumnDstOrder:      TableColumnIdx; // Requested display order of column being reordered.
+    LeftMostEnabledColumn:      TableColumnIdx; // Index of left-most non-hidden column.
+    RightMostEnabledColumn:     TableColumnIdx; // Index of right-most non-hidden column.
+    LeftMostStretchedColumn:    TableColumnIdx; // Index of left-most stretched column.
+    RightMostStretchedColumn:   TableColumnIdx; // Index of right-most stretched column.
+    ContextPopupColumn:         TableColumnIdx; // Column right-clicked on, of -1 if opening context menu from a neutral/empty spot
+    FreezeRowsRequest:          TableColumnIdx; // Requested frozen rows count
+    FreezeRowsCount:            TableColumnIdx; // Actual frozen row count (== FreezeRowsRequest, or == 0 when no scrolling offset)
+    FreezeColumnsRequest:       TableColumnIdx; // Requested frozen columns count
+    FreezeColumnsCount:         TableColumnIdx; // Actual frozen columns count (== FreezeColumnsRequest, or == 0 when no scrolling offset)
+    RowCellDataCurrent:         TableColumnIdx; // Index of current RowCellData[] entry in current row
+    DummyDrawChannel:           TableDrawChannelIdx; // Redirect non-visible columns here.
+    Bg2DrawChannelCurrent:      TableDrawChannelIdx; // For Selectable() and other widgets drawing across columns after the freezing line. Index within DrawSplitter.Channels[]
+    Bg2DrawChannelUnfrozen:     TableDrawChannelIdx;
+    NavLayer:                   ImS8; // ImGuiNavLayer at the time of BeginTable().
+    IsLayoutLocked:             bool; // Set by TableUpdateLayout() which is called when beginning the first row.
+    IsInsideRow:                bool; // Set when inside TableBeginRow()/TableEndRow().
+    IsNewTable:                 bool;
+    IsInitializing:             bool;
+    IsReconcileMode:            bool;
+    IsSortSpecsDirty:           bool;
+    IsUsingHeaders:             bool; // Set when the first row had the ImGuiTableRowFlags_Headers flag.
+    IsContextPopupOpen:         bool; // Set when default context menu is open (also see: ContextPopupColumn, InstanceInteracted).
+    DisableDefaultContextMenu:  bool; // Disable default context menu. You may submit your own using TableBeginContextMenuPopup()/EndPopup()
+    IsSettingsRequestLoad:      bool;
+    IsSettingsDirty:            bool; // Set when table settings have changed and needs to be reported into ImGuiTableSettings data.
+    IsDefaultDisplayOrder:      bool; // Set when display order is unchanged from default (DisplayOrder contains 0...Count-1)
+    IsDefaultVisibility:        bool; // Set when enabled/visibility is unchanged from default
+    IsResetAllRequest:          bool; // Set to queue a call to TableResetSettings() in BeginTable()
+    IsResetDisplayOrderRequest: bool;
+    IsResetVisibilityRequest:   bool;
+    IsUnfrozenRows:             bool; // Set when we got past the frozen row.
+    IsDefaultSizingPolicy:      bool; // Set if user didn't explicitly set a sizing policy in BeginTable()
+    IsActiveIdAliveBeforeTable: bool;
+    IsActiveIdInTable:          bool;
+    HasScrollbarYCurr:          bool; // Whether ANY instance of this table had a vertical scrollbar during the current frame.
+    HasScrollbarYPrev:          bool; // Whether ANY instance of this table had a vertical scrollbar during the previous.
+    MemoryCompacted:            bool;
+    HostSkipItems:              bool; // Backup of InnerWindow->SkipItem at the end of BeginTable(), because we will overwrite InnerWindow->SkipItem on a per-column basis
+}
+
+set_RowFlags :: (fields: *Table, value: TableRowFlags) {
+    MASK0: TableRowFlags : 0b1111_1111_1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_RowFlags :: (fields: Table) -> TableRowFlags {
+    return (fields.__bitfield & 0b1111_1111_1111_1111);
+}
+
+set_LastRowFlags :: (fields: *Table, value: TableRowFlags) {
+    MASK0: TableRowFlags : (0b1111_1111_1111_1111 << 16);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | ((value << 16) & MASK0);
+}
+get_LastRowFlags :: (fields: Table) -> TableRowFlags {
+    return ((fields.__bitfield & (0b1111_1111_1111_1111 << 16)) >> 16);
+}
+
+
+// Transient data that are only needed between BeginTable() and EndTable(), those buffers are shared (1 per level of stacked table).
+// - Accessing those requires chasing an extra pointer so for very frequently used data we leave them in the main table structure.
+// - We also leave out of this structure data that tend to be particularly useful for debugging/metrics.
+// FIXME-TABLE: more transient data could be stored in a stacked ImGuiTableTempData: e.g. SortSpecs.
+// sizeof() ~ 176 bytes.
+TableTempData :: struct {
+    WindowID:                     ID; // Shortcut to g.Tables[TableIndex]->OuterWindow->ID.
+    TableIndex:                   s32; // Index in g.Tables.Buf[] pool
+    LastTimeActive:               float; // Last timestamp this structure was used
+    AngledHeadersExtraWidth:      float; // Used in EndTable()
+    AngledHeadersRequests:        ImVector(TableHeaderData); // Used in TableAngledHeadersRow() // FIXME: Single instance is enough?
+
+    ReconcileColumnsRequests:     ImVector(TableReconcileColumnData); // Used in TableSetupColumn(), TableUpdateLayout(). Cleared every frame.
+    OldColumnsRawData:            *void; // Used in BeginTable() -> TableUpdateLayout() when resizing.
+    OldColumnsData:               ImSpan(TableColumn);
+
+    UserOuterSize:                ImVec2; // outer_size.x passed to BeginTable()
+    DrawSplitter:                 ImDrawListSplitter;
+
+    HostBackupWorkRect:           ImRect; // Backup of InnerWindow->WorkRect at the end of BeginTable()
+    HostBackupParentWorkRect:     ImRect; // Backup of InnerWindow->ParentWorkRect at the end of BeginTable()
+    HostBackupPrevLineSize:       ImVec2; // Backup of InnerWindow->DC.PrevLineSize at the end of BeginTable()
+    HostBackupCurrLineSize:       ImVec2; // Backup of InnerWindow->DC.CurrLineSize at the end of BeginTable()
+    HostBackupCursorMaxPos:       ImVec2; // Backup of InnerWindow->DC.CursorMaxPos at the end of BeginTable()
+    HostBackupColumnsOffset:      ImVec1; // Backup of OuterWindow->DC.ColumnsOffset at the end of BeginTable()
+    HostBackupItemWidth:          float; // Backup of OuterWindow->DC.ItemWidth at the end of BeginTable()
+    HostBackupItemWidthStackSize: s32; //Backup of OuterWindow->DC.ItemWidthStack.Size at the end of BeginTable()
+}
+
+// sizeof() ~ 16
+TableColumnSettings :: struct {
+    WidthOrWeight: float;
+    ID_:           ID;
+    Index:         TableColumnIdx;
+    DisplayOrder:  TableColumnIdx;
+    SortOrder:     TableColumnIdx;
+    __bitfield:    ImU8;
+    /* 
+        SortDirection: ImU8; /* 2 bits */
+        IsEnabled: ImS8; /* 2 bits */ // "Visible" in .ini file
+        IsStretch: ImU8; /* 1 bits */;
+    */
+
+    IsLoaded:      bool #align 1; /* 1 bits */ // Using during loading to mark finding a matching column.
+}
+
+set_SortDirection :: (fields: *TableColumnSettings, value: ImU8) {
+    MASK0: ImU8 : 0b11;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_SortDirection :: (fields: TableColumnSettings) -> ImU8 {
+    return (fields.__bitfield & 0b11);
+}
+
+set_IsEnabled :: (fields: *TableColumnSettings, value: ImS8) {
+    MASK0: ImU8 : (0b11 << 2);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (((cast,no_check(ImU8) value) << 2) & MASK0);
+}
+get_IsEnabled :: (fields: TableColumnSettings) -> ImS8 {
+    return (cast,no_check(ImS8) ((fields.__bitfield & (0b11 << 2)) >> 2));
+}
+
+set_IsStretch :: (fields: *TableColumnSettings, value: bool) {
+    if value fields.__bitfield |= 1 << 4;
+    else     fields.__bitfield &= ~cast(ImU8)(1 << 4);
+}
+get_IsStretch :: (fields: TableColumnSettings) -> bool {
+    return (fields.__bitfield & (1 << 4)) != 0;
+}
+
+
+// This is designed to be stored in a single ImChunkStream (1 header followed by N ImGuiTableColumnSettings, etc.)
+TableSettings :: struct {
+    ID_:             ID; // Set to 0 to invalidate/delete the setting
+    SaveFlags:       TableFlags; // Indicate data we want to save using the Resizable/Reorderable/Sortable/Hideable flags (could be using its own flags..)
+    RefScale:        float; // Reference scale to be able to rescale columns on font/dpi changes.
+    ColumnsCount:    TableColumnIdx;
+    ColumnsCountMax: TableColumnIdx; // Maximum number of columns this settings instance can store, we can recycle a settings instance with lower number of columns but not higher
+    LastUsedDate:    PackedDate;
+    WantApply:       bool; /* 1 bits */ // Set when loaded from .ini data (to enable merging/loading .ini data into an already running context)
+}
+
+// Hooks and storage for a given font backend.
+// This structure is likely to evolve as we add support for incremental atlas updates.
+// Conceptually this could be public, but API is still going to be evolve.
+ImFontLoader :: struct {
+    Name:                              *u8;
+    LoaderInit:                        #type (atlas: *ImFontAtlas) -> bool #c_call;
+    LoaderShutdown:                    #type (atlas: *ImFontAtlas) -> void #c_call;
+    FontSrcInit:                       #type (atlas: *ImFontAtlas, src: *ImFontConfig) -> bool #c_call;
+    FontSrcDestroy:                    #type (atlas: *ImFontAtlas, src: *ImFontConfig) -> void #c_call;
+    FontSrcGetGlyphIndexFromCodepoint: #type (atlas: *ImFontAtlas, src: *ImFontConfig, codepoint: ImWchar) -> s32 #c_call; // Required
+    FontSrcContainsGlyph:              #type (atlas: *ImFontAtlas, src: *ImFontConfig, glyph_index: s32) -> bool #c_call;
+    FontBakedInit:                     #type (atlas: *ImFontAtlas, src: *ImFontConfig, baked: *ImFontBaked, loader_data_for_baked_src: *void) -> bool #c_call;
+    FontBakedDestroy:                  #type (atlas: *ImFontAtlas, src: *ImFontConfig, baked: *ImFontBaked, loader_data_for_baked_src: *void) -> void #c_call;
+    FontBakedLoadGlyph:                #type (atlas: *ImFontAtlas, src: *ImFontConfig, baked: *ImFontBaked, loader_data_for_baked_src: *void, glyph_index: s32, out_glyph: *ImFontGlyph, out_advance_x: *float) -> bool #c_call; // Required
+
+    // Size of backend data, Per Baked * Per Source. Buffers are managed by core to avoid excessive allocations.
+    // FIXME: At this point the two other types of buffers may be managed by core to be consistent?
+    FontBakedSrcLoaderDataSize:        u64;
+}
+
+ImFontAtlasGetFontLoaderForStbTruetype :: () -> *ImFontLoader #foreign imgui "_Z38ImFontAtlasGetFontLoaderForStbTruetypev";
+
+// Packed rectangle lookup entry (we need an indirection to allow removing/reordering rectangles)
+// User are returned ImFontAtlasRectId values which are meant to be persistent.
+// We handle this with an indirection. While Rects[] may be in theory shuffled, compacted etc., RectsIndex[] cannot it is keyed by ImFontAtlasRectId.
+// RectsIndex[] is used both as an index into Rects[] and an index into itself. This is basically a free-list. See ImFontAtlasBuildAllocRectIndexEntry() code.
+// Having this also makes it easier to e.g. sort rectangles during repack.
+ImFontAtlasRectEntry :: struct {
+    __bitfield: s32;
+    /* 
+        TargetIndex: s32; /* 20 bits */ // When Used: ImFontAtlasRectId -> into Rects[]. When unused: index to next unused RectsIndex[] slot to consume free-list.
+        Generation: u32; /* 10 bits */ // Increased each time the entry is reused for a new rectangle.
+        IsUsed: u32; /* 1 bits */;
+    */
+}
+
+set_TargetIndex :: (fields: *ImFontAtlasRectEntry, value: s32) {
+    MASK0: s32 : 0b1111_1111_1111_1111_1111;
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (value & MASK0);
+}
+get_TargetIndex :: (fields: ImFontAtlasRectEntry) -> s32 {
+    return (fields.__bitfield & 0b1111_1111_1111_1111_1111);
+}
+
+set_Generation :: (fields: *ImFontAtlasRectEntry, value: u32) {
+    MASK0: s32 : (0b11_1111_1111 << 20);
+    fields.__bitfield = (fields.__bitfield & ~MASK0) | (((cast,no_check(s32) value) << 20) & MASK0);
+}
+get_Generation :: (fields: ImFontAtlasRectEntry) -> u32 {
+    return (cast,no_check(u32) ((fields.__bitfield & (0b11_1111_1111 << 20)) >> 20));
+}
+
+set_IsUsed :: (fields: *ImFontAtlasRectEntry, value: bool) {
+    if value fields.__bitfield |= 1 << 30;
+    else     fields.__bitfield &= ~cast(s32)(1 << 30);
+}
+get_IsUsed :: (fields: ImFontAtlasRectEntry) -> bool {
+    return (fields.__bitfield & (1 << 30)) != 0;
+}
+
+
+// Data available to potential texture post-processing functions
+ImFontAtlasPostProcessData :: struct {
+    FontAtlas: *ImFontAtlas;
+    Font:      *ImFont;
+    FontSrc:   *ImFontConfig;
+    FontBaked: *ImFontBaked;
+    Glyph:     *ImFontGlyph;
+
+    // Pixel data
+    Pixels:    *void;
+    Format:    ImTextureFormat;
+    Pitch:     s32;
+    Width:     s32;
+    Height:    s32;
+}
+
+stbrp_node :: struct {}
+stbrp_node_im :: stbrp_node;
+
+stbrp_context_opaque :: struct {
+    data: [80] u8;
+}
+
+// Internal storage for incrementally packing and building a ImFontAtlas
+ImFontAtlasBuilder :: struct {
+    PackContext:              stbrp_context_opaque; // Actually 'stbrp_context' but we don't want to define this in the header file.
+    PackNodes:                ImVector(stbrp_node_im);
+    Rects:                    ImVector(ImTextureRect);
+    RectsIndex:               ImVector(ImFontAtlasRectEntry); // ImFontAtlasRectId -> index into Rects[]
+    TempBuffer:               ImVector(u8); // Misc scratch buffer
+    RectsIndexFreeListStart:  s32; // First unused entry
+    RectsPackedCount:         s32; // Number of packed rectangles.
+    RectsPackedSurface:       s32; // Number of packed pixels. Used when compacting to heuristically find the ideal texture size.
+    RectsDiscardedCount:      s32;
+    RectsDiscardedSurface:    s32;
+    FrameCount:               s32; // Current frame count
+    MaxRectSize:              ImVec2i; // Largest rectangle to pack (de-facto used as a "minimum texture size")
+    MaxRectBounds:            ImVec2i; // Bottom-right most used pixels
+    LockDisableResize:        bool; // Disable resizing texture
+    PreloadedAllGlyphsRanges: bool; // Set when missing ImGuiBackendFlags_RendererHasTextures features forces atlas to preload everything.
+
+    // Cache of all ImFontBaked
+    BakedPool:                ImStableVector(ImFontBaked, 32);
+    BakedMap:                 Storage; // BakedId --> ImFontBaked*
+    BakedDiscardedCount:      s32;
+
+    PackIdMouseCursors:       ImFontAtlasRectId; // White pixel + mouse cursors. Also happen to be fallback in case of packing failure.
+    PackIdLinesTexData:       ImFontAtlasRectId;
+    PackIdLineFractTexData:   ImFontAtlasRectId;
+    PackIdCornersTexData:     ImFontAtlasRectId;
+
+    TexUvLines:               [46] ImVec4; // UVs for baked anti-aliased lines (u0, u1, v, 1/thickness)
+    TexUvCorners:             [64] ImVec4; // UVs for baked anti-aliased corners (0= fill, 1> stroke thickness)
+}
+
+ImFontAtlasBuildInit :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z20ImFontAtlasBuildInitP11ImFontAtlas";
+ImFontAtlasBuildDestroy :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z23ImFontAtlasBuildDestroyP11ImFontAtlas";
+ImFontAtlasBuildMain :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z20ImFontAtlasBuildMainP11ImFontAtlas";
+ImFontAtlasBuildSetupFontLoader :: (atlas: *ImFontAtlas, font_loader: *ImFontLoader) -> void #foreign imgui "_Z31ImFontAtlasBuildSetupFontLoaderP11ImFontAtlasPK12ImFontLoader";
+ImFontAtlasBuildNotifySetFont :: (atlas: *ImFontAtlas, old_font: *ImFont, new_font: *ImFont) -> void #foreign imgui "_Z29ImFontAtlasBuildNotifySetFontP11ImFontAtlasP6ImFontS2_";
+ImFontAtlasBuildUpdatePointers :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z30ImFontAtlasBuildUpdatePointersP11ImFontAtlas";
+ImFontAtlasBuildRenderBitmapFromString :: (atlas: *ImFontAtlas, x: s32, y: s32, w: s32, h: s32, in_str: *u8, in_marker_char: u8) -> void #foreign imgui "_Z38ImFontAtlasBuildRenderBitmapFromStringP11ImFontAtlasiiiiPKcc";
+ImFontAtlasBuildClear :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z21ImFontAtlasBuildClearP11ImFontAtlas";
+
+ImFontAtlasTextureAdd :: (atlas: *ImFontAtlas, w: s32, h: s32) -> *ImTextureData #foreign imgui "_Z21ImFontAtlasTextureAddP11ImFontAtlasii";
+ImFontAtlasTextureMakeSpace :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z27ImFontAtlasTextureMakeSpaceP11ImFontAtlas";
+ImFontAtlasTextureRepack :: (atlas: *ImFontAtlas, w: s32, h: s32) -> void #foreign imgui "_Z24ImFontAtlasTextureRepackP11ImFontAtlasii";
+ImFontAtlasTextureGrow :: (atlas: *ImFontAtlas, old_w: s32 = -1, old_h: s32 = -1) -> void #foreign imgui "_Z22ImFontAtlasTextureGrowP11ImFontAtlasii";
+ImFontAtlasTextureCompact :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z25ImFontAtlasTextureCompactP11ImFontAtlas";
+ImFontAtlasTextureGetSizeEstimate :: (atlas: *ImFontAtlas) -> ImVec2i #foreign imgui "_Z33ImFontAtlasTextureGetSizeEstimateP11ImFontAtlas";
+
+ImFontAtlasBuildSetupFontSpecialGlyphs :: (atlas: *ImFontAtlas, font: *ImFont, src: *ImFontConfig) -> void #foreign imgui "_Z38ImFontAtlasBuildSetupFontSpecialGlyphsP11ImFontAtlasP6ImFontP12ImFontConfig";
+ImFontAtlasBuildLegacyPreloadAllGlyphRanges :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z43ImFontAtlasBuildLegacyPreloadAllGlyphRangesP11ImFontAtlas";
+ImFontAtlasBuildGetOversampleFactors :: (src: *ImFontConfig, baked: *ImFontBaked, out_oversample_h: *s32, out_oversample_v: *s32) -> void #foreign imgui "_Z36ImFontAtlasBuildGetOversampleFactorsP12ImFontConfigP11ImFontBakedPiS3_";
+ImFontAtlasBuildDiscardBakes :: (atlas: *ImFontAtlas, unused_frames: s32) -> void #foreign imgui "_Z28ImFontAtlasBuildDiscardBakesP11ImFontAtlasi";
+
+ImFontAtlasFontSourceInit :: (atlas: *ImFontAtlas, src: *ImFontConfig) -> bool #foreign imgui "_Z25ImFontAtlasFontSourceInitP11ImFontAtlasP12ImFontConfig";
+ImFontAtlasFontSourceAddToFont :: (atlas: *ImFontAtlas, font: *ImFont, src: *ImFontConfig) -> void #foreign imgui "_Z30ImFontAtlasFontSourceAddToFontP11ImFontAtlasP6ImFontP12ImFontConfig";
+ImFontAtlasFontDestroySourceData :: (atlas: *ImFontAtlas, src: *ImFontConfig) -> void #foreign imgui "_Z32ImFontAtlasFontDestroySourceDataP11ImFontAtlasP12ImFontConfig";
+ImFontAtlasFontInitOutput :: (atlas: *ImFontAtlas, font: *ImFont) -> bool #foreign imgui "_Z25ImFontAtlasFontInitOutputP11ImFontAtlasP6ImFont";
+ImFontAtlasFontDestroyOutput :: (atlas: *ImFontAtlas, font: *ImFont) -> void #foreign imgui "_Z28ImFontAtlasFontDestroyOutputP11ImFontAtlasP6ImFont";
+ImFontAtlasFontRebuildOutput :: (atlas: *ImFontAtlas, font: *ImFont) -> void #foreign imgui "_Z28ImFontAtlasFontRebuildOutputP11ImFontAtlasP6ImFont";
+ImFontAtlasFontDiscardBakes :: (atlas: *ImFontAtlas, font: *ImFont, unused_frames: s32) -> void #foreign imgui "_Z27ImFontAtlasFontDiscardBakesP11ImFontAtlasP6ImFonti";
+
+ImFontAtlasBakedGetId :: (font_id: ID, baked_size: float, rasterizer_density: float) -> ID #foreign imgui "_Z21ImFontAtlasBakedGetIdjff";
+ImFontAtlasBakedGetOrAdd :: (atlas: *ImFontAtlas, font: *ImFont, font_size: float, font_rasterizer_density: float) -> *ImFontBaked #foreign imgui "_Z24ImFontAtlasBakedGetOrAddP11ImFontAtlasP6ImFontff";
+ImFontAtlasBakedGetClosestMatch :: (atlas: *ImFontAtlas, font: *ImFont, font_size: float, font_rasterizer_density: float) -> *ImFontBaked #foreign imgui "_Z31ImFontAtlasBakedGetClosestMatchP11ImFontAtlasP6ImFontff";
+ImFontAtlasBakedAdd :: (atlas: *ImFontAtlas, font: *ImFont, font_size: float, font_rasterizer_density: float, baked_id: ID) -> *ImFontBaked #foreign imgui "_Z19ImFontAtlasBakedAddP11ImFontAtlasP6ImFontffj";
+ImFontAtlasBakedDiscard :: (atlas: *ImFontAtlas, font: *ImFont, baked: *ImFontBaked) -> void #foreign imgui "_Z23ImFontAtlasBakedDiscardP11ImFontAtlasP6ImFontP11ImFontBaked";
+ImFontAtlasBakedAddFontGlyph :: (atlas: *ImFontAtlas, baked: *ImFontBaked, src: *ImFontConfig, in_glyph: *ImFontGlyph) -> *ImFontGlyph #foreign imgui "_Z28ImFontAtlasBakedAddFontGlyphP11ImFontAtlasP11ImFontBakedP12ImFontConfigPK11ImFontGlyph";
+ImFontAtlasBakedAddFontGlyphAdvancedX :: (atlas: *ImFontAtlas, baked: *ImFontBaked, src: *ImFontConfig, codepoint: ImWchar, advance_x: float) -> void #foreign imgui "_Z37ImFontAtlasBakedAddFontGlyphAdvancedXP11ImFontAtlasP11ImFontBakedP12ImFontConfigtf";
+ImFontAtlasBakedDiscardFontGlyph :: (atlas: *ImFontAtlas, font: *ImFont, baked: *ImFontBaked, glyph: *ImFontGlyph) -> void #foreign imgui "_Z32ImFontAtlasBakedDiscardFontGlyphP11ImFontAtlasP6ImFontP11ImFontBakedP11ImFontGlyph";
+ImFontAtlasBakedSetFontGlyphBitmap :: (atlas: *ImFontAtlas, baked: *ImFontBaked, src: *ImFontConfig, glyph: *ImFontGlyph, r: *ImTextureRect, src_pixels: *u8, src_fmt: ImTextureFormat, src_pitch: s32) -> void #foreign imgui "_Z34ImFontAtlasBakedSetFontGlyphBitmapP11ImFontAtlasP11ImFontBakedP12ImFontConfigP11ImFontGlyphP13ImTextureRectPKh15ImTextureFormati";
+
+ImFontAtlasPackInit :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z19ImFontAtlasPackInitP11ImFontAtlas";
+ImFontAtlasPackAddRect :: (atlas: *ImFontAtlas, w: s32, h: s32, overwrite_entry: *ImFontAtlasRectEntry = null) -> ImFontAtlasRectId #foreign imgui "_Z22ImFontAtlasPackAddRectP11ImFontAtlasiiP20ImFontAtlasRectEntry";
+ImFontAtlasPackGetRect :: (atlas: *ImFontAtlas, id: ImFontAtlasRectId) -> *ImTextureRect #foreign imgui "_Z22ImFontAtlasPackGetRectP11ImFontAtlasi";
+ImFontAtlasPackGetRectSafe :: (atlas: *ImFontAtlas, id: ImFontAtlasRectId) -> *ImTextureRect #foreign imgui "_Z26ImFontAtlasPackGetRectSafeP11ImFontAtlasi";
+ImFontAtlasPackDiscardRect :: (atlas: *ImFontAtlas, id: ImFontAtlasRectId) -> void #foreign imgui "_Z26ImFontAtlasPackDiscardRectP11ImFontAtlasi";
+
+ImFontAtlasUpdateNewFrame :: (atlas: *ImFontAtlas, frame_count: s32, renderer_has_textures: bool) -> void #foreign imgui "_Z25ImFontAtlasUpdateNewFrameP11ImFontAtlasib";
+ImFontAtlasAddDrawListSharedData :: (atlas: *ImFontAtlas, data: *ImDrawListSharedData) -> void #foreign imgui "_Z32ImFontAtlasAddDrawListSharedDataP11ImFontAtlasP20ImDrawListSharedData";
+ImFontAtlasRemoveDrawListSharedData :: (atlas: *ImFontAtlas, data: *ImDrawListSharedData) -> void #foreign imgui "_Z35ImFontAtlasRemoveDrawListSharedDataP11ImFontAtlasP20ImDrawListSharedData";
+ImFontAtlasUpdateDrawListsTextures :: (atlas: *ImFontAtlas, old_tex: ImTextureRef, new_tex: ImTextureRef) -> void #foreign imgui "_Z34ImFontAtlasUpdateDrawListsTexturesP11ImFontAtlas12ImTextureRefS1_";
+ImFontAtlasUpdateDrawListsSharedData :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z36ImFontAtlasUpdateDrawListsSharedDataP11ImFontAtlas";
+
+ImFontAtlasTextureBlockConvert :: (src_pixels: *u8, src_fmt: ImTextureFormat, src_pitch: s32, dst_pixels: *u8, dst_fmt: ImTextureFormat, dst_pitch: s32, w: s32, h: s32) -> void #foreign imgui "_Z30ImFontAtlasTextureBlockConvertPKh15ImTextureFormatiPhS1_iii";
+ImFontAtlasTextureBlockPostProcess :: (data: *ImFontAtlasPostProcessData) -> void #foreign imgui "_Z34ImFontAtlasTextureBlockPostProcessP26ImFontAtlasPostProcessData";
+ImFontAtlasTextureBlockPostProcessMultiply :: (data: *ImFontAtlasPostProcessData, multiply_factor: float) -> void #foreign imgui "_Z42ImFontAtlasTextureBlockPostProcessMultiplyP26ImFontAtlasPostProcessDataf";
+ImFontAtlasTextureBlockFill :: (dst_tex: *ImTextureData, dst_x: s32, dst_y: s32, w: s32, h: s32, col: ImU32) -> void #foreign imgui "_Z27ImFontAtlasTextureBlockFillP13ImTextureDataiiiij";
+ImFontAtlasTextureBlockCopy :: (src_tex: *ImTextureData, src_x: s32, src_y: s32, dst_tex: *ImTextureData, dst_x: s32, dst_y: s32, w: s32, h: s32) -> void #foreign imgui "_Z27ImFontAtlasTextureBlockCopyP13ImTextureDataiiS0_iiii";
+ImFontAtlasTextureBlockQueueUpload :: (atlas: *ImFontAtlas, tex: *ImTextureData, x: s32, y: s32, w: s32, h: s32) -> void #foreign imgui "_Z34ImFontAtlasTextureBlockQueueUploadP11ImFontAtlasP13ImTextureDataiiii";
+
+ImTextureDataUpdateNewFrame :: (tex: *ImTextureData) -> bool #foreign imgui "_Z27ImTextureDataUpdateNewFrameP13ImTextureData";
+ImTextureDataQueueUpload :: (tex: *ImTextureData, x: s32, y: s32, w: s32, h: s32) -> void #foreign imgui "_Z24ImTextureDataQueueUploadP13ImTextureDataiiii";
+ImTextureDataGetFormatBytesPerPixel :: (format: ImTextureFormat) -> s32 #foreign imgui "_Z35ImTextureDataGetFormatBytesPerPixel15ImTextureFormat";
+ImTextureDataGetStatusName :: (status: ImTextureStatus) -> *u8 #foreign imgui "_Z26ImTextureDataGetStatusName15ImTextureStatus";
+ImTextureDataGetFormatName :: (format: ImTextureFormat) -> *u8 #foreign imgui "_Z26ImTextureDataGetFormatName15ImTextureFormat";
+
+ImFontAtlasDebugLogTextureRequests :: (atlas: *ImFontAtlas) -> void #foreign imgui "_Z34ImFontAtlasDebugLogTextureRequestsP11ImFontAtlas";
+
+ImFontAtlasGetMouseCursorTexData :: (atlas: *ImFontAtlas, cursor_type: MouseCursor, out_offset: *ImVec2, out_size: *ImVec2, out_uv_border: *[2] ImVec2, out_uv_fill: *[2] ImVec2) -> bool #foreign imgui "_Z32ImFontAtlasGetMouseCursorTexDataP11ImFontAtlasiP6ImVec2S2_S2_S2_";
+
+//-----------------------------------------------------------------------------
+// ImDrawDataSnapshot - HEADERS
+//-----------------------------------------------------------------------------
+ImDrawDataSnapshotEntry :: struct {
+    SrcCopy:      *ImDrawList = null; // Drawlist owned by main context
+    OurCopy:      *ImDrawList = null; // Our copy
+    LastUsedTime: float64 = 0.0;
+}
+
+ImDrawDataSnapshot :: struct {
+    // Members
+    DrawData:           ImDrawData;
+    Cache:              ImPool(ImDrawDataSnapshotEntry);
+    MemoryCompactTimer: float = 20.0; // Discard unused data after 20 seconds
+
+    //-----------------------------------------------------------------------------
+    // ImDrawDataSnapshot - IMPLEMENTATION
+    //-----------------------------------------------------------------------------
+    Clear :: (this: *ImDrawDataSnapshot) -> void #cpp_method #foreign imgui "_ZN18ImDrawDataSnapshot5ClearEv";
+
+    SnapUsingSwap :: (this: *ImDrawDataSnapshot, src: *ImDrawData, current_time: float64) -> void #cpp_method #foreign imgui "_ZN18ImDrawDataSnapshot13SnapUsingSwapEP10ImDrawDatad";
+}
+
+// Signature for e.g. ImGui_ImplDX11_UpdateTexture
+ImplUpdateTextureFunc :: #type (tex: *ImTextureData) -> void #c_call;
+
+// All calls should be guarded by caller's mutex.
+ImTextureQueue :: struct {
+    InFlightFrames: s32 = 2; // Number of extra in-flight frames.
+    UpdateTexFunc:  ImplUpdateTextureFunc = null; // Pointer to backend function (e.g. ImGui_ImplDX11_UpdateTexture)
+
+    Textures:       ImVector(*ImTextureQueueEntry); // [Internal] All per-texture records. List modified by update thread only (+ Shutdown); record/mirror fields are written by both threads under caller's mutex.
+    RenderFrame:    s32 = 0; // [Internal] Number of ProcessRequests() calls (~Presents)
+
+    // Functions
+    PreNewFrame :: (this: *ImTextureQueue) -> void #cpp_method #foreign imgui "_ZN14ImTextureQueue11PreNewFrameEv";
+
+    // (Update thread)
+    QueueRequests :: (this: *ImTextureQueue, draw_data: *ImDrawData) -> void #cpp_method #foreign imgui "_ZN14ImTextureQueue13QueueRequestsEP10ImDrawData";
+
+    // (Render thread)
+    ProcessRequests :: (this: *ImTextureQueue, draw_data: *ImDrawData) -> void #cpp_method #foreign imgui "_ZN14ImTextureQueue15ProcessRequestsEP10ImDrawData";
+
+    Shutdown :: (this: *ImTextureQueue) -> void #cpp_method #foreign imgui "_ZN14ImTextureQueue8ShutdownEv";
+}
+
+// Persistent per-texture state + staging mirror. Pointed to by ImTextureData::QueueUserData in live textures.
+ImTextureQueueEntry :: struct {
+    TexLive:                   *ImTextureData = null; // Live texture owned by core.
+    TexCopy:                   ImTextureData; // Staging mirror.
+    DestroyFrameCount:         s32 = -1; // ImDrawData::FrameCount of the frame which queued the destroy (-1 = none queued).
+    DestroyArmedAtRenderFrame: s32 = -1; // Value of RenderFrame when the retirement countdown started.
+}
+
+#scope_file
+
+#import "Basic"; // For print_to_builder
 
 
 #if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
