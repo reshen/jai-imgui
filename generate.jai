@@ -6,13 +6,17 @@ IMGUI_PATH :: "src/imgui"; // Docking e11ad6b77e5c7f7ed28467fec42fe2c72068b68e (
 SDL3_INCLUDE_PATH :: "src/include"; // Used for SDL v3.2.14
 GLFW_INCLUDE_PATH :: "src/include"; // Used for GLFW v3.4
 
+GLM_PATH :: "src/glm";
+
 // reshen@ - disabling dll, since I don't use them
 BUILD_DYNAMIC_LIB :: false;
 
 DECLARATIONS_TO_OMIT :: string.[
     // We have custom declarations for these in module.jai:
     "ImVec2",
+    "ImVec3",
     "ImVec4",
+    "ImQuat",
     "ImColor",
     "ImVector",
     "ImDrawCallback",
@@ -61,7 +65,8 @@ generate_imgui_bindings :: (args: [] string) -> bool {
         array_add(*imgui_src_files, tprint("%/implot.cpp", IMGUI_PATH));
         array_add(*imgui_src_files, tprint("%/implot_items.cpp", IMGUI_PATH));
         array_add(*imgui_src_files, tprint("%/implot_demo.cpp", IMGUI_PATH));
-        array_add(*imgui_src_files, tprint("%/ImGuizmo.cpp", IMGUI_PATH));
+        // array_add(*imgui_src_files, tprint("%/ImGuizmo.cpp", IMGUI_PATH));
+        array_add(*imgui_src_files, tprint("%/ImViewGuizmo.cpp", IMGUI_PATH));
 
         // For multi-threaded context:
         array_add(*imgui_src_files, tprint("%/imgui_threaded_rendering.cpp", IMGUI_PATH));
@@ -75,17 +80,17 @@ generate_imgui_bindings :: (args: [] string) -> bool {
             lib_dir := ifx compile_debug then "windows/debug" else "windows/release";
             make_directory_if_it_does_not_exist(lib_dir);
 
-            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib(tprint("%/ImGui", lib_dir), ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)"], debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib(tprint("%/ImGui", lib_dir), ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)", "/std:c++20", tprint("/I%", GLM_PATH)], debug=compile_debug);
 
             // We set IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS. Otherwise all users of the ImGui module have to link against "imm32".
-            success &&= build_cpp_static_lib(tprint("%/ImGui.static", lib_dir), ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)", "/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS"], debug=compile_debug);
+            success &&= build_cpp_static_lib(tprint("%/ImGui.static", lib_dir), ..imgui_src_files, extra = .["/DIMGUI_API=__declspec(dllexport)", "/DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS", "/std:c++20", tprint("/I%", GLM_PATH)], debug=compile_debug);
 
         } else #if OS == .LINUX {
             make_directory_if_it_does_not_exist("linux");
-            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("linux/ImGui", ..imgui_src_files, debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("linux/ImGui", ..imgui_src_files, extra = .["-std=c++20", tprint("-I%", GLM_PATH)], debug=compile_debug);
             // @Hack: Is -fno-threadsafe-statics really the way to go? Without it, we get linker errors when using the static library
             // due to "__cxa_guard_acquire" et al not being defined. The library users probably need to link agains libc++ or something. But do we really want to enforce that?
-            success &&= build_cpp_static_lib("linux/ImGui", ..imgui_src_files, extra = .["-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", "-fPIC"], debug=compile_debug);
+            success &&= build_cpp_static_lib("linux/ImGui", ..imgui_src_files, extra = .["-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", "-fPIC", tprint("-I%", GLM_PATH)], debug=compile_debug);
         } else #if OS == .MACOS {
 
             #import "Process";
@@ -96,16 +101,16 @@ generate_imgui_bindings :: (args: [] string) -> bool {
             macos_arm64_version_arg := "-mmacos-version-min=11.0";  // Earliest version that supports arm64
 
             // x64 variant
-            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", macos_x64_version_arg], debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", macos_x64_version_arg, "-Isrc/glm"], debug=compile_debug);
 
             // @Hack: Is -fno-threadsafe-statics really the way to go? Without it, we get linker errors when using the static library
             // due to "__cxa_guard_acquire" et al not being defined. The library users probably need to link agains libc++ or something. But do we really want to enforce that?
-            success &&= build_cpp_static_lib( "macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_x64_version_arg], debug=compile_debug);
+            success &&= build_cpp_static_lib( "macos/ImGui_x64", ..imgui_src_files, extra = .["-arch", "x86_64", "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_x64_version_arg, "-Isrc/glm"], debug=compile_debug);
 
             // arm64 variant
-            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", macos_arm64_version_arg], debug=compile_debug);
+            #if BUILD_DYNAMIC_LIB  success &&= build_cpp_dynamic_lib("macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", macos_arm64_version_arg, "-Isrc/glm"], debug=compile_debug);
 
-            success &&= build_cpp_static_lib( "macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_arm64_version_arg], debug=compile_debug);
+            success &&= build_cpp_static_lib( "macos/ImGui_arm64", ..imgui_src_files, extra = .["-arch", "arm64",  "-std=c++20", "-fno-exceptions", "-fno-rtti", "-fno-threadsafe-statics", macos_arm64_version_arg, "-Isrc/glm"], debug=compile_debug);
 
             run_result: Process_Result;
 
@@ -160,8 +165,8 @@ generate_imgui_bindings :: (args: [] string) -> bool {
             generate_library_declarations = false;
 
             footer = #string EOF
-imgui :: #library,no_dll "ImGui.static";
-EOF
+                imgui :: #library,no_dll "ImGui.static";
+                EOF
 
         } else {
 
@@ -183,7 +188,8 @@ EOF
         array_add(*source_files,  
             tprint("%/imgui.h", IMGUI_PATH),  
             tprint("%/implot.h", IMGUI_PATH),
-            tprint("%/ImGuizmo.h", IMGUI_PATH),
+            // tprint("%/ImGuizmo.h", IMGUI_PATH),
+            tprint("%/ImViewGuizmo_jai.h", IMGUI_PATH),
             tprint("%/imgui_threaded_rendering.h", IMGUI_PATH),  
         );
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
@@ -207,6 +213,7 @@ EOF
     }
 
     success := generate_bindings(opts, output_filename);
+    assert(success, "failed to generate_bindings");
 
     // Horrible hack but...
     #if OS == .MACOS {
@@ -310,8 +317,8 @@ compile_and_generate_bindings_backend_sdl3 :: (compile_debug: bool, include_gpu:
             generate_library_declarations = false;
 
             footer = #string EOF
-imgui_sdl3 :: #library,no_dll "ImGui_sdl3.static";
-EOF
+                imgui_sdl3 :: #library,no_dll "ImGui_sdl3.static";
+                EOF
 
         } else {
 
@@ -345,7 +352,7 @@ EOF
 END
         }
 
-        array_add(*include_paths, IMGUI_PATH, SDL3_INCLUDE_PATH);
+        array_add(*include_paths, IMGUI_PATH, SDL3_INCLUDE_PATH, GLM_PATH);
         array_add(*source_files, tprint("%/backends/imgui_impl_sdl3.h", IMGUI_PATH), tprint("%/backends/imgui_impl_sdlgpu3.h", IMGUI_PATH));
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
@@ -360,6 +367,7 @@ END
     }
 
     success = generate_bindings(opts, output_filename);
+    assert(success, "failed to generate_bindings");
 
     // Horrible hack but...
     #if OS == .MACOS {
@@ -457,8 +465,8 @@ compile_and_generate_bindings_backend_glfw_opengl3 :: (compile_debug: bool) -> b
             generate_library_declarations = false;
 
             footer = #string EOF
-imgui_glfw_opengl3 :: #library,no_dll "ImGui_glfw_opengl3.static";
-EOF
+                imgui_glfw_opengl3 :: #library,no_dll "ImGui_glfw_opengl3.static";
+                EOF
 
         } else {
 
@@ -492,7 +500,7 @@ EOF
 END
         }
 
-        array_add(*include_paths, IMGUI_PATH, GLFW_INCLUDE_PATH);
+        array_add(*include_paths, IMGUI_PATH, GLFW_INCLUDE_PATH, GLM_PATH);
         array_add(*source_files, tprint("%/backends/imgui_impl_glfw.h", IMGUI_PATH), tprint("%/backends/imgui_impl_opengl3.h", IMGUI_PATH));
         array_add(*extra_clang_arguments, "-x", "c++", "-DWIN32_LEAN_AND_MEAN");
         array_add(*flatten_namespaces, "ImGui");
@@ -507,6 +515,7 @@ END
     }
 
     success = generate_bindings(opts, output_filename);
+    assert(success, "failed to generate_bindings");
 
     // Horrible hack but...
     #if OS == .MACOS {
@@ -612,8 +621,8 @@ imgui_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_
 
     // Look for function arguments with "typedef" types.
     if parent_decl &&
-        (parent_decl.kind == .FUNCTION || parent_decl.kind == .STRUCT) &&
-        decl.kind == .DECLARATION && decl.type.type_of_typedef != null
+    (parent_decl.kind == .FUNCTION || parent_decl.kind == .STRUCT) &&
+    decl.kind == .DECLARATION && decl.type.type_of_typedef != null
     {
         old_name := decl.type.type_of_typedef.name;
         if old_name {
@@ -724,7 +733,7 @@ imgui_get_function_arg_for_printing :: (func: *Function, type: *Function_Type, m
 
 FOOTER_UNIX :: #string END
 
-#if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
-#if OS == .LINUX    imgui :: #library,no_dll "linux/ImGui";
+    #if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
+    #if OS == .LINUX    imgui :: #library,no_dll "linux/ImGui";
 
-END
+    END

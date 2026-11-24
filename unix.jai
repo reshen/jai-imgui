@@ -30,8 +30,6 @@ IMPLOT_VERSION :: "1.2 WIP";
 
 IMPLOT_VERSION_NUM :: 10200;
 
-IMGUIZMO_NAMESPACE :: zmo;
-
 IMGUI_PAYLOAD_TYPE_WINDOW :: "_IMWINDOW";
 
 IM_PI :: 3.14159265358979323846;
@@ -6689,241 +6687,90 @@ ImPlot :: struct {
     ShowDemoWindow :: (p_open: *bool = null) -> void #foreign imgui "_ZN6ImPlot14ShowDemoWindowEPb";
 }
 
-zmo :: struct {
-    // call inside your own window and before Manipulate() in order to draw gizmo to that window.
-    // Or pass a specific ImDrawList to draw to (e.g. ImGui::GetForegroundDrawList()).
-    SetDrawlist :: (drawlist: *ImDrawList = null) -> void #foreign imgui "_ZN8ImGuizmo11SetDrawlistEP10ImDrawList";
-
-    // call BeginFrame right after ImGui_XXXX_NewFrame();
-    BeginFrame :: () -> void #foreign imgui "_ZN8ImGuizmo10BeginFrameEv";
-
-    // this is necessary because when imguizmo is compiled into a dll, and imgui into another
-    // globals are not shared between them.
-    // More details at https://stackoverflow.com/questions/19373061/what-happens-to-global-and-static-variables-in-a-shared-library-when-it-is-dynam
-    // expose method to set imgui context
-    SetImGuiContext :: (ctx: *ImGuiContext) -> void #foreign imgui "_ZN8ImGuizmo15SetImGuiContextEP12ImGuiContext";
-
-    // return true if mouse cursor is over any gizmo control (axis, plan or screen component)
-    IsOver :: () -> bool #foreign imgui "_ZN8ImGuizmo6IsOverEv";
-
-    // return true if mouse IsOver or if the gizmo is in moving state
-    IsUsing :: () -> bool #foreign imgui "_ZN8ImGuizmo7IsUsingEv";
-
-    // return true if the view gizmo is in moving state
-    IsUsingViewManipulate :: () -> bool #foreign imgui "_ZN8ImGuizmo21IsUsingViewManipulateEv";
-
-    // only check if your mouse is over the view manipulator - no matter whether it's active or not
-    IsViewManipulateHovered :: () -> bool #foreign imgui "_ZN8ImGuizmo23IsViewManipulateHoveredEv";
-
-    // return true if any gizmo is in moving state
-    IsUsingAny :: () -> bool #foreign imgui "_ZN8ImGuizmo10IsUsingAnyEv";
-
-    // enable/disable the gizmo. Stay in the state until next call to Enable.
-    // gizmo is rendered with gray half transparent color when disabled
-    Enable :: (enable: bool) -> void #foreign imgui "_ZN8ImGuizmo6EnableEb";
-
-    // helper functions for manualy editing translation/rotation/scale with an input float
-    // translation, rotation and scale float points to 3 floats each
-    // Angles are in degrees (more suitable for human editing)
-    // example:
-    // float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-    // ImGuizmo::DecomposeMatrixToComponents(gizmoMatrix.m16, matrixTranslation, matrixRotation, matrixScale);
-    // ImGui::InputFloat3("Tr", matrixTranslation, 3);
-    // ImGui::InputFloat3("Rt", matrixRotation, 3);
-    // ImGui::InputFloat3("Sc", matrixScale, 3);
-    // ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, gizmoMatrix.m16);
-    //
-    // These functions have some numerical stability issues for now. Use with caution.
-    DecomposeMatrixToComponents :: (matrix: *float, translation: *float, rotation: *float, scale: *float) -> void #foreign imgui "_ZN8ImGuizmo27DecomposeMatrixToComponentsEPKfPfS2_S2_";
-    RecomposeMatrixFromComponents :: (translation: *float, rotation: *float, scale: *float, matrix: *float) -> void #foreign imgui "_ZN8ImGuizmo29RecomposeMatrixFromComponentsEPKfS1_S1_Pf";
-
-    SetRect :: (x: float, y: float, width: float, height: float) -> void #foreign imgui "_ZN8ImGuizmo7SetRectEffff";
-
-    // default is false
-    SetOrthographic :: (isOrthographic: bool) -> void #foreign imgui "_ZN8ImGuizmo15SetOrthographicEb";
-
-    // Render coordinate system axes (red X, green Y and blue Z). Usefull for debug/tests
-    DrawAxes :: (view: *float, projection: *float, matrices: *float, matrixCount: s32) -> void #foreign imgui "_ZN8ImGuizmo8DrawAxesEPKfS1_S1_i";
-
-    // Render a cube with face color corresponding to face normal. Usefull for debug/tests
-    DrawCubes :: (view: *float, projection: *float, matrices: *float, matrixCount: s32) -> void #foreign imgui "_ZN8ImGuizmo9DrawCubesEPKfS1_S1_i";
-    DrawGrid :: (view: *float, projection: *float, matrix: *float, gridSize: float) -> void #foreign imgui "_ZN8ImGuizmo8DrawGridEPKfS1_S1_f";
-
-    // Render grid with customizable major line step and amount of segments between major lines.
-    // NOTE(m.wlasiuk) : calling this function with majorStep = 1.0f and subdivision = 1 is equivalent to DrawGrid in terms of the end result but performs more calculations
-    DrawGridCustom :: (view: *float, projection: *float, matrix: *float, gridSize: float, majorStep: float, subdivision: u32) -> void #foreign imgui "_ZN8ImGuizmo14DrawGridCustomEPKfS1_S1_ffj";
-
-    // Render grid with customizable major line step and amount of segments between major lines and with possibility to set custom colors for major, minor and center lines
-    DrawGridCustomColor :: (view: *float, projection: *float, matrix: *float, gridSize: float, majorStep: float, subdivision: u32, majorCol: ImU32, minorCol: ImU32, centerCol: ImU32) -> void #foreign imgui "_ZN8ImGuizmo19DrawGridCustomColorEPKfS1_S1_ffjjjj";
-
-    // call it when you want a gizmo
-    // Needs view and projection matrices.
-    // matrix parameter is the source matrix (where will be gizmo be drawn) and might be transformed by the function. Return deltaMatrix is optional
-    // translation is applied in world space
-    OPERATION :: enum u32 {
-        TRANSLATE_X   :: 1;
-        TRANSLATE_Y   :: 2;
-        TRANSLATE_Z   :: 4;
-        ROTATE_X      :: 8;
-        ROTATE_Y      :: 16;
-        ROTATE_Z      :: 32;
-        ROTATE_SCREEN :: 64;
-        SCALE_X       :: 128;
-        SCALE_Y       :: 256;
-        SCALE_Z       :: 512;
-        BOUNDS        :: 1024;
-        SCALE_XU      :: 2048;
-        SCALE_YU      :: 4096;
-        SCALE_ZU      :: 8192;
-
-        TRANSLATE     :: 7;
-        ROTATE        :: 120;
-        SCALE         :: 896;
-        SCALEU        :: 14336;
-        UNIVERSAL     :: 14463;
-    }
-
-    MODE :: enum u32 {
-        LOCAL :: 0;
-        WORLD :: 1;
-    }
-
-    Manipulate :: (view: *float, projection: *float, operation: OPERATION, mode: MODE, matrix: *float, deltaMatrix: *float = null, snap: *float = null, localBounds: *float = null, boundsSnap: *float = null) -> bool #foreign imgui "_ZN8ImGuizmo10ManipulateEPKfS1_NS_9OPERATIONENS_4MODEEPfS4_S1_S1_S1_";
-
-    //
-    // Please note that this cubeview is patented by Autodesk : https://patents.google.com/patent/US7782319B2/en
-    // It seems to be a defensive patent in the US. I don't think it will bring troubles using it as
-    // other software are using the same mechanics. But just in case, you are now warned!
-    //
-    ViewManipulate :: (view: *float, length: float, position: ImVec2, size: ImVec2, backgroundColor: ImU32) -> void #foreign imgui "_ZN8ImGuizmo14ViewManipulateEPff6ImVec2S1_j";
-
-    // use this version if you did not call Manipulate before and you are just using ViewManipulate
-    ViewManipulate :: (view: *float, projection: *float, operation: OPERATION, mode: MODE, matrix: *float, length: float, position: ImVec2, size: ImVec2, backgroundColor: ImU32) -> void #foreign imgui "_ZN8ImGuizmo14ViewManipulateEPfPKfNS_9OPERATIONENS_4MODEES0_f6ImVec2S5_j";
-
-    SetAlternativeWindow :: (window: *Window) -> void #foreign imgui "_ZN8ImGuizmo20SetAlternativeWindowEP11ImGuiWindow";
-
-    SetID :: (id: s32) -> void #foreign imgui "_ZN8ImGuizmo5SetIDEi";
-
-    // ID stack/scopes
-    // Read the FAQ (docs/FAQ.md or http://dearimgui.org/faq) for more details about how ID are handled in dear imgui.
-    // - Those questions are answered and impacted by understanding of the ID stack system:
-    //   - "Q: Why is my widget not reacting when I click on it?"
-    //   - "Q: How can I have widgets with an empty label?"
-    //   - "Q: How can I have multiple widgets with the same label?"
-    // - Short version: ID are hashes of the entire ID stack. If you are creating widgets in a loop you most likely
-    //   want to push a unique identifier (e.g. object pointer, loop index) to uniquely differentiate them.
-    // - You can also use the "Label##foobar" syntax within widget label to distinguish them from each others.
-    // - In this header file we use the "label"/"name" terminology to denote a string that will be displayed + used as an ID,
-    //   whereas "str_id" denote a string that is only used as an ID and not normally displayed.
-    PushID :: (str_id: *u8) -> void #foreign imgui "_ZN8ImGuizmo6PushIDEPKc";
-    PushID :: (str_id_begin: *u8, str_id_end: *u8) -> void #foreign imgui "_ZN8ImGuizmo6PushIDEPKcS1_";
-    PushID :: (str_id: string) #no_context {
-        PushID(str_id.data, str_id.data + str_id.count);
-    }
-    PushID :: (ptr_id: *void) -> void #foreign imgui "_ZN8ImGuizmo6PushIDEPKv";
-    PushID :: (int_id: s32) -> void #foreign imgui "_ZN8ImGuizmo6PushIDEi";
-    PopID :: () -> void #foreign imgui "_ZN8ImGuizmo5PopIDEv";
-    GetID :: (str_id: *u8) -> ID #foreign imgui "_ZN8ImGuizmo5GetIDEPKc";
-    GetID :: (str_id_begin: *u8, str_id_end: *u8) -> ID #foreign imgui "_ZN8ImGuizmo5GetIDEPKcS1_";
-    GetID :: (str_id: string) -> ID #no_context {
-        return GetID(str_id.data, str_id.data + str_id.count);
-    }
-    GetID :: (ptr_id: *void) -> ID #foreign imgui "_ZN8ImGuizmo5GetIDEPKv";
-
-    // return true if the cursor is over the operation's gizmo
-    IsOver :: (op: OPERATION) -> bool #foreign imgui "_ZN8ImGuizmo6IsOverENS_9OPERATIONE";
-    SetGizmoSizeClipSpace :: (value: float) -> void #foreign imgui "_ZN8ImGuizmo21SetGizmoSizeClipSpaceEf";
-
-    // Handle type used by the translate/rotate/scale gizmos.
-    MOVETYPE :: enum u32 {
-        MT_NONE          :: 0;
-        MT_MOVE_X        :: 1;
-        MT_MOVE_Y        :: 2;
-        MT_MOVE_Z        :: 3;
-        MT_MOVE_YZ       :: 4;
-        MT_MOVE_ZX       :: 5;
-        MT_MOVE_XY       :: 6;
-        MT_MOVE_SCREEN   :: 7;
-        MT_ROTATE_X      :: 8;
-        MT_ROTATE_Y      :: 9;
-        MT_ROTATE_Z      :: 10;
-        MT_ROTATE_SCREEN :: 11;
-        MT_SCALE_X       :: 12;
-        MT_SCALE_Y       :: 13;
-        MT_SCALE_Z       :: 14;
-        MT_SCALE_XYZ     :: 15;
-    }
-
-    // Returns which handle is actively being dragged, or MT_NONE.
-    GetActiveHandleType :: () -> MOVETYPE #foreign imgui "_ZN8ImGuizmo19GetActiveHandleTypeEv";
-
-    // Returns which handle is currently hovered, or MT_NONE.
-    GetHoveredHandleType :: () -> MOVETYPE #foreign imgui "_ZN8ImGuizmo20GetHoveredHandleTypeEv";
-
-    // Aliases matching the MOVETYPE enum name.
-    GetActiveMoveType :: () -> MOVETYPE #foreign imgui "_ZN8ImGuizmo17GetActiveMoveTypeEv";
-    GetHoveredMoveType :: () -> MOVETYPE #foreign imgui "_ZN8ImGuizmo18GetHoveredMoveTypeEv";
-
-    // Allow axis to flip
-    // When true (default), the guizmo axis flip for better visibility
-    // When false, they always stay along the positive world/local axis
-    AllowAxisFlip :: (value: bool) -> void #foreign imgui "_ZN8ImGuizmo13AllowAxisFlipEb";
-
-    // Configure the limit where axis are hidden
-    SetAxisLimit :: (value: float) -> void #foreign imgui "_ZN8ImGuizmo12SetAxisLimitEf";
-
-    // Set an axis mask to permanently hide a given axis (true -> hidden, false -> shown)
-    SetAxisMask :: (x: bool, y: bool, z: bool) -> void #foreign imgui "_ZN8ImGuizmo11SetAxisMaskEbbb";
-
-    // Configure the limit where planes are hiden
-    SetPlaneLimit :: (value: float) -> void #foreign imgui "_ZN8ImGuizmo13SetPlaneLimitEf";
-
-    // from a x,y,z point in space and using Manipulation view/projection matrix, check if mouse is in pixel radius distance of that projected point
-    IsOver :: (position: *float, pixelRadius: float) -> bool #foreign imgui "_ZN8ImGuizmo6IsOverEPff";
-
-    // Compute the world-space mouse picking ray from explicit inputs, without reading ImGui IO.
-    // Useful for tests/headless usage. view and projection are column-major float[16] (same
-    // layout as Manipulate). rayOrigin and rayDirection receive a float[3] each.
-    ComputeMouseRay :: (view: *float, projection: *float, mousePosition: *ImVec2, rectPosition: *ImVec2, rectSize: *ImVec2, rayOrigin: *float, rayDirection: *float) -> void #foreign imgui "_ZN8ImGuizmo15ComputeMouseRayEPKfS1_RK6ImVec2S4_S4_PfS5_";
-    ComputeMouseRay :: (view: *float, projection: *float, mousePosition: ImVec2, rectPosition: ImVec2, rectSize: ImVec2, rayOrigin: *float, rayDirection: *float) #no_context {
-        ComputeMouseRay(view, projection, *mousePosition, *rectPosition, *rectSize, rayOrigin, rayDirection);
-    }
-
-    COLOR :: enum u32 {
-        DIRECTION_X           :: 0;
-        DIRECTION_Y           :: 1;
-        DIRECTION_Z           :: 2;
-        PLANE_X               :: 3;
-        PLANE_Y               :: 4;
-        PLANE_Z               :: 5;
-        SELECTION             :: 6;
-        INACTIVE              :: 7;
-        TRANSLATION_LINE      :: 8;
-        SCALE_LINE            :: 9;
-        ROTATION_USING_BORDER :: 10;
-        ROTATION_USING_FILL   :: 11;
-        HATCHED_AXIS_LINES    :: 12;
-        TEXT                  :: 13;
-        TEXT_SHADOW           :: 14;
-        COUNT                 :: 15;
-    }
-
+ImViewGuizmo :: struct {
     Style :: struct {
-        Constructor :: (this: *Style) -> void #cpp_method #foreign imgui "_ZN8ImGuizmo5StyleC1Ev";
+        scale:                  float = 1.0;
 
-        TranslationLineThickness:   float; // Thickness of lines for translation gizmo
-        TranslationLineArrowSize:   float; // Size of arrow at the end of lines for translation gizmo
-        RotationLineThickness:      float; // Thickness of lines for rotation gizmo
-        RotationOuterLineThickness: float; // Thickness of line surrounding the rotation gizmo
-        ScaleLineThickness:         float; // Thickness of lines for scale gizmo
-        ScaleLineCircleSize:        float; // Size of circle at the end of lines for scale gizmo
-        HatchedAxisLineThickness:   float; // Thickness of hatched axis lines
-        CenterCircleSize:           float; // Size of circle at the center of the translate/scale gizmo
+        // Axis visuals
+        lineLength:             float = 0.5;
+        lineWidth:              float = 4.0;
+        circleRadius:           float = 15.0;
+        fadeFactor:             float = 0.25;
 
-        Colors:                     [15] ImVec4;
+        // Highlight
+        highlightColor:         ImU32 = 4278255615;
+        highlightWidth:         float = 2.0;
+
+        // Axis
+        axisColors:             [3] ImU32;
+
+        // Labels
+        labelSize:              float = 1.0;
+        axisLabels:             [6] *u8;
+        labelColor:             ImU32 = 4279767566;
+
+        // Big Circle
+        bigCircleRadius:        float = 80.0;
+        bigCircleColor:         ImU32 = 855638015;
+
+        // Animation
+        animateSnap             := true;
+        snapAnimationDuration:  float = 0.5; // in seconds
+
+        // Zoom/Pan Button Visuals
+        toolButtonRadius:       float = 25.0;
+        toolButtonInnerPadding: float = 4.0;
+
+        toolButtonColor:        ImU32 = 848334992;
+        toolButtonHoveredColor: ImU32 = 853006295;
+        toolButtonIconColor:    ImU32 = 3789019095;
     }
 
-    GetStyle :: () -> *Style #foreign imgui "_ZN8ImGuizmo8GetStyleEv";
+    ActiveTool :: enum u32 {
+        TOOL_NONE  :: 0;
+        TOOL_GIZMO :: 1;
+        TOOL_DOLLY :: 2;
+        TOOL_PAN   :: 3;
+    }
+
+    Context :: struct {
+        hoveredAxisID:       s32 = -1;
+        isZoomButtonHovered  := false;
+        isPanButtonHovered   := false;
+        activeTool:          ActiveTool = .TOOL_NONE;
+
+        // Animation state
+        isAnimating          := false;
+        animationStartTime:  float = 0.0;
+
+        startPos:            ImVec3;
+        targetPos:           ImVec3;
+        startUp:             ImVec3;
+        targetUp:            ImVec3;
+
+        animStartDir:        ImVec3;
+        animTargetDir:       ImVec3;
+        animStartDist:       float;
+        animTargetDist:      float;
+    }
+
+    GetStyle :: () -> *Style #foreign imgui "_ZN12ImViewGuizmo8GetStyleEv";
+    GetContext :: () -> *Context #foreign imgui "_ZN12ImViewGuizmo10GetContextEv";
+    BeginFrame :: () -> void #foreign imgui "_ZN12ImViewGuizmo10BeginFrameEv";
+    IsUsing :: () -> bool #foreign imgui "_ZN12ImViewGuizmo7IsUsingEv";
+    IsOver :: () -> bool #foreign imgui "_ZN12ImViewGuizmo6IsOverEv";
+    Rotate :: (cameraPos: *ImVec3, cameraRot: *ImQuat, pivot: *ImVec3, position: ImVec2, rotationSpeed: float = 0.01) -> bool #foreign imgui "_ZN12ImViewGuizmo6RotateER6ImVec3R6ImQuatRKS0_6ImVec2f";
+    Rotate :: (cameraPos: *ImVec3, cameraRot: *ImQuat, pivot: ImVec3, position: ImVec2, rotationSpeed: float = 0.01) -> bool #no_context {
+        return Rotate(cameraPos, cameraRot, *pivot, position, rotationSpeed);
+    }
+    Dolly :: (cameraPos: *ImVec3, cameraRot: *ImQuat, position: ImVec2, zoomSpeed: float = 0.05) -> bool #foreign imgui "_ZN12ImViewGuizmo5DollyER6ImVec3RK6ImQuat6ImVec2f";
+    Dolly :: (cameraPos: *ImVec3, cameraRot: ImQuat, position: ImVec2, zoomSpeed: float = 0.05) -> bool #no_context {
+        return Dolly(cameraPos, *cameraRot, position, zoomSpeed);
+    }
+    Pan :: (cameraPos: *ImVec3, cameraRot: *ImQuat, position: ImVec2, panSpeed: float = 0.01) -> bool #foreign imgui "_ZN12ImViewGuizmo3PanER6ImVec3RK6ImQuat6ImVec2f";
+    Pan :: (cameraPos: *ImVec3, cameraRot: ImQuat, position: ImVec2, panSpeed: float = 0.01) -> bool #no_context {
+        return Pan(cameraPos, *cameraRot, position, panSpeed);
+    }
 }
 
 DockRequest :: struct {}
@@ -10223,6 +10070,6 @@ ImTextureQueueEntry :: struct {
 #import "Basic"; // For print_to_builder
 
 
-#if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
-#if OS == .LINUX    imgui :: #library,no_dll "linux/ImGui";
+    #if OS == .MACOS    imgui :: #library,no_dll "macos/ImGui";
+    #if OS == .LINUX    imgui :: #library,no_dll "linux/ImGui";
 

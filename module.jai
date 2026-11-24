@@ -1,7 +1,9 @@
 #module_parameters (DEBUG := true);
 
 ImVec2      :: Vector2;
+ImVec3      :: Vector3;
 ImVec4      :: Vector4;
+ImQuat      :: Quaternion;
 ImColor     :: Vector4;
 
 ImVector :: struct (T: Type) {

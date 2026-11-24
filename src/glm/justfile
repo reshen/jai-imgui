@@ -1,0 +1,16 @@
+
+alias b := build
+alias rb := rebuild
+
+rebuild: clean build
+
+build:
+    cmake \
+        -DGLM_BUILD_TESTS=OFF \
+        -DBUILD_SHARED_LIBS=OFF \
+        -B build .
+    cmake --build build -- all
+    # cmake --build build -- install
+
+clean:
+    rm -rf build

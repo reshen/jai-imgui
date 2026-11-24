@@ -14,3 +14,6 @@
 [submodule "src/imguizmo"]
 	path = src/imguizmo
 	url = git@github.com:CedricGuillemet/ImGuizmo.git
+[submodule "ImViewGuizmo"]
+	path = src/ImViewGuizmo
+	url = git@github.com:Ka1serM/ImViewGuizmo.git
